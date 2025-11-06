@@ -70,10 +70,11 @@ void inline OptReaction::JF11
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);            
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);            
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                
         }   
     }
@@ -170,15 +171,18 @@ void inline OptReaction::JF12
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
+
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
+            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);            
         } 
     }
 }             
@@ -295,18 +299,22 @@ void inline OptReaction::JF13
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
+
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
-            sr2v = _mm256_add_pd(sr2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);
+
+            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            sr2v = _mm256_add_pd(sr2v,WdMdC);
+            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);            
         } 
     }
 }            
@@ -399,15 +407,18 @@ void inline OptReaction::JF21
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
+
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);               
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
+            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                              
         } 
     }    
 }     
@@ -519,16 +530,19 @@ void inline OptReaction::JF22
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
         } 
     }
@@ -661,20 +675,24 @@ void inline OptReaction::JF23
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
-            sr2v = _mm256_add_pd(sr2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);                   
+
+            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            sr2v = _mm256_add_pd(sr2v,WdMdC);
+            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);                    
         } 
     }  
 }    
@@ -781,16 +799,22 @@ void inline OptReaction::JF31
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+
+
+            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            sl2v = _mm256_sub_pd(sl2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
         } 
     }  
@@ -918,19 +942,23 @@ void inline OptReaction::JF32
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+
+            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            sl2v = _mm256_sub_pd(sl2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
         } 
     }  
@@ -1082,23 +1110,29 @@ void inline OptReaction::JF33
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            sr0v = _mm256_add_pd(sr0v,WdMdC);
-            sr1v = _mm256_add_pd(sr1v,WdMdC);
-            sr2v = _mm256_add_pd(sr2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+
+            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            sl1v = _mm256_sub_pd(sl1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+
+            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            sl2v = _mm256_sub_pd(sl2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+
+            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            sr0v = _mm256_add_pd(sr0v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+
+            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            sr1v = _mm256_add_pd(sr1v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+
+            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            sr2v = _mm256_add_pd(sr2v,WdMdC);
             _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);
+
         } 
     }  
 }
