@@ -32,6 +32,8 @@ LUsolver::LUsolver(double* externalData, int size)
 
 LUsolver::~LUsolver()
 {
+    delete[] this->pivotIndice_;
+    this->pivotIndice_ = nullptr;
     if(this->owner==false)
     {
         this->v_ = nullptr;        
@@ -1148,7 +1150,7 @@ void LUsolver::UpdateL22U22_Vec2_1
         double U3 = rowk3[N-1];  
         __m256d Uv = _mm256_setr_pd(U0,U1,U2,U3);
 
-        for(int unsigned i = k1; i < this->N-1; i=i+4)
+        for(unsigned int i = k1; i < this->N-1; i=i+4)
         {
             double* __restrict__ rowi0 = &v_[(i+0)*alignN];
             double* __restrict__ rowi1 = &v_[(i+1)*alignN];
