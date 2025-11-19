@@ -804,7 +804,7 @@ OptReaction::dNdtByV
                 dNdtByV[sr2] = dNdtByV[sr2] + q;
             }
         }
-        else if(J>3 || K>3)
+        if(J>3 || K>3)
         {
             this->RFGI(i,this->Kf_[i],c,dNdtByV,&tmp_Exp[0]);
         }

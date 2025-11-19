@@ -1201,7 +1201,19 @@ void inline OptReaction::JFGI
             CF = CF * C[sl];
         }
     }
-
+    else
+    {
+        for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
+        {
+            const unsigned int si = this->rhsSpeciesIndex[i][j];
+            CR = CR * C[si];
+        }
+        for(unsigned int j = 0; j < this->lhsSpeciesIndex[i].size();j++)
+        {
+            const unsigned int sl = this->lhsSpeciesIndex[i][j];
+            CF = CF * C[sl];
+        }
+    }
     const double q = Kf*CF - Kr*CR;
     const double dqdT = (dKfdT*CF-dKrdT*CR);
 
