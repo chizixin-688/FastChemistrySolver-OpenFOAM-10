@@ -3021,7 +3021,11 @@ void LUsolver::Block4LUDecompose
             this->permutation1(k0,k1);
             this->backSitituate4_1(k0,k1);
             this->UpdateL22U22_Vec2_1(k0,k1);
-        }   
+        }
+        if(v_[(N-1)*alignN+N-1]==0)
+        {
+            v_[(N-1)*alignN+N-1] = 2.2204460492503131e-16;
+        }
         this->invD[N-1] = 1.0/v_[(N-1)*alignN+N-1];
     }
     else if(this->Remain==2)
