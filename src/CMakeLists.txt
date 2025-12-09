@@ -23,7 +23,7 @@ set(CMAKE_BUILD_TYPE release)
 #set(MKL_LIB_DIR /opt/intel/oneapi/mkl/latest/lib/intel64)
 #-g -fno-omit-frame-pointer
 set(DEFINITIONS_COMPILE "-std=c++14 -m64 -Dlinux64 -DWM_ARCH_OPTION=64 -DWM_DP 
--DWM_LABEL_SIZE=32 
+-DWM_LABEL_SIZE=32 -g -fno-omit-frame-pointer
 
 -Wold-style-cast -Wnon-virtual-dtor 
 -Wno-unused-parameter -Wno-invalid-offsetof -Wno-attributes   -DNoRepository 
@@ -31,7 +31,7 @@ set(DEFINITIONS_COMPILE "-std=c++14 -m64 -Dlinux64 -DWM_ARCH_OPTION=64 -DWM_DP
 -Wreturn-local-addr -Wlogical-op  -Wduplicated-cond -Wduplicated-branches
 -Wconversion
 -Wall -Wextra -Wshadow -Winit-self -Wuninitialized -Wmaybe-uninitialized
--ftemplate-depth-100 -fPIC -O3 -mavx2  -mfma ")
+-ftemplate-depth-100 -fPIC -O0 -mavx2  -mfma ")
 #-fopt-info-vec-missed=vec_missed.log
 add_definitions("${DEFINITIONS_COMPILE}")
 
@@ -59,18 +59,17 @@ include_directories(
 
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/asmCode       
-        ${CMAKE_SOURCE_DIR}/Aligned
         ${CMAKE_SOURCE_DIR}/ChemistryModel
+        ${CMAKE_SOURCE_DIR}/ChemistryModel/Jacobian
         ${CMAKE_SOURCE_DIR}/dataBlock
         ${CMAKE_SOURCE_DIR}/dataBlock/simpleDataBlock
         ${CMAKE_SOURCE_DIR}/LUsolver
-        ${CMAKE_SOURCE_DIR}/ODE/OptRodas23
         ${CMAKE_SOURCE_DIR}/ODE/OptRodas34
-        ${CMAKE_SOURCE_DIR}/ODE/OptRosenbrock23
         ${CMAKE_SOURCE_DIR}/ODE/OptRosenbrock34
-        ${CMAKE_SOURCE_DIR}/ODE/oRosenbrock34
         ${CMAKE_SOURCE_DIR}/ODE/OptSeulex
         ${CMAKE_SOURCE_DIR}/Reaction 
+        ${CMAKE_SOURCE_DIR}/Thermo/idealGas 
+        ${CMAKE_SOURCE_DIR}/Thermo
         ) #change here
 
 link_directories(${OpenFOAM_LIB_DIR} ${OpenFOAM_LIB_DIR}/dummy ${OpenFOAM_LIB_DIR}/${PATH_LIB_OPENMPI} )
@@ -96,6 +95,8 @@ add_library(
     asmCode/svml_d_gnulog4_core_avx2.S
     dataBlock/dataBlock.C 
     dataBlock/simpleDataBlock/simpleDataBlock.C
+    Thermo/createIdealGasFromFoamDict.C
+    Thermo/idealGas/idealGas.C
 )
 
 target_link_libraries(${PROJECT_NAME} 

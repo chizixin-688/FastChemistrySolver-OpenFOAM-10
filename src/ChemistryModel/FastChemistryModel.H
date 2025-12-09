@@ -41,6 +41,8 @@ SourceFiles
 #include "simpleDataBlock.H"
 #include "OptReaction.H"
 
+#include "idealGas.H"
+#include "createIdealGasFromFoamDict.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -57,6 +59,9 @@ class FastChemistryModel
 {
     // Private data
 
+        //- Pointer for ideal gas
+        std::unique_ptr<FastThermo::idealGas> gas;
+
         //- Reference to the field of specie mass fractions
         const PtrList<volScalarField>& Yvf_;
 
@@ -66,11 +71,47 @@ class FastChemistryModel
         //- Type of the Jacobian to be calculated
         const jacobianType jacobianType_;
 
-        //- Reactions
+        //- Gas phase reactions
         mutable OptReaction reaction;
 
         //- List of reaction rate per specie [kg/m^3/s]
         PtrList<volScalarField> RR_;
+
+        using ddYdtdYPtrType = void(FastChemistryModel<ThermoType>::*)
+        (
+            const double* __restrict__ ,
+            const double* __restrict__ ,
+            const double* __restrict__ ,
+            const double* __restrict__ ,
+            const double* __restrict__ ,
+            const double* __restrict__ ,
+            double* __restrict__ ,
+            double* __restrict__ ,
+            double rhoM
+        ) const noexcept;
+        ddYdtdYPtrType  ddYdtdYPtr = nullptr;
+
+        using ddYdtdTPtrType = void(FastChemistryModel<ThermoType>::*)
+        (
+            const double* __restrict__ ddNdtByVdcT,
+            const double* __restrict__ WiByrhoM,
+            const double* __restrict__ c,
+            double* __restrict__ dPhidt,
+            double* __restrict__ Jac,
+            double alphavM
+        ) const noexcept;
+        ddYdtdTPtrType  ddYdtdTPtr = nullptr;
+
+
+        using ddTdtdYTPtrType = void(FastChemistryModel<ThermoType>::*)
+        (
+            const double* __restrict__ Cp,
+            const double* __restrict__ dCpdT,
+            const double* __restrict__ Ha,      
+            double* __restrict__ dPhidt,  
+            double* __restrict__ Jac
+        ) const noexcept;
+        ddTdtdYTPtrType  ddTdtdYTPtr = nullptr;
 
 public:
         //- Data buffer
@@ -271,10 +312,331 @@ public:
                 double& __restrict__ subDeltaT
             ) const = 0;  
 
+        // Jacobian functions 
+            #include "JacobianFuncDeclaration.H"
+            /*void FastddYdtdY_Vec44_0
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void FastddYdtdY_Vec44_1
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void FastddYdtdY_Vec44_2
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void FastddYdtdY_Vec44_3
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_0
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_1
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_2
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_3
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_4
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_5
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_6
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdY_Vec844_7
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ rhoMByRhoi,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ dPhidt,
+                const double* __restrict__ invW,
+                const double* __restrict__ Phi,
+                double* __restrict__ dcdY,
+                double* __restrict__ Jac,
+                double rhoM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_0
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_1
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_2
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_3
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_4
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_5
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_6
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddYdtdT_Vec88_7
+            (
+                const double* __restrict__ ddNdtByVdcT,
+                const double* __restrict__ WiByrhoM,
+                const double* __restrict__ c,
+                double* __restrict__ dPhidt,
+                double* __restrict__ Jac,
+                double alphavM
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_0
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_1
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_2
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_3
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_4
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_5
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_6
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;
+
+            void ddTdtdYT_Vec88_7
+            (
+                const double* __restrict__ Cp,
+                const double* __restrict__ dCpdT,
+                const double* __restrict__ Ha,      
+                double* __restrict__ dPhidt,  
+                double* __restrict__ Jac
+            ) const noexcept;*/
+
     // Member Operators
 
         //- Disallow default bitwise assignment
         void operator=(const FastChemistryModel&) = delete;
+
+
+    // SIMD inline function
+
+        inline double hsum4(__m256d v) const;
+        inline __m256d hsum4x4(__m256d sum0, __m256d sum1,__m256d sum2, __m256d sum3) const;
+        inline void transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)const;
+        inline double get_elem0(__m256d vec) const;
+        inline double get_elem1(__m256d vec) const;
+        inline double get_elem2(__m256d vec) const;
+        inline double get_elem3(__m256d vec) const;
 };
 
 
@@ -290,6 +652,34 @@ public:
 
 #ifdef NoRepository
     #include "FastChemistryModel.C"
+    #include "FastddYdtdY_Vec44_0.C"
+    #include "FastddYdtdY_Vec44_1.C"
+    #include "FastddYdtdY_Vec44_2.C"
+    #include "FastddYdtdY_Vec44_3.C"
+    #include "ddYdtdY_Vec844_0.C"
+    #include "ddYdtdY_Vec844_1.C"
+    #include "ddYdtdY_Vec844_2.C"
+    #include "ddYdtdY_Vec844_3.C"
+    #include "ddYdtdY_Vec844_4.C"
+    #include "ddYdtdY_Vec844_5.C"
+    #include "ddYdtdY_Vec844_6.C"
+    #include "ddYdtdY_Vec844_7.C"
+    #include "ddYdtdT_Vec88_0.C"
+    #include "ddYdtdT_Vec88_1.C"
+    #include "ddYdtdT_Vec88_2.C"
+    #include "ddYdtdT_Vec88_3.C"
+    #include "ddYdtdT_Vec88_4.C"
+    #include "ddYdtdT_Vec88_5.C"
+    #include "ddYdtdT_Vec88_6.C"
+    #include "ddYdtdT_Vec88_7.C"
+    #include "ddTdtdYT_Vec88_0.C"
+    #include "ddTdtdYT_Vec88_1.C"
+    #include "ddTdtdYT_Vec88_2.C"
+    #include "ddTdtdYT_Vec88_3.C"
+    #include "ddTdtdYT_Vec88_4.C"
+    #include "ddTdtdYT_Vec88_5.C"
+    #include "ddTdtdYT_Vec88_6.C"
+    #include "ddTdtdYT_Vec88_7.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

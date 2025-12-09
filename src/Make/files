@@ -1,6 +1,8 @@
 odeChemistrySolvers.C
 dataBlock/dataBlock.C
 dataBlock/simpleDataBlock/simpleDataBlock.C
+Thermo/createIdealGasFromFoamDict.C
+Thermo/idealGas/idealGas.C
 
 LIB = $(FOAM_USER_LIBBIN)/libFastChemistryModel
 

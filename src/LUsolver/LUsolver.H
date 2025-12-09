@@ -3,6 +3,7 @@
 
 #ifndef LUsolver_H
 #define LUsolver_H
+#include "Macro.H"
 #include <vector>
 #include <immintrin.h>
 class LUsolver
@@ -31,6 +32,24 @@ class LUsolver
 
         //- Whether the data is own
         bool owner;
+
+        using UpdateFunc = void (LUsolver::*)(unsigned int, unsigned int, unsigned int, unsigned int);
+
+        UpdateFunc updateTable[3][2] =
+        {
+            {   
+                &LUsolver::UpdateL22U22_Vec_38_00,
+                &LUsolver::UpdateL22U22_Vec_38_04
+            },
+            {   
+                &LUsolver::UpdateL22U22_Vec_38_10,
+                &LUsolver::UpdateL22U22_Vec_38_14
+            },
+            {
+                &LUsolver::UpdateL22U22_Vec_38_20,
+                &LUsolver::UpdateL22U22_Vec_38_24
+            }
+        };
 
 public:
 
@@ -120,7 +139,14 @@ public:
                 void UpdateL22U22_Vec2_1(unsigned int k0,unsigned int k1);  
                 void UpdateL22U22_Vec2_2(unsigned int k0,unsigned int k1);  
                 void UpdateL22U22_Vec2_3(unsigned int k0,unsigned int k1);   
-                
+
+                void UpdateL22U22_Vec_38_00(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
+                void UpdateL22U22_Vec_38_10(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
+                void UpdateL22U22_Vec_38_20(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
+
+                void UpdateL22U22_Vec_38_04(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
+                void UpdateL22U22_Vec_38_14(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
+                void UpdateL22U22_Vec_38_24(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
         //void LUDecompose_s();
 
         // Read square matrix from text.

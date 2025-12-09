@@ -47,7 +47,8 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
     reaction(),
     RR_(this->nSpecie_),
     n_(this->nSpecie_+1),
-    alignN(n_+(4-(this->nSpecie_+1)%4)),
+    //alignN(n_+(4-(this->nSpecie_+1)%4)),
+    alignN(((n_+3)/4)*4),
     Treact(this->lookupOrDefault("Treact",0)),
     DLBthreshold(this->lookupOrDefault("DLBthreshold",1.0)),
     MaxIter(this->lookupOrDefault("Iter",1)),
@@ -95,7 +96,7 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
                     << Foam::abort(FatalError);
     }
     reaction.readInfo(chemistryProperties,thermoDict);
-
+    FastThermo::createIdealGasFromFoamDict(thermoDict,gas);
     // Create the fields for the chemistry sources
     forAll(RR_, fieldi)
     {
@@ -125,7 +126,6 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
         
 
         //size_t alignN = N;
-        alignN = static_cast<unsigned int>(n_+(4-(this->nSpecie()+1)%4));
         
         size_t totalSize = 12*alignN + 3*alignN*n_;
         size_t bytes = totalSize * sizeof(double);
@@ -153,6 +153,69 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
     }
 
     reaction.alignN = this->alignN;
+
+    // select the jacobian function
+    {
+        int remain = this->nSpecie()%8;
+
+        if(remain==0)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_0;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_0;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_0;
+        }
+        else if(remain==1)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_1;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_1;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_1;
+        }
+        else if(remain==2)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_2;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_2;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_2;
+        }
+        else if(remain==3)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_3;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_3;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_3;
+        }
+        else if(remain==4)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_4;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_4;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_4;
+        }
+        else if(remain==5)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_5;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_5;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_5;
+        }
+        else if(remain==6)
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_6;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_6;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_6;
+        }
+        else
+        {
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_7;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_7;
+            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_7;
+        }
+    }
+
 }
 
 
@@ -188,13 +251,32 @@ void Foam::FastChemistryModel<ThermoType>::derivatives
 ) const
 {
     double* __restrict__ c = YTpYTpWork[0];
-    int remain = nSpecie_%4;
 
-    const double T = Phi[nSpecie_];
-    //const volScalarField& p0vf = this->thermo().p().oldTime();
-    //double p = p0vf[li];
+    // Constrain temperature to valid range (given by thermo.dat)
+    const double Tlowmin = gas->TlowMin;
+    const double Thighmax = gas->ThighMax;
+    double T = Phi[this->nSpecie()];
+    T = T<Tlowmin?Tlowmin:T;
+    T = T>Thighmax?Thighmax:T;
+
+    // Computing temperature and pressure, required by thermo and chemistry
+    __m256d TP = _mm256_setr_pd(T,p,1,1);
+    TP = vec256_logd(TP);
+    const double invT = 1.0/T;
+    const double logT = get_elem0(TP);
+    const double logP = get_elem1(TP);
+    gas->invT = invT;
+    gas->logT = logT;
+    reaction.invT = invT;
+    reaction.logT = logT;
+    reaction.logP = logP;
+
+    // set to zero
+    std::memset(dPhidt, 0, alignN*sizeof(double));
     
-    for (int i=0; i<this->nSpecie(); i++)
+    
+    int remain = this->nSpecie()%4;
+    /*for (int i=0; i<this->nSpecie(); i++)
     {
         Phi[i] = std::max(Phi[i], 0.0);
     }
@@ -205,8 +287,8 @@ void Foam::FastChemistryModel<ThermoType>::derivatives
     __m256d rhoMv = _mm256_setzero_pd();
     for (int i=0; i<nSpecie_-remain; i=i+4)
     {
-        __m256d YTpv = _mm256_loadu_pd(&Phi[i+0]);
-        __m256d invWv = _mm256_loadu_pd(&reaction.invW[i+0]);
+        __m256d YTpv = load256d(&Phi[i+0]);
+        __m256d invWv = load256d(&reaction.invW[i+0]);
         rhoMv = _mm256_fmadd_pd(_mm256_mul_pd(YTpv,invWv),RuTByPv,rhoMv);
     }
     for(int i = nSpecie_-remain; i<nSpecie_;i++)
@@ -220,41 +302,64 @@ void Foam::FastChemistryModel<ThermoType>::derivatives
     for (label i=0; i<nSpecie_; i ++)
     {
         c[i] = rhoM*reaction.invW[i]*Phi[i];
-    }
+    }*/
 
-    std::memset(dPhidt, 0, alignN * sizeof(double));
 
-    reaction.dNdtByV(p,T,c,dPhidt,Cp,Ha);
+    // Compute the thermodynamic parameters required by chemical reaction rate
 
-    double CpM = 0;
+    // i-th species variables (size:nSpecie):
+    // c[i]             :Molar concentration                                [kmol/m^3]
+    // Cp[i]            :Specific heat capacity                             [J/kg/K]
+    // Ha[i]            :Absolute enthalpy                                  [J/kg]
+    // tmp_Exp[i]       :Dimensionless standard Gibbs energy(-Gstd/Ru/T)    [dimLess] 
+
+    // Mixture variable:
+    // gas->rhoM        :Mixture density                                    [kg/m^3]
+    // gas->vM          :Mixture specific volume                            [m^3/kg]
+    // Cp[nSpecie()]    :Mixture specific heat capacity                     [J/kg/K]
+    gas->DerivativeThermoYT(T,p,Phi,c,Cp,Ha,reaction.tmp_Exp);
+
+
+    // Compute the molar reaction rate
+
+    // i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Molar reaction rate                                [kmol/m^3/s]
+    reaction.dNdtByV(p,T,c,dPhidt);
+
+
+    // Compute the change rate of mass fraction and temperature
+
+    // i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Mass fraction change rate                          [1/s]
+
+    // Mixture variable:
+    // dTdt             :Temperature change rate                            [K/s]
     double dTdt = 0;
-
-    __m256d CpMv = _mm256_setzero_pd();
+    double vm = gas->vM;
+    const double* __restrict__ W = gas->W;
     __m256d dTdtv = _mm256_setzero_pd();
-    for (label i=0; i<nSpecie_-remain; i=i+4)
+    __m256d invrhoMv = _mm256_set1_pd(vm);
+    for (label i=0; i<this->nSpecie()-remain; i=i+4)
     {
-        __m256d Wv = _mm256_loadu_pd(&reaction.W[i]);
-        __m256d dYTdtv = _mm256_loadu_pd(&dPhidt[i]);
-        __m256d invrhoMv = _mm256_set1_pd(invrhoM);
-        dYTdtv = _mm256_mul_pd(_mm256_mul_pd(Wv,invrhoMv),dYTdtv);
-        _mm256_storeu_pd(&dPhidt[i],dYTdtv);
+        __m256d Wv = load256d(&W[i]);
+        __m256d dYTdtv = load256d(&dPhidt[i]);
 
-        __m256d YTv = _mm256_loadu_pd(&Phi[i]);
-        __m256d Cpv = _mm256_loadu_pd(&Cp[i]);
-        CpMv = _mm256_fmadd_pd(YTv,Cpv,CpMv);
-        __m256d Hav = _mm256_loadu_pd(&Ha[i]);
+        dYTdtv = _mm256_mul_pd(_mm256_mul_pd(Wv,invrhoMv),dYTdtv);
+        store256d(&dPhidt[i],dYTdtv);
+
+        __m256d Hav = load256d(&Ha[i]);
         dTdtv = _mm256_fmadd_pd(Hav,dYTdtv,dTdtv);
     }
     for(label i = nSpecie_-remain;i<nSpecie_;i++)
     {
-        dPhidt[i] =dPhidt[i]*reaction.W[i]/rhoM;
-        CpM += Phi[i]*Cp[i];
+        dPhidt[i] =dPhidt[i]*W[i]*vm;
         dTdt -= dPhidt[i]*Ha[i];
     }
-    CpM = CpM + reaction.hsum4(CpMv);
     dTdt = dTdt -(reaction.hsum4(dTdtv));
-    dTdt /= CpM;
-    dPhidt[nSpecie_] = dTdt;
+    dTdt /= Cp[this->nSpecie()];
+    dPhidt[this->nSpecie()] = dTdt;
+
+
 }
 
 template<class ThermoType>
@@ -274,11 +379,36 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
         Phi[i] = std::max(Phi[i], 0.0);
     }
 
-    const double T = Phi[this->nSpecie()];
-    //const volScalarField& p0vf = this->thermo().p().oldTime();
-    //double p = p0vf[li];
+    // Constrain temperature to valid range (given by thermo.dat)
+    const double Tlowmin = gas->TlowMin;
+    const double Thighmax = gas->ThighMax;
+    double T = Phi[this->nSpecie()];
+    T = T<Tlowmin?Tlowmin:T;
+    T = T>Thighmax?Thighmax:T;
+
+    // Computing temperature and pressure, required by thermo and chemistry
+    __m256d TP = _mm256_setr_pd(T,p,1,1);
+    TP = vec256_logd(TP);
+    const double invT = 1.0/T;
+    const double logT = get_elem0(TP);
+    const double logP = get_elem1(TP);
+    gas->invT = invT;
+    gas->logT = logT;
+    reaction.invT = invT;
+    reaction.logT = logT;
+    reaction.logP = logP;
+
+
         
     double* __restrict__ ddNdtByVdcT = YTpYTpWork[0];
+    double* __restrict__ c           = YTpWork[3];
+    double* __restrict__ dBdT        = YTpWork[4];
+    double* __restrict__ dCpdT       = YTpWork[5];
+    double* __restrict__ Cp          = YTpWork[6];
+    double* __restrict__ Ha          = YTpWork[7];
+    double* __restrict__ WiByrhoM    = YTpWork[8];
+    double* __restrict__ rhoMByRhoi      = YTpWork[10];
+    double* __restrict__ dcdY      = YTpYTpWork[2];
 
     {
         size_t size = alignN*(this->nSpecie()+1);
@@ -289,15 +419,16 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
         std::memset(dPhidt, 0, size * sizeof(double));
     }
 
-    double* __restrict__ c           = YTpWork[3];
-    double* __restrict__ dBdT        = YTpWork[4];
-    double* __restrict__ dCpdT       = YTpWork[5];
-    double* __restrict__ Cp          = YTpWork[6];
-    double* __restrict__ Ha          = YTpWork[7];
-    double* __restrict__ WiByrhoM    = YTpWork[8];
-    double* __restrict__ rhoMByRhoi      = YTpWork[10];
-       
-    reaction.ddNdtByVdcTp
+
+
+
+    //for(int i =0;i<this->nSpecie()+1;i++)
+    //{
+    //    std::cout<<c[i]<<" "<<dBdT[i]<<" "<<dCpdT[i]<<" "<<Cp[i]<<" "<<Ha[i]<<" "<<rhoMByRhoi[i]<<" "<<WiByrhoM[i]<<" "<<std::exp(reaction.tmp_Exp[i])<<std::endl;
+    //}
+    //std::exit(0);
+    
+    /*reaction.ddNdtByVdcTp
     (
         p,
         T,
@@ -311,63 +442,186 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
         rhoMByRhoi,
         WiByrhoM,
         ddNdtByVdcT
+    );*/
+
+
+    // d(dPhidt)dPhi. Phi=[Y0 Y1 Y2 ... YNs T]
+
+
+
+    // Compute the thermodynamic parameters required by chemical Jacobian matrix
+    // 
+
+    // i-th species variables (size:nSpecie):
+    // c[i]             :Molar concentration                                [kmol/m^3]
+    // Cp[i]            :Specific heat capacity                             [J/kg/K]
+    // Ha[i]            :Absolute enthalpy                                  [J/kg]
+    // tmp_Exp[i]       :Dimensionless standard Gibbs energy(-Gstd/Ru/T)    [dimLess] 
+    // dBdT[i]          :Partial derivative of -Gstd/Ru w.r.t temperature   [dimLess]
+    // dCpdT[i]         :Partial derivative of Cp w.r.t temperature         [J/kg/K/K]
+    // rhoMByRhoi[i]    :Mixture density divided by species density         [dimLess]
+    // WiByrhoM[i]      :Specific molar volume                              [m^3/kmol]
+
+    // Mixture variable:
+    // gas->rhoM        :Mixture density                                    [kg/m^3]
+    // gas->vM          :Mixture specific volume                            [m^3/kg]
+    // Cp[nSpecie()]    :Mixture specific heat capacity                     [J/kg/K]
+    gas->JacobianThermoYT
+    (
+        p,
+        T,
+        Phi,
+        c,
+        reaction.tmp_Exp,
+        dBdT,
+        dCpdT,
+        Cp,
+        Ha,
+        rhoMByRhoi,
+        WiByrhoM
     );
-    unsigned int remain = reaction.nSpecies%4;
+
+    // Compute the molar based jacobian matrix d(dcTdt)dcT
+    // cT = [c0, c1, ..., cNs, T]
+    reaction.ddNdtByVdcTp
+    (
+        p,
+        T,
+        Phi,
+        c,
+        dPhidt,
+        dBdT,
+        ddNdtByVdcT
+    );
+
+    // Compute the mass fraction based jacobian matrix d(dYTdt)dYT
+    // YT = [Y0, Y1, ..., YNs, T]
+    double* __restrict__ invW = gas->invW;
+    double rhoM = gas->rhoM;
+    double alphav = gas->alphav();
+
+    (this->*ddYdtdYPtr)(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+    (this->*ddYdtdTPtr)(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+    (this->*ddTdtdYTPtr)(Cp,dCpdT,Ha,dPhidt,Jac);
+
+    /*int remain = this->nSpecie()%4;
     switch (jacobianType_)
     {
         case jacobianType::fast:
-        if(remain==0)
-        {
-            reaction.FastddYdtdY_Vec0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==1)
-        {
-            reaction.FastddYdtdY_Vec1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
-            reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==2)
-        {
-            reaction.FastddYdtdY_Vec2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else
-        {
-            reaction.FastddYdtdY_Vec3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
-            reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
+            if(remain==0)
+            {
+                //reaction.FastddYdtdY_Vec0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
+                this->FastddYdtdY_Vec44_0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
+                reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else if(remain==1)
+            {
+                //reaction.FastddYdtdY_Vec1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
+                this->FastddYdtdY_Vec44_1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
+                reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else if(remain==2)
+            {
+                //reaction.FastddYdtdY_Vec2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
+                this->FastddYdtdY_Vec44_2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
+                reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else
+            {
+                //reaction.FastddYdtdY_Vec3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
+                this->FastddYdtdY_Vec44_3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
+                reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
         break;            
         case jacobianType::exact:
-        if(remain==0)
-        {
-            reaction.ddYdtdY_Vec1_0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==1)
-        {
-            reaction.ddYdtdY_Vec1_1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
-            reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==2)
-        {
-            reaction.ddYdtdY_Vec1_2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else
-        {
-            reaction.ddYdtdY_Vec1_3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
-            reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
+            if(this->nSpecie()%8==0)
+            {
+                this->ddYdtdY_Vec844_0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_0(Cp,dCpdT,Ha,dPhidt,Jac);
+
+                break;
+
+            }
+            else if(this->nSpecie()%8==1)
+            {
+                this->ddYdtdY_Vec844_1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_1(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else if(this->nSpecie()%8==2)
+            {
+                this->ddYdtdY_Vec844_2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_2(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else if(this->nSpecie()%8==3)
+            {
+                this->ddYdtdY_Vec844_3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_3(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else if(this->nSpecie()%8==4)
+            {
+                this->ddYdtdY_Vec844_4(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_4(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_4(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else if(this->nSpecie()%8==5)
+            {
+                this->ddYdtdY_Vec844_5(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_5(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_5(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else if(this->nSpecie()%8==6)
+            {
+                this->ddYdtdY_Vec844_6(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_6(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_6(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            else 
+            {
+                this->ddYdtdY_Vec844_7(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+                this->ddYdtdT_Vec88_7(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+                this->ddTdtdYT_Vec88_7(Cp,dCpdT,Ha,dPhidt,Jac);
+                break;
+            }
+            if(remain==0)
+            {
+                reaction.ddYdtdY_Vec1_0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
+                reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
+                reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else if(remain==1)
+            {
+                reaction.ddYdtdY_Vec1_1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
+                reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
+                reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else if(remain==2)
+            {
+                reaction.ddYdtdY_Vec1_2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
+                reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
+                reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
+            else
+            {
+                reaction.ddYdtdY_Vec1_3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
+                reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
+                reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
+            }
         break;
-    }
+    }*/
 }
 
 
@@ -441,88 +695,7 @@ Foam::FastChemistryModel<ThermoType>::tc() const
     }
     ttc.ref().correctBoundaryConditions();
     return ttc;
-    /*tmp<volScalarField> ttc
-    (
-        volScalarField::New
-        (
-            "tc",
-            this->mesh(),
-            dimensionedScalar(dimTime, small),
-            extrapolatedCalculatedFvPatchScalarField::typeName
-        )
-    );
-    scalarField& tc = ttc.ref();
 
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
-
-    if (this->chemistry_)
-    {
-        reactionEvaluationScope scope(*this);
-
-        forAll(rho, celli)
-        {
-            const scalar rhoi = rho[celli];
-            const scalar Ti = T[celli];
-            const scalar pi = p[celli];
-
-            for (label i=0; i<nSpecie_; i++)
-            {
-                c_[i] = rhoi*Yvf_[i][celli]/specieThermos_[i].W();
-            }
-
-            // A reaction's rate scale is calculated as it's molar
-            // production rate divided by the total number of moles in the
-            // system.
-            //
-            // The system rate scale is the average of the reactions' rate
-            // scales weighted by the reactions' molar production rates. This
-            // weighting ensures that dominant reactions provide the largest
-            // contribution to the system rate scale.
-            //
-            // The system time scale is then the reciprocal of the system rate
-            // scale.
-            //
-            // Contributions from forward and reverse reaction rates are
-            // handled independently and identically so that reversible
-            // reactions produce the same result as the equivalent pair of
-            // irreversible reactions.
-
-            scalar sumW = 0, sumWRateByCTot = 0;
-            forAll(reactions_, i)
-            {
-                const Reaction<ThermoType>& R = reactions_[i];
-                scalar omegaf, omegar;
-                R.omega(pi, Ti, c_, celli, omegaf, omegar);
-
-                scalar wf = 0;
-                forAll(R.rhs(), s)
-                {
-                    wf += R.rhs()[s].stoichCoeff*omegaf;
-                }
-                sumW += wf;
-                sumWRateByCTot += sqr(wf);
-
-                scalar wr = 0;
-                forAll(R.lhs(), s)
-                {
-                    wr += R.lhs()[s].stoichCoeff*omegar;
-                }
-                sumW += wr;
-                sumWRateByCTot += sqr(wr);
-            }
-
-            tc[celli] =
-                sumWRateByCTot == 0 ? vGreat : sumW/sumWRateByCTot*sum(c_);
-        }
-    }
-
-    ttc.ref().correctBoundaryConditions();
-
-    return ttc;*/
 }
 
 

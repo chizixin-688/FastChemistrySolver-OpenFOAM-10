@@ -16,7 +16,7 @@ OptReaction::Tc
     Temperature = Temperature>ThighMax?ThighMax:Temperature;
     this->logT = std::log(Temperature);
     this->invT = 1/Temperature;
-    this->sqrT = Temperature*Temperature;
+
 
 
     this->setPtrCoeffs(Temperature);
@@ -927,7 +927,7 @@ OptReaction::Tc
                 sumWRateByCTot += (wr*wr);
             }
         }
-        else if(J>3 || K>3)
+        if(J>3 || K>3)
         {
             //this->RFGI(i,this->Kf_[i],c,dNdtByV,&tmp_Exp[0]);
             double Kf = this->Kf_[i];

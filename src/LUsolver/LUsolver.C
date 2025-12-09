@@ -12,7 +12,8 @@ LUsolver::LUsolver(double* externalData, int size)
     this->owner = false;
 
     this->N = size;
-    this->alignN = size+(4-(size%4));
+    //this->alignN = size+(4-(size%4));
+    this->alignN = ((size+3)/4)*4;
     this->v_ = externalData;
     this->Remain=this->N%4;
 
@@ -395,22 +396,22 @@ void LUsolver::forwardSitituate4_0
 
     for(unsigned int i = k1; i <= this->N-4; i=i+4)
     {
-        __m256d U00v = _mm256_loadu_pd(&rowK0[i]);   
+        __m256d U00v = load256d(&rowK0[i]);   
 
-        __m256d U10v = _mm256_loadu_pd(&rowK1[i]);
+        __m256d U10v = load256d(&rowK1[i]);
         U10v = _mm256_fmadd_pd(negL10v,U00v,U10v);
-        _mm256_storeu_pd(&rowK1[i],U10v);
+        store256d(&rowK1[i],U10v);
 
-        __m256d U20v = _mm256_loadu_pd(&rowK2[i]);
+        __m256d U20v = load256d(&rowK2[i]);
         U20v = _mm256_fmadd_pd(negL20v,U00v,U20v);
         U20v = _mm256_fmadd_pd(negL21v,U10v,U20v);
-        _mm256_storeu_pd(&rowK2[i],U20v);            
+        store256d(&rowK2[i],U20v);            
             
-        __m256d U30v = _mm256_loadu_pd(&rowK3[i]);
+        __m256d U30v = load256d(&rowK3[i]);
         U30v = _mm256_fmadd_pd(negL30v,U00v,U30v);
         U30v = _mm256_fmadd_pd(negL31v,U10v,U30v);
         U30v = _mm256_fmadd_pd(negL32v,U20v,U30v);
-        _mm256_storeu_pd(&rowK3[i],U30v);  
+        store256d(&rowK3[i],U30v);  
     }
 }
 
@@ -440,22 +441,22 @@ void LUsolver::forwardSitituate4_1
 
     for(unsigned int i = k1; i <= this->N-4; i=i+4)
     {
-        __m256d U00v = _mm256_loadu_pd(&rowK0[i]);   
+        __m256d U00v = load256d(&rowK0[i]);   
 
-        __m256d U10v = _mm256_loadu_pd(&rowK1[i]);
+        __m256d U10v = load256d(&rowK1[i]);
         U10v = _mm256_fmadd_pd(negL10v,U00v,U10v);
-        _mm256_storeu_pd(&rowK1[i],U10v);
+        store256d(&rowK1[i],U10v);
 
-        __m256d U20v = _mm256_loadu_pd(&rowK2[i]);
+        __m256d U20v = load256d(&rowK2[i]);
         U20v = _mm256_fmadd_pd(negL20v,U00v,U20v);
         U20v = _mm256_fmadd_pd(negL21v,U10v,U20v);
-        _mm256_storeu_pd(&rowK2[i],U20v);            
+        store256d(&rowK2[i],U20v);            
 
-        __m256d U30v = _mm256_loadu_pd(&rowK3[i]);
+        __m256d U30v = load256d(&rowK3[i]);
         U30v = _mm256_fmadd_pd(negL30v,U00v,U30v);
         U30v = _mm256_fmadd_pd(negL31v,U10v,U30v);
         U30v = _mm256_fmadd_pd(negL32v,U20v,U30v);
-        _mm256_storeu_pd(&rowK3[i],U30v);  
+        store256d(&rowK3[i],U30v);  
     }
     {
         {
@@ -499,22 +500,22 @@ void LUsolver::forwardSitituate4_2
 
     for(unsigned int i = k1; i <= this->N-4; i=i+4)
     {
-        __m256d U00v = _mm256_loadu_pd(&rowK0[i]);   
+        __m256d U00v = load256d(&rowK0[i]);   
 
-        __m256d U10v = _mm256_loadu_pd(&rowK1[i]);
+        __m256d U10v = load256d(&rowK1[i]);
         U10v = _mm256_fmadd_pd(negL10v,U00v,U10v);
-        _mm256_storeu_pd(&rowK1[i],U10v);
+        store256d(&rowK1[i],U10v);
 
-        __m256d U20v = _mm256_loadu_pd(&rowK2[i]);
+        __m256d U20v = load256d(&rowK2[i]);
         U20v = _mm256_fmadd_pd(negL20v,U00v,U20v);
         U20v = _mm256_fmadd_pd(negL21v,U10v,U20v);
-        _mm256_storeu_pd(&rowK2[i],U20v);            
+        store256d(&rowK2[i],U20v);            
             
-        __m256d U30v = _mm256_loadu_pd(&rowK3[i]);
+        __m256d U30v = load256d(&rowK3[i]);
         U30v = _mm256_fmadd_pd(negL30v,U00v,U30v);
         U30v = _mm256_fmadd_pd(negL31v,U10v,U30v);
         U30v = _mm256_fmadd_pd(negL32v,U20v,U30v);
-        _mm256_storeu_pd(&rowK3[i],U30v);  
+        store256d(&rowK3[i],U30v);  
     }
 
     {
@@ -568,22 +569,22 @@ void LUsolver::forwardSitituate4_3
 
     for(unsigned int i = k1; i <= this->N-4; i=i+4)
     {
-        __m256d U00v = _mm256_loadu_pd(&rowK0[i]);   
+        __m256d U00v = load256d(&rowK0[i]);   
 
-        __m256d U10v = _mm256_loadu_pd(&rowK1[i]);
+        __m256d U10v = load256d(&rowK1[i]);
         U10v = _mm256_fmadd_pd(negL10v,U00v,U10v);
-        _mm256_storeu_pd(&rowK1[i],U10v);
+        store256d(&rowK1[i],U10v);
 
-        __m256d U20v = _mm256_loadu_pd(&rowK2[i]);
+        __m256d U20v = load256d(&rowK2[i]);
         U20v = _mm256_fmadd_pd(negL20v,U00v,U20v);
         U20v = _mm256_fmadd_pd(negL21v,U10v,U20v);
-        _mm256_storeu_pd(&rowK2[i],U20v);            
+        store256d(&rowK2[i],U20v);            
             
-        __m256d U30v = _mm256_loadu_pd(&rowK3[i]);
+        __m256d U30v = load256d(&rowK3[i]);
         U30v = _mm256_fmadd_pd(negL30v,U00v,U30v);
         U30v = _mm256_fmadd_pd(negL31v,U10v,U30v);
         U30v = _mm256_fmadd_pd(negL32v,U20v,U30v);
-        _mm256_storeu_pd(&rowK3[i],U30v);  
+        store256d(&rowK3[i],U30v);  
     }
 
     {
@@ -664,10 +665,10 @@ void LUsolver::backSitituate4_0
         double* __restrict__ rowi2 = rowi1+alignN;
         double* __restrict__ rowi3 = rowi2+alignN;
 
-        __m256d L00v = _mm256_loadu_pd(&rowi0[k0+0]);
-        __m256d L01v = _mm256_loadu_pd(&rowi1[k0+0]);
-        __m256d L02v = _mm256_loadu_pd(&rowi2[k0+0]);
-        __m256d L03v = _mm256_loadu_pd(&rowi3[k0+0]);
+        __m256d L00v = load256d(&rowi0[k0+0]);
+        __m256d L01v = load256d(&rowi1[k0+0]);
+        __m256d L02v = load256d(&rowi2[k0+0]);
+        __m256d L03v = load256d(&rowi3[k0+0]);
         transpose4x4_pd(L00v,L01v,L02v,L03v);
 
         L00v = _mm256_mul_pd(L00v,invU00v);
@@ -685,10 +686,10 @@ void LUsolver::backSitituate4_0
         L03v = _mm256_mul_pd(L03v,invU33v);      
 
         transpose4x4_pd(L00v,L01v,L02v,L03v);
-        _mm256_storeu_pd(&rowi0[k0+0],L00v);
-        _mm256_storeu_pd(&rowi1[k0+0],L01v);
-        _mm256_storeu_pd(&rowi2[k0+0],L02v);
-        _mm256_storeu_pd(&rowi3[k0+0],L03v);     
+        store256d(&rowi0[k0+0],L00v);
+        store256d(&rowi1[k0+0],L01v);
+        store256d(&rowi2[k0+0],L02v);
+        store256d(&rowi3[k0+0],L03v);     
     }
 }
 
@@ -732,10 +733,10 @@ void LUsolver::backSitituate4_1
         double* __restrict__ rowi2 = rowi1+alignN;
         double* __restrict__ rowi3 = rowi2+alignN;
 
-        __m256d L00v = _mm256_loadu_pd(&rowi0[k0+0]);
-        __m256d L01v = _mm256_loadu_pd(&rowi1[k0+0]);
-        __m256d L02v = _mm256_loadu_pd(&rowi2[k0+0]);
-        __m256d L03v = _mm256_loadu_pd(&rowi3[k0+0]);
+        __m256d L00v = load256d(&rowi0[k0+0]);
+        __m256d L01v = load256d(&rowi1[k0+0]);
+        __m256d L02v = load256d(&rowi2[k0+0]);
+        __m256d L03v = load256d(&rowi3[k0+0]);
         transpose4x4_pd(L00v,L01v,L02v,L03v);
 
         L00v = _mm256_mul_pd(L00v,invU00v);
@@ -753,10 +754,10 @@ void LUsolver::backSitituate4_1
         L03v = _mm256_mul_pd(L03v,invU33v);      
 
         transpose4x4_pd(L00v,L01v,L02v,L03v);
-        _mm256_storeu_pd(&rowi0[k0+0],L00v);
-        _mm256_storeu_pd(&rowi1[k0+0],L01v);
-        _mm256_storeu_pd(&rowi2[k0+0],L02v);
-        _mm256_storeu_pd(&rowi3[k0+0],L03v);         
+        store256d(&rowi0[k0+0],L00v);
+        store256d(&rowi1[k0+0],L01v);
+        store256d(&rowi2[k0+0],L02v);
+        store256d(&rowi3[k0+0],L03v);         
     }
 
     {
@@ -813,10 +814,10 @@ void LUsolver::backSitituate4_2
         double* __restrict__ rowi2 = rowi1+alignN;
         double* __restrict__ rowi3 = rowi2+alignN;
 
-        __m256d L00v = _mm256_loadu_pd(&rowi0[k0+0]);
-        __m256d L01v = _mm256_loadu_pd(&rowi1[k0+0]);
-        __m256d L02v = _mm256_loadu_pd(&rowi2[k0+0]);
-        __m256d L03v = _mm256_loadu_pd(&rowi3[k0+0]);
+        __m256d L00v = load256d(&rowi0[k0+0]);
+        __m256d L01v = load256d(&rowi1[k0+0]);
+        __m256d L02v = load256d(&rowi2[k0+0]);
+        __m256d L03v = load256d(&rowi3[k0+0]);
         transpose4x4_pd(L00v,L01v,L02v,L03v);
 
         L00v = _mm256_mul_pd(L00v,invU00v);
@@ -834,10 +835,10 @@ void LUsolver::backSitituate4_2
         L03v = _mm256_mul_pd(L03v,invU33v);      
 
         transpose4x4_pd(L00v,L01v,L02v,L03v);
-        _mm256_storeu_pd(&rowi0[k0+0],L00v);
-        _mm256_storeu_pd(&rowi1[k0+0],L01v);
-        _mm256_storeu_pd(&rowi2[k0+0],L02v);
-        _mm256_storeu_pd(&rowi3[k0+0],L03v);
+        store256d(&rowi0[k0+0],L00v);
+        store256d(&rowi1[k0+0],L01v);
+        store256d(&rowi2[k0+0],L02v);
+        store256d(&rowi3[k0+0],L03v);
     }
 
     {
@@ -903,10 +904,10 @@ void LUsolver::backSitituate4_3
         double* __restrict__ rowi2 = rowi1+alignN;
         double* __restrict__ rowi3 = rowi2+alignN;
 
-        __m256d L00v = _mm256_loadu_pd(&rowi0[k0+0]);
-        __m256d L01v = _mm256_loadu_pd(&rowi1[k0+0]);
-        __m256d L02v = _mm256_loadu_pd(&rowi2[k0+0]);
-        __m256d L03v = _mm256_loadu_pd(&rowi3[k0+0]);
+        __m256d L00v = load256d(&rowi0[k0+0]);
+        __m256d L01v = load256d(&rowi1[k0+0]);
+        __m256d L02v = load256d(&rowi2[k0+0]);
+        __m256d L03v = load256d(&rowi3[k0+0]);
         transpose4x4_pd(L00v,L01v,L02v,L03v);
 
         L00v = _mm256_mul_pd(L00v,invU00v);
@@ -924,10 +925,10 @@ void LUsolver::backSitituate4_3
         L03v = _mm256_mul_pd(L03v,invU33v);      
 
         transpose4x4_pd(L00v,L01v,L02v,L03v);
-        _mm256_storeu_pd(&rowi0[k0+0],L00v);
-        _mm256_storeu_pd(&rowi1[k0+0],L01v);
-        _mm256_storeu_pd(&rowi2[k0+0],L02v);
-        _mm256_storeu_pd(&rowi3[k0+0],L03v);      
+        store256d(&rowi0[k0+0],L00v);
+        store256d(&rowi1[k0+0],L01v);
+        store256d(&rowi2[k0+0],L02v);
+        store256d(&rowi3[k0+0],L03v);      
     }
 
     {
@@ -1550,9 +1551,7 @@ void LUsolver::UpdateL22U22_Vec2_3
         double U22 = rowk2[N-1];
         double U32 = rowk3[N-1];
         __m256d U02v = _mm256_setr_pd(U02,U12,U22,U32);
-/*auto GlobalTimeStart = std::chrono::high_resolution_clock::now();
-for(int i = 0; i < 1000000;i++)
-{*/
+
         for(unsigned int i = k1; i < this->N-3; i=i+4)
         {
             double* __restrict__ rowi0  = &v_[(i+0)*alignN];
@@ -1594,55 +1593,9 @@ for(int i = 0; i < 1000000;i++)
 
             rowi3[N-3] = rowi3[N-3] - hsum4(L03vU00v);
             rowi3[N-2] = rowi3[N-2] - hsum4(L03vU01v);
-            rowi3[N-1] = rowi3[N-1] - hsum4(L03vU02v);
-
-            /*rowi0[N-3] = rowi0[N-3] - L00U00 - L01U10 - L02U20 - L30U30
-            rowi0[N-2] = rowi0[N-2]   - L00U01 - L01U11 - L02U21 - L30U31
-            rowi0[N-1] = rowi0[N-1]   - L00U02 - L01U12 - L02U22 - L30U32
-
-            rowi1[N-3] = rowi1[N-3] - hsum4(L01vU00v);
-            rowi1[N-2] = rowi1[N-2] - hsum4(L01vU01v);
-            rowi1[N-1] = rowi1[N-1] - hsum4(L00vU02v);
-
-            rowi2[N-3] = rowi2[N-3] - hsum4(L02vU00v);
-            rowi2[N-2] = rowi2[N-2] - hsum4(L02vU01v);
-            rowi2[N-1] = rowi2[N-1] - hsum4(L00vU02v);
-
-            rowi3[N-3] = rowi3[N-3] - hsum4(L03vU00v);
-            rowi3[N-2] = rowi3[N-2] - hsum4(L03vU01v);
-            rowi3[N-1] = rowi3[N-1] - hsum4(L00vU02v);*/
-
-            /*__m256d t0 = _mm256_loadu_pd(&rowi0[N-3]);
-            __m256d t1 = _mm256_loadu_pd(&rowi1[N-3]);
-            __m256d t2 = _mm256_loadu_pd(&rowi2[N-3]);
-            __m256d t3 = _mm256_loadu_pd(&rowi3[N-3]);
-
-            __m256d r0 = hsum4x4(L00vU00v,L00vU01v,L00vU02v,_mm256_setzero_pd());
-            __m256d r1 = hsum4x4(L01vU00v,L01vU01v,L00vU02v,_mm256_setzero_pd());
-            __m256d r2 = hsum4x4(L02vU00v,L02vU01v,L00vU02v,_mm256_setzero_pd());
-            __m256d r3 = hsum4x4(L03vU00v,L03vU01v,L00vU02v,_mm256_setzero_pd());
-
-            t0 = _mm256_sub_pd(t0,r0);
-
-            rowi0[N-3] = rowi0[N-3] - get_elem0(r0);
-            rowi1[N-3] = rowi1[N-3] - get_elem1(r0);
-            rowi2[N-3] = rowi2[N-3] - get_elem2(r0);
-            rowi3[N-3] = rowi3[N-3] - get_elem3(r0);
-
-            rowi0[N-2] = rowi0[N-2] - get_elem0(r1);
-            rowi1[N-2] = rowi1[N-2] - get_elem1(r1);
-            rowi2[N-2] = rowi2[N-2] - get_elem2(r1);
-            rowi3[N-2] = rowi3[N-2] - get_elem3(r1);
-
-            rowi0[N-1] = rowi0[N-1] - get_elem0(r2);
-            rowi1[N-1] = rowi1[N-1] - get_elem1(r2);
-            rowi2[N-1] = rowi2[N-1] - get_elem2(r2);
-            rowi3[N-1] = rowi3[N-1] - get_elem3(r2);*/         
+            rowi3[N-1] = rowi3[N-1] - hsum4(L03vU02v); 
         }
-/*}
-auto duration = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-GlobalTimeStart));
-std::cout<<duration.count()<<std::endl;
-std::exit(0);*/
+
         double* __restrict__ rowN1  = &v_[(N-1)*alignN];
         double* __restrict__ rowN2  = &v_[(N-2)*alignN];
         double* __restrict__ rowN3  = &v_[(N-3)*alignN];
@@ -1748,6 +1701,920 @@ std::exit(0);*/
     }
 }
 
+void LUsolver::UpdateL22U22_Vec_38_00
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+    }
+}
+
+void LUsolver::UpdateL22U22_Vec_38_10
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+    }
+    {
+        unsigned int i=rowEnd;
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+        }
+    }
+}
+
+void LUsolver::UpdateL22U22_Vec_38_20
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+    }
+    {
+        unsigned int i = rowEnd;
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+            __m256d A = load256d(&rowi0[j]);
+            __m256d B = load256d(&rowi1[j]);
+
+            __m256d U003v = load256d(&rowk0[j]);
+            A = _mm256_fmadd_pd(L00,U003v,A);
+            B = _mm256_fmadd_pd(L10,U003v,B);
+
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);
+            B = _mm256_fmadd_pd(L11,U103v,B);
+
+            __m256d U203v = load256d(&rowk2[j]);
+            A = _mm256_fmadd_pd(L02,U203v,A);
+            B = _mm256_fmadd_pd(L12,U203v,B);
+
+            __m256d U303v = load256d(&rowk3[j]);    
+            A = _mm256_fmadd_pd(L03,U303v,A);       
+            store256d(&rowi0[j], A);                
+            B = _mm256_fmadd_pd(L13,U303v,B);       
+            store256d(&rowi1[j], B);                
+ 
+            __m256d D = load256d(&rowi0[j+4]);      
+            __m256d E = load256d(&rowi1[j+4]);      
+
+            __m256d U047v = load256d(&rowk0[j+4]);  
+            D = _mm256_fmadd_pd(L00,U047v,D);       
+            E = _mm256_fmadd_pd(L10,U047v,E);       
+
+            __m256d U147v = load256d(&rowk1[j+4]);  
+            D = _mm256_fmadd_pd(L01,U147v,D);       
+            E = _mm256_fmadd_pd(L11,U147v,E);       
+
+            __m256d U247v = load256d(&rowk2[j+4]);  
+            D = _mm256_fmadd_pd(L02,U247v,D);       
+            E = _mm256_fmadd_pd(L12,U247v,E);       
+
+            __m256d U347v = load256d(&rowk3[j+4]);  
+            D = _mm256_fmadd_pd(L03,U347v,D);       
+            store256d(&rowi0[j+4], D);              
+            E = _mm256_fmadd_pd(L13,U347v,E);       
+            store256d(&rowi1[j+4], E);              
+        }
+    }
+}
+
+void LUsolver::UpdateL22U22_Vec_38_04
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+        {
+            unsigned int j = colEnd;
+            __m256d A = load256d(&rowi0[j]);        
+            __m256d B = load256d(&rowi1[j]);        
+            __m256d C = load256d(&rowi2[j]);        
+
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);       
+            B = _mm256_fmadd_pd(L10,U003v,B);       
+            C = _mm256_fmadd_pd(L20,U003v,C);       
+
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            B = _mm256_fmadd_pd(L11,U103v,B);       
+            C = _mm256_fmadd_pd(L21,U103v,C);       
+
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            B = _mm256_fmadd_pd(L12,U203v,B);       
+            C = _mm256_fmadd_pd(L22,U203v,C);       
+
+            __m256d U303v = load256d(&rowk3[j]);
+            A = _mm256_fmadd_pd(L03,U303v,A);
+            B = _mm256_fmadd_pd(L13,U303v,B);
+            C = _mm256_fmadd_pd(L23,U303v,C);
+            store256d(&rowi0[j], A);
+            store256d(&rowi1[j], B);
+            store256d(&rowi2[j], C);       
+        }
+    }
+}
+
+void LUsolver::UpdateL22U22_Vec_38_14
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+        {
+            unsigned int j=colEnd;
+            __m256d A = load256d(&rowi0[j]);        
+            __m256d B = load256d(&rowi1[j]);        
+            __m256d C = load256d(&rowi2[j]);        
+
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);       
+            B = _mm256_fmadd_pd(L10,U003v,B);       
+            C = _mm256_fmadd_pd(L20,U003v,C);       
+
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            B = _mm256_fmadd_pd(L11,U103v,B);       
+            C = _mm256_fmadd_pd(L21,U103v,C);       
+
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            B = _mm256_fmadd_pd(L12,U203v,B);       
+            C = _mm256_fmadd_pd(L22,U203v,C);       
+
+            __m256d U303v = load256d(&rowk3[j]);
+            A = _mm256_fmadd_pd(L03,U303v,A);
+            B = _mm256_fmadd_pd(L13,U303v,B);
+            C = _mm256_fmadd_pd(L23,U303v,C);
+            store256d(&rowi0[j], A);
+            store256d(&rowi1[j], B);
+            store256d(&rowi2[j], C);       
+        }
+    }
+    {
+        unsigned int i = rowEnd;
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);       
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            __m256d U303v = load256d(&rowk3[j]);    
+            A = _mm256_fmadd_pd(L03,U303v,A);       
+            store256d(&rowi0[j], A);                
+
+            __m256d D = load256d(&rowi0[j+4]);      
+            __m256d U047v = load256d(&rowk0[j+4]);  
+            D = _mm256_fmadd_pd(L00,U047v,D);       
+            __m256d U147v = load256d(&rowk1[j+4]);  
+            D = _mm256_fmadd_pd(L01,U147v,D);       
+            __m256d U247v = load256d(&rowk2[j+4]);  
+            D = _mm256_fmadd_pd(L02,U247v,D);       
+            __m256d U347v = load256d(&rowk3[j+4]);  
+            D = _mm256_fmadd_pd(L03,U347v,D);       
+            store256d(&rowi0[j+4], D);              
+        }
+        {
+            unsigned int j=colEnd;
+            __m256d A = load256d(&rowi0[j]);
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            __m256d U303v = load256d(&rowk3[j]);
+            A = _mm256_fmadd_pd(L03,U303v,A);
+            store256d(&rowi0[j], A);
+        }
+    }
+}
+
+void LUsolver::UpdateL22U22_Vec_38_24
+(
+    unsigned int k0,
+    unsigned int k1,
+    unsigned int rowTimes,
+    unsigned int colTimes
+)
+{
+    unsigned int rowEnd = rowTimes*3+k1;
+    unsigned int colEnd = colTimes*8+k1;
+
+    double* __restrict__ rowk0  = &v_[(k0+0)*alignN];
+    double* __restrict__ rowk1  = &v_[(k0+1)*alignN];
+    double* __restrict__ rowk2  = &v_[(k0+2)*alignN];
+    double* __restrict__ rowk3  = &v_[(k0+3)*alignN];
+    for(unsigned int i = k1; i<rowEnd; i=i+3)
+    {
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+        double* __restrict__ rowi2  = &v_[(i+2)*alignN];
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+
+        __m256d L203v = -load256d(&rowi2[k0+0]);
+        __m256d L20 = _mm256_permute4x64_pd(L203v, 0x00);
+        __m256d L21 = _mm256_permute4x64_pd(L203v, 0x55);
+        __m256d L22 = _mm256_permute4x64_pd(L203v, 0xAA);
+        __m256d L23 = _mm256_permute4x64_pd(L203v, 0xFF);
+        
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+            __m256d C = load256d(&rowi2[j]);        //15
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+            C = _mm256_fmadd_pd(L20,U003v,C);       //15
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+            C = _mm256_fmadd_pd(L21,U103v,C);       //15
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+            C = _mm256_fmadd_pd(L22,U203v,C);       //15
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+            C = _mm256_fmadd_pd(L23,U303v,C);       //13
+            store256d(&rowi2[j], C);                //12
+
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+            __m256d F = load256d(&rowi2[j+4]);      //15
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+            F = _mm256_fmadd_pd(L20,U047v,F);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+            F = _mm256_fmadd_pd(L21,U147v,F);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+            F = _mm256_fmadd_pd(L22,U247v,F);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+            F = _mm256_fmadd_pd(L23,U347v,F);       //9
+            store256d(&rowi2[j+4], F);              //8
+        }
+        {
+            unsigned int j=colEnd;
+            __m256d A = load256d(&rowi0[j]);        
+            __m256d B = load256d(&rowi1[j]);        
+            __m256d C = load256d(&rowi2[j]);        
+
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);       
+            B = _mm256_fmadd_pd(L10,U003v,B);       
+            C = _mm256_fmadd_pd(L20,U003v,C);       
+
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            B = _mm256_fmadd_pd(L11,U103v,B);       
+            C = _mm256_fmadd_pd(L21,U103v,C);       
+
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            B = _mm256_fmadd_pd(L12,U203v,B);       
+            C = _mm256_fmadd_pd(L22,U203v,C);       
+
+            __m256d U303v = load256d(&rowk3[j]);
+            A = _mm256_fmadd_pd(L03,U303v,A);
+            B = _mm256_fmadd_pd(L13,U303v,B);
+            C = _mm256_fmadd_pd(L23,U303v,C);
+            store256d(&rowi0[j], A);
+            store256d(&rowi1[j], B);
+            store256d(&rowi2[j], C);       
+        }
+    }
+    {
+        unsigned int i = rowEnd;
+        double* __restrict__ rowi0  = &v_[(i+0)*alignN];
+        double* __restrict__ rowi1  = &v_[(i+1)*alignN];
+
+
+        __m256d L003v = -load256d(&rowi0[k0+0]);
+        __m256d L00 = _mm256_permute4x64_pd(L003v, 0x00);
+        __m256d L01 = _mm256_permute4x64_pd(L003v, 0x55);
+        __m256d L02 = _mm256_permute4x64_pd(L003v, 0xAA);
+        __m256d L03 = _mm256_permute4x64_pd(L003v, 0xFF);
+
+        __m256d L103v = -load256d(&rowi1[k0+0]);
+        __m256d L10 = _mm256_permute4x64_pd(L103v, 0x00);
+        __m256d L11 = _mm256_permute4x64_pd(L103v, 0x55);
+        __m256d L12 = _mm256_permute4x64_pd(L103v, 0xAA);
+        __m256d L13 = _mm256_permute4x64_pd(L103v, 0xFF);
+        
+        for(unsigned int j=k1; j<colEnd; j=j+8)
+        {
+
+            __m256d A = load256d(&rowi0[j]);        //13
+            __m256d B = load256d(&rowi1[j]);        //14
+
+            __m256d U003v = load256d(&rowk0[j]);    //16
+            A = _mm256_fmadd_pd(L00,U003v,A);       //16
+            B = _mm256_fmadd_pd(L10,U003v,B);       //16
+
+            __m256d U103v = load256d(&rowk1[j]);    //16
+            A = _mm256_fmadd_pd(L01,U103v,A);       //16
+            B = _mm256_fmadd_pd(L11,U103v,B);       //16
+
+            __m256d U203v = load256d(&rowk2[j]);    //16
+            A = _mm256_fmadd_pd(L02,U203v,A);       //16
+            B = _mm256_fmadd_pd(L12,U203v,B);       //16
+
+            __m256d U303v = load256d(&rowk3[j]);    //16
+            A = _mm256_fmadd_pd(L03,U303v,A);       //16
+            store256d(&rowi0[j], A);                //15
+            B = _mm256_fmadd_pd(L13,U303v,B);       //15
+            store256d(&rowi1[j], B);                //14
+
+            
+            __m256d D = load256d(&rowi0[j+4]);      //13
+            __m256d E = load256d(&rowi1[j+4]);      //14
+
+            __m256d U047v = load256d(&rowk0[j+4]);  //11
+            D = _mm256_fmadd_pd(L00,U047v,D);       //11
+            E = _mm256_fmadd_pd(L10,U047v,E);       //10
+
+            __m256d U147v = load256d(&rowk1[j+4]);  //11
+            D = _mm256_fmadd_pd(L01,U147v,D);       //11
+            E = _mm256_fmadd_pd(L11,U147v,E);       //10
+
+            __m256d U247v = load256d(&rowk2[j+4]);  //11
+            D = _mm256_fmadd_pd(L02,U247v,D);       //10
+            E = _mm256_fmadd_pd(L12,U247v,E);       //10
+
+            __m256d U347v = load256d(&rowk3[j+4]);  //11
+            D = _mm256_fmadd_pd(L03,U347v,D);       //11
+            store256d(&rowi0[j+4], D);              //10
+            E = _mm256_fmadd_pd(L13,U347v,E);       //9
+            store256d(&rowi1[j+4], E);              //8
+        }
+        {
+            unsigned int j=colEnd;
+            __m256d A = load256d(&rowi0[j]);
+            __m256d B = load256d(&rowi1[j]);
+
+            __m256d U003v = load256d(&rowk0[j]);    
+            A = _mm256_fmadd_pd(L00,U003v,A);       
+            B = _mm256_fmadd_pd(L10,U003v,B);       
+
+            __m256d U103v = load256d(&rowk1[j]);    
+            A = _mm256_fmadd_pd(L01,U103v,A);       
+            B = _mm256_fmadd_pd(L11,U103v,B);       
+
+            __m256d U203v = load256d(&rowk2[j]);    
+            A = _mm256_fmadd_pd(L02,U203v,A);       
+            B = _mm256_fmadd_pd(L12,U203v,B);       
+
+            __m256d U303v = load256d(&rowk3[j]);
+            A = _mm256_fmadd_pd(L03,U303v,A);
+            B = _mm256_fmadd_pd(L13,U303v,B);
+            store256d(&rowi0[j], A);
+            store256d(&rowi1[j], B);
+        }
+    }
+}
+
 void LUsolver::permutation0
 (
     unsigned int k0,
@@ -1766,10 +2633,10 @@ void LUsolver::permutation0
             double* __restrict__ rowiTarget = &v_[iTarget*alignN];
             double* __restrict__ rowj = &v_[(k0+j)*alignN];
 
-            __m256d A = _mm256_loadu_pd(&rowiTarget[i]);
-            __m256d B = _mm256_loadu_pd(&rowj[i]);
-            _mm256_storeu_pd(&rowiTarget[i],B);
-            _mm256_storeu_pd(&rowj[i],A);
+            __m256d A = load256d(&rowiTarget[i]);
+            __m256d B = load256d(&rowj[i]);
+            store256d(&rowiTarget[i],B);
+            store256d(&rowj[i],A);
         }
     }
 }
@@ -1792,10 +2659,10 @@ void LUsolver::permutation1
             double* __restrict__ rowiTarget = &v_[iTarget*alignN];
             double* __restrict__ rowj = &v_[(k0+j)*alignN];
 
-            __m256d A = _mm256_loadu_pd(&rowiTarget[i]);
-            __m256d B = _mm256_loadu_pd(&rowj[i]);
-            _mm256_storeu_pd(&rowiTarget[i],B);
-            _mm256_storeu_pd(&rowj[i],A);
+            __m256d A = load256d(&rowiTarget[i]);
+            __m256d B = load256d(&rowj[i]);
+            store256d(&rowiTarget[i],B);
+            store256d(&rowj[i],A);
         }
         {
             unsigned int i = this->N-1;
@@ -1827,10 +2694,10 @@ void LUsolver::permutation2
             double* __restrict__ rowiTarget = &v_[iTarget*alignN];
             double* __restrict__ rowj = &v_[(k0+j)*alignN];
 
-            __m256d A = _mm256_loadu_pd(&rowiTarget[i]);
-            __m256d B = _mm256_loadu_pd(&rowj[i]);
-            _mm256_storeu_pd(&rowiTarget[i],B);
-            _mm256_storeu_pd(&rowj[i],A);
+            __m256d A = load256d(&rowiTarget[i]);
+            __m256d B = load256d(&rowj[i]);
+            store256d(&rowiTarget[i],B);
+            store256d(&rowj[i],A);
         }
         {
             unsigned int i = this->N-2;
@@ -1866,10 +2733,10 @@ void LUsolver::permutation3
             double* __restrict__ rowiTarget = &v_[iTarget*alignN];
             double* __restrict__ rowj = &v_[(k0+j)*alignN];
 
-            __m256d A = _mm256_loadu_pd(&rowiTarget[i]);
-            __m256d B = _mm256_loadu_pd(&rowj[i]);
-            _mm256_storeu_pd(&rowiTarget[i],B);
-            _mm256_storeu_pd(&rowj[i],A);
+            __m256d A = load256d(&rowiTarget[i]);
+            __m256d B = load256d(&rowj[i]);
+            store256d(&rowiTarget[i],B);
+            store256d(&rowj[i],A);
         }
         {
             unsigned int i = this->N-3;
@@ -2331,6 +3198,7 @@ void LUsolver::xSolve_Vec_2
             __m256d L1Y = _mm256_mul_pd(L1,Y);
             __m256d L2Y = _mm256_mul_pd(L2,Y);
             __m256d L3Y = _mm256_mul_pd(L3,Y);
+            
             __m256d temp1 = _mm256_hadd_pd(L0Y,L1Y);
             __m256d temp2 = _mm256_hadd_pd(L2Y,L3Y);
             __m256d temp1_shuffle = _mm256_permute4x64_pd(temp1,_MM_SHUFFLE(3,1,2,0));
@@ -2577,6 +3445,7 @@ void LUsolver::xSolve_Vec_1
             __m256d L1Y = _mm256_mul_pd(L1,Y);
             __m256d L2Y = _mm256_mul_pd(L2,Y);
             __m256d L3Y = _mm256_mul_pd(L3,Y);
+            
             __m256d temp1 = _mm256_hadd_pd(L0Y,L1Y);
             __m256d temp2 = _mm256_hadd_pd(L2Y,L3Y);
             __m256d temp1_shuffle = _mm256_permute4x64_pd(temp1,_MM_SHUFFLE(3,1,2,0));
@@ -3003,7 +3872,15 @@ void LUsolver::Block4LUDecompose
             this->forwardSitituate4_0(k0,k1);
             this->permutation0(k0,k1);
             this->backSitituate4_0(k0,k1);
-            this->UpdateL22U22_Vec2_0(k0,k1);   
+            //this->UpdateL22U22_Vec2_0(k0,k1);   
+            int n = static_cast<int>(this->N);
+            int colTail = 1 - (((n-k1-1)>>2)&1); 
+            int rowTime = (n-k1)/3;
+            int rowTail = (n-k1)%3;
+            int colTime = (n-k1<= 4)?0:(n-k1-5)/8+1;
+            //std::cout<<n-k1<<" "<<colTime<<" "<<colTail<<" "<<rowTime<<" "<<rowTail<<std::endl;
+            (this->*updateTable[rowTail][colTail])(k0,k1,rowTime,colTime);
+            //(this->*FuncTable[i])(k0,k1,0,0);
         }
     }
     else if(this->Remain==1)
@@ -3020,7 +3897,13 @@ void LUsolver::Block4LUDecompose
             this->forwardSitituate4_1(k0,k1);
             this->permutation1(k0,k1);
             this->backSitituate4_1(k0,k1);
-            this->UpdateL22U22_Vec2_1(k0,k1);
+            //this->UpdateL22U22_Vec2_1(k0,k1);
+            int n = static_cast<int>(this->N);
+            int colTail = 1 - (((n-k1-1)>>2)&1); 
+            int rowTime = (n-k1)/3;
+            int rowTail = (n-k1)%3;
+            int colTime = (n-k1<= 4)?0:(n-k1-5)/8+1;
+            (this->*updateTable[rowTail][colTail])(k0,k1,rowTime,colTime);
         }
         if(v_[(N-1)*alignN+N-1]==0)
         {
@@ -3042,7 +3925,13 @@ void LUsolver::Block4LUDecompose
             this->forwardSitituate4_2(k0,k1);
             this->permutation2(k0,k1);
             this->backSitituate4_2(k0,k1);
-            this->UpdateL22U22_Vec2_2(k0,k1);   
+            //this->UpdateL22U22_Vec2_2(k0,k1);   
+            int n = static_cast<int>(this->N);
+            int colTail = 1 - (((n-k1-1)>>2)&1); 
+            int rowTime = (n-k1)/3;
+            int rowTail = (n-k1)%3;
+            int colTime = (n-k1<= 4)?0:(n-k1-5)/8+1;
+            (this->*updateTable[rowTail][colTail])(k0,k1,rowTime,colTime);
         }
         this->LUDecompose4_2();
         this->permutation_2();     
@@ -3061,7 +3950,13 @@ void LUsolver::Block4LUDecompose
             this->forwardSitituate4_3(k0,k1);
             this->permutation3(k0,k1);
             this->backSitituate4_3(k0,k1);
-            this->UpdateL22U22_Vec2_3(k0,k1);   
+            //this->UpdateL22U22_Vec2_3(k0,k1); 
+            int n = static_cast<int>(this->N);
+            int colTail = 1 - (((n-k1-1)>>2)&1); 
+            int rowTime = (n-k1)/3;
+            int rowTail = (n-k1)%3;
+            int colTime = (n-k1<= 4)?0:(n-k1-5)/8+1;
+            (this->*updateTable[rowTail][colTail])(k0,k1,rowTime,colTime);
         }
         this->LUDecompose4_3();
         this->permutation_3();  

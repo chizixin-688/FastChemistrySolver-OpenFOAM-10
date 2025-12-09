@@ -103,7 +103,7 @@ inline void OptReaction::SRI_F_dFdT_dFdPr
     F = _mm256_mul_pd(_mm256_mul_pd(D_,powpX),powTe);
     __m256d dpsidT = _mm256_mul_pd(A_,B_);
     dpsidT = _mm256_mul_pd(dpsidT,expbT);
-    dpsidT = _mm256_div_pd(dpsidT,_mm256_set1_pd(this->sqrT));
+    dpsidT = _mm256_div_pd(dpsidT,_mm256_set1_pd(T_*T_));
     dpsidT = _mm256_sub_pd(dpsidT,_mm256_div_pd(expTc,C_));
     dFdT = _mm256_fmadd_pd(_mm256_div_pd(X,psi),dpsidT,_mm256_mul_pd(E_,_mm256_set1_pd(this->invT)));
     __m256d logTen = _mm256_set1_pd(std::log(10));

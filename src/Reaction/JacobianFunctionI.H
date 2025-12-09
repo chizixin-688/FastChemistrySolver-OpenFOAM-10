@@ -65,17 +65,17 @@ void inline OptReaction::JF11
         __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);            
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);            
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                
         }   
     }
 }   
@@ -166,23 +166,23 @@ void inline OptReaction::JF12
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);            
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);            
         } 
     }
 }             
@@ -294,27 +294,27 @@ void inline OptReaction::JF13
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
 
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            __m256d sr2v = load256d(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sr2v = _mm256_add_pd(sr2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);            
+            store256d(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);            
         } 
     }
 }            
@@ -402,23 +402,23 @@ void inline OptReaction::JF21
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                              
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                              
         } 
     }    
 }     
@@ -524,26 +524,26 @@ void inline OptReaction::JF22
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
         } 
     }
 }   
@@ -670,29 +670,29 @@ void inline OptReaction::JF23
 
         for(unsigned int j = 0; j < AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
 
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            __m256d sr2v = load256d(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sr2v = _mm256_add_pd(sr2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);                    
+            store256d(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);                    
         } 
     }  
 }    
@@ -793,29 +793,29 @@ void inline OptReaction::JF31
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
 
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            __m256d sl2v = load256d(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
             sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+            store256d(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
 
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
         } 
     }  
 }
@@ -937,29 +937,29 @@ void inline OptReaction::JF32
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            __m256d sl2v = load256d(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
             sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+            store256d(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
         } 
     }  
 }    
@@ -1105,33 +1105,33 @@ void inline OptReaction::JF33
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
 
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(dKrdC_,CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
-            __m256d sl0v = _mm256_loadu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
+            __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
             sl0v = _mm256_sub_pd(sl0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
+            store256d(&ddNdtByVdcTp[sl0*(this->alignN)+j],sl0v);
 
-            __m256d sl1v = _mm256_loadu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
+            __m256d sl1v = load256d(&ddNdtByVdcTp[sl1*(this->alignN)+j]);
             sl1v = _mm256_sub_pd(sl1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
+            store256d(&ddNdtByVdcTp[sl1*(this->alignN)+j],sl1v);
 
-            __m256d sl2v = _mm256_loadu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
+            __m256d sl2v = load256d(&ddNdtByVdcTp[sl2*(this->alignN)+j]);
             sl2v = _mm256_sub_pd(sl2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
+            store256d(&ddNdtByVdcTp[sl2*(this->alignN)+j],sl2v);
 
-            __m256d sr0v = _mm256_loadu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
+            __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
             sr0v = _mm256_add_pd(sr0v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
+            store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);
 
-            __m256d sr1v = _mm256_loadu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
+            __m256d sr1v = load256d(&ddNdtByVdcTp[sr1*(this->alignN)+j]);
             sr1v = _mm256_add_pd(sr1v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
+            store256d(&ddNdtByVdcTp[sr1*(this->alignN)+j],sr1v);
 
-            __m256d sr2v = _mm256_loadu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
+            __m256d sr2v = load256d(&ddNdtByVdcTp[sr2*(this->alignN)+j]);
             sr2v = _mm256_add_pd(sr2v,WdMdC);
-            _mm256_storeu_pd(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);
+            store256d(&ddNdtByVdcTp[sr2*(this->alignN)+j],sr2v);
 
         } 
     }  
@@ -1177,7 +1177,7 @@ void inline OptReaction::JFGI
             sumVdBdT = sumVdBdT + dBdT[si];
             CR = CR * C[si];
         }
-        this->update_Pow_pByRT_SumVki(T);
+        //this->update_Pow_pByRT_SumVki(T);
         const double Kc = std::max(Kp*this->Pow_pByRT_SumVki_I[sumVki],1.4901171103413047e-8);
         invKc = 1.0/Kc;            
 
@@ -1307,25 +1307,25 @@ void inline OptReaction::JFGI
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[kk*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[kk*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
             for(unsigned int k = 0; k < this->lhsSpeciesIndex[i].size();k++)
             {
                 const unsigned int sk = this->lhsSpeciesIndex[i][k];
-                __m256d skv = _mm256_loadu_pd(&ddNdtByVdcTp[sk*(this->alignN)+j]);
+                __m256d skv = load256d(&ddNdtByVdcTp[sk*(this->alignN)+j]);
                 skv = _mm256_sub_pd(skv,WdMdC);
-                _mm256_storeu_pd(&ddNdtByVdcTp[sk*(this->alignN)+j],skv);
+                store256d(&ddNdtByVdcTp[sk*(this->alignN)+j],skv);
             }
 
             for(unsigned int k = 0; k < rhsSpeciesIndex[i].size();k++)
             {
 
                 const unsigned int sk = rhsSpeciesIndex[i][k];
-                __m256d skv = _mm256_loadu_pd(&ddNdtByVdcTp[sk*(this->alignN)+j]);
+                __m256d skv = load256d(&ddNdtByVdcTp[sk*(this->alignN)+j]);
                 skv = _mm256_add_pd(skv,WdMdC);
-                _mm256_storeu_pd(&ddNdtByVdcTp[sk*(this->alignN)+j],skv);                                     
+                store256d(&ddNdtByVdcTp[sk*(this->alignN)+j],skv);                                     
             }
         } 
     }   
@@ -1543,7 +1543,7 @@ void inline OptReaction::JFGNI
 
         for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
         {
-            __m256d dMdC = _mm256_loadu_pd(&this->ThirdBodyFactor1D[kk*this->AlignSpecies+j]);
+            __m256d dMdC = load256d(&this->ThirdBodyFactor1D[kk*this->AlignSpecies+j]);
             __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
             WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
@@ -1551,22 +1551,22 @@ void inline OptReaction::JFGNI
             {
                 const unsigned int si = lhsSpeciesIndex[iii][i];
                 const double sl = lhsStoichCoeff[iii][i];
-                __m256d Jac = _mm256_loadu_pd(&ddNdtByVdcTp[si*(this->alignN)+j]);
+                __m256d Jac = load256d(&ddNdtByVdcTp[si*(this->alignN)+j]);
                 __m256d slv = _mm256_set1_pd(sl);
 
                 Jac = _mm256_sub_pd(Jac,_mm256_mul_pd(WdMdC,slv));
-                _mm256_storeu_pd(&ddNdtByVdcTp[si*(this->alignN)+j],Jac);
+                store256d(&ddNdtByVdcTp[si*(this->alignN)+j],Jac);
             }
 
             for(unsigned int i = 0; i < rhsSpeciesIndex[iii].size();i++)
             {
                 const unsigned int si = rhsSpeciesIndex[iii][i];
                 const double sr = rhsStoichCoeff[iii][i];
-                __m256d Jac = _mm256_loadu_pd(&ddNdtByVdcTp[si*(this->alignN)+j]);
+                __m256d Jac = load256d(&ddNdtByVdcTp[si*(this->alignN)+j]);
                 __m256d srv = _mm256_set1_pd(sr);
 
                 Jac = _mm256_add_pd(Jac,_mm256_mul_pd(WdMdC,srv));
-                _mm256_storeu_pd(&ddNdtByVdcTp[si*(this->alignN)+j],Jac);                                     
+                store256d(&ddNdtByVdcTp[si*(this->alignN)+j],Jac);                                     
             }
         } 
     }   

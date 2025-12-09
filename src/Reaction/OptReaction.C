@@ -806,31 +806,31 @@ void OptReaction::readInfo
 
     //this->W.resize(this->nSpecies);
 
-
-    if (posix_memalign(reinterpret_cast<void**>(&this->W), 32, this->nSpecies * sizeof(double)))
+    unsigned int alignSpecies = ((this->nSpecies+3)/4)*4;
+    if (posix_memalign(reinterpret_cast<void**>(&this->W), 32, alignSpecies * sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->W, 0, this->nSpecies * sizeof(double));
+    std::memset(this->W, 0, alignSpecies * sizeof(double));
 
     //this->invW.resize(this->nSpecies);
-    if (posix_memalign(reinterpret_cast<void**>(&this->invW), 32, this->nSpecies * sizeof(double)))
+    if (posix_memalign(reinterpret_cast<void**>(&this->invW), 32, alignSpecies * sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->invW, 0, this->nSpecies * sizeof(double));
+    std::memset(this->invW, 0, alignSpecies * sizeof(double));
 
-    if (posix_memalign(reinterpret_cast<void**>(&this->negGstdByRT), 32, this->nSpecies * sizeof(double)))
+    if (posix_memalign(reinterpret_cast<void**>(&this->negGstdByRT), 32, alignSpecies * sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->negGstdByRT, 0, this->nSpecies * sizeof(double));
+    std::memset(this->negGstdByRT, 0, alignSpecies * sizeof(double));
 
-    if (posix_memalign(reinterpret_cast<void**>(&this->Hf), 32, this->nSpecies * sizeof(double)))
+    if (posix_memalign(reinterpret_cast<void**>(&this->Hf), 32, alignSpecies * sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->Hf, 0, this->nSpecies * sizeof(double));
+    std::memset(this->Hf, 0, alignSpecies * sizeof(double));
 
     this->isIrreversible.resize(this->n_Reactions,0); 
     this->isGlobal.resize(this->n_Reactions,0);
@@ -1814,7 +1814,7 @@ void OptReaction::readInfo
     this->n_ = this->nSpecies+1;
     
     unsigned int ArrSize = this->nSpecies+(4-this->nSpecies%4);
-    size_t bytes = 4 * ArrSize * sizeof(double);
+    size_t bytes = 8 * ArrSize * sizeof(double);
     if (posix_memalign(reinterpret_cast<void**>(&this->buffer), 32, bytes))
     {
         throw std::bad_alloc();

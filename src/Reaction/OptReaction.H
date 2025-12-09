@@ -422,8 +422,7 @@ public:
             // 1/T.
             mutable double invT;
 
-            // T*T.
-            mutable double sqrT;
+
 
             // mixture density
             mutable double rhoM;
@@ -464,7 +463,6 @@ public:
                 double T,
                 double* __restrict__ YTp,
                 double* __restrict__ c_,
-                double* __restrict__ dNdtByV,
                 double* __restrict__ ExpNegGstdByRT,
                 double* __restrict__ dBdT,
                 double* __restrict__ dCpdT,
@@ -578,9 +576,27 @@ public:
                 double* __restrict__ ddNdtByVdcT  
             ) const noexcept;
 
-            
+            void ddNdtByVdcTp    
+            (
+                const double p,
+                const double T,
+                double* __restrict__ YTp,
+                double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ dBdT,
+                double* __restrict__ ddNdtByVdcT  
+            ) const noexcept;
             // Convert the concentration based Jacobian matrix
             // to the mass fraction based Jacobian matrix
+                void ddYdtdY
+                (
+                    const double* __restrict__ ddNdtByVdcT,
+                    const double* __restrict__ rhoMByRhoi,
+                    const double* __restrict__ WiByrhoM,  
+                    const double* __restrict__ dPhidt,  
+                    const double* __restrict__ Phi,
+                    double* __restrict__ Jac
+                ) const noexcept;
 
                 void ddYdtdY_Vec1_0
                 (
@@ -658,6 +674,15 @@ public:
                     double* __restrict__ J
                 ) const noexcept;
 
+                void ddYdtdTP
+                (
+                    const double* __restrict__ ddNdtByVdcTp,
+                    const double* __restrict__ WiByrhoM,
+                    const double* __restrict__ c,  
+                    double* __restrict__ dPhidt,
+                    double* __restrict__ Jac
+                ) const noexcept;  
+
                 void ddYdtdTP_Vec_0
                 (
                     const double* __restrict__ ddNdtByVdcTp,
@@ -692,7 +717,17 @@ public:
                     const double* __restrict__ C,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;                
+                ) const noexcept;         
+
+                void ddTdtdYT
+                (
+                    const double* __restrict__ Cp,
+                    const double* __restrict__ dCpdT,
+                    const double* __restrict__ Ha,
+                    double* __restrict__ dYTpdt,
+                    double* __restrict__ J
+                ) const noexcept;
+
 
                 void ddTdtdYT_Vec_0
                 (
@@ -728,7 +763,7 @@ public:
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;                  
+                ) const noexcept;        
 
             // for one-one reactions. e.g. A<=>B.
             void inline JF11
@@ -897,6 +932,14 @@ public:
                 double* __restrict__ Ha
             ) const noexcept;
 
+            // Compute the reaction rate
+            void dNdtByV
+            (
+                double p,
+                double T,
+                double* __restrict__ c,
+                double* __restrict__ dNdtByV
+            ) const noexcept;
 
             // for one-one reactions. e.g. A<=>B.
             void inline RF11
