@@ -183,12 +183,7 @@ private:
                 const bool block
             );
 
-            void exchangeSizes
-            (
-                const UList<DynamicList<char>>& sendBufs,
-                labelList& recvSizes,
-                const label comm
-            );
+
             //****************************MPI Communication*****************************//
 
     // Private Member Functions

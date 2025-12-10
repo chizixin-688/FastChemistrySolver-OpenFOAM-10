@@ -95,6 +95,7 @@ void FastThermo::idealGas::JacobianThermoYT
     double* __restrict__ Phi,
     double* __restrict__ concentration,
     double* __restrict__ negGstdByRT,
+    double* __restrict__ negGstdByRT2,
     double* __restrict__ dBdT,
     double* __restrict__ dCpdT,
     double* __restrict__ Cp,
@@ -157,6 +158,7 @@ void FastThermo::idealGas::JacobianThermoYT
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,vlogT1,vExpNegGstdByRT);
         //store256d(&ExpNegGstdByRT[i0],vExpNegGstdByRT);
         store256d(&negGstdByRT[i0],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i0],vExpNegGstdByRT);
 
         __m256d RuInvW = _mm256_mul_pd(invWv,Ruv);
         __m256d vdCpdT = _mm256_fmadd_pd(vT,4*A4,3*A3);
@@ -192,7 +194,7 @@ void FastThermo::idealGas::JacobianThermoYT
         double negGstdByRT_ = ((((a[4]*0.05*T_+a[3]*(1.0/12.0))*T_+a[2]*(1.0/6.0))*T_+a[1]*0.5)*T_-a[5]*this->invT+a[6]+(this->logT-1)*a[0]);   
         //ExpNegGstdByRT[i] = negGstdByRT_;
         negGstdByRT[i] = negGstdByRT_;
-        
+        negGstdByRT2[i] = negGstdByRT_;
         dCpdT[i] = ( a[1] + T_*(2*a[2]+T_*(3*a[3]+T_*4*a[4])) )*this->Ru*this->invW[i]; 
         Cp[i] = ((((a[4]*T_+a[3])*T_+a[2])*T_+a[1])*T_+a[0])*this->Ru*this->invW[i];
         Ha[i] = (((((a[4]*T_*0.2+a[3]*0.25)*T_+a[2]*(1.0/3.0))*T_+a[1]*0.5)*T_+a[0])*T_ +a[5])*this->Ru*this->invW[i]; 
@@ -234,6 +236,7 @@ void FastThermo::idealGas::JacobianThermoYT
         vExpNegGstdByRT = _mm_fmadd_pd(A0,_mm256_castpd256_pd128(vlogT1),vExpNegGstdByRT);
         //store128d(&ExpNegGstdByRT[i],vExpNegGstdByRT);
         store128d(&negGstdByRT[i],vExpNegGstdByRT);
+        store128d(&negGstdByRT2[i],vExpNegGstdByRT);
 
         __m128d RuInvW = _mm_mul_pd(invWv,_mm256_castpd256_pd128(Ruv));
         __m128d vdCpdT = _mm_fmadd_pd(_mm256_castpd256_pd128(vT),4*A4,3*A3);
@@ -296,6 +299,7 @@ void FastThermo::idealGas::JacobianThermoYT
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,vlogT1,vExpNegGstdByRT);
         //store256d(&ExpNegGstdByRT[i],vExpNegGstdByRT);
         store256d(&negGstdByRT[i],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i],vExpNegGstdByRT);
 
         __m256d RuInvW = _mm256_mul_pd(invWv,Ruv);
         __m256d vdCpdT = _mm256_fmadd_pd(vT,4*A4,3*A3);
@@ -663,7 +667,8 @@ void FastThermo::idealGas::DerivativeThermoYT
     double* __restrict__ concentration,
     double* __restrict__ Cp,
     double* __restrict__ Ha,
-    double* __restrict__ negGstdByRT
+    double* __restrict__ negGstdByRT,
+    double* __restrict__ negGstdByRT2
 )const 
 {
     //T = T<TlowMin?TlowMin:T;
@@ -778,6 +783,7 @@ void FastThermo::idealGas::DerivativeThermoYT
         vExpNegGstdByRT = _mm256_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,logT1v,vExpNegGstdByRT);
         store256d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i+0],vExpNegGstdByRT);
 
         __m256d vCp = _mm256_fmadd_pd(A4 ,vT,A3);
         vCp = _mm256_fmadd_pd(vCp,vT,A2);
@@ -804,6 +810,7 @@ void FastThermo::idealGas::DerivativeThermoYT
         Ha[i] = (((((a[4]*T*0.2+a[3]*0.25)*T+a[2]*(1.0/3.0))*T+a[1]*0.5)*T+a[0])*T +a[5])*this->Ru*this->invW[i]; 
         double negGstdByRT_ = (((a[4]*0.05*T+a[3]*(1.0/12.0))*T+a[2]*(1.0/6.0))*T+a[1]*0.5)*T-a[5]*invT+a[6]+(this->logT-1)*a[0];
         negGstdByRT[i] = negGstdByRT_;
+        negGstdByRT2[i] = negGstdByRT_;
         Cpm = Cpm + Cp[i]*Phi[i];
     }
     else if(remain==2)
@@ -831,6 +838,7 @@ void FastThermo::idealGas::DerivativeThermoYT
         vExpNegGstdByRT = _mm_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm_fmadd_pd(A0,_mm256_castpd256_pd128(logT1v),vExpNegGstdByRT);
         store128d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store128d(&negGstdByRT2[i+0],vExpNegGstdByRT);
 
         __m128d vCp = _mm_fmadd_pd(A4,_mm256_castpd256_pd128(vT),A3);
         vCp = _mm_fmadd_pd(vCp,_mm256_castpd256_pd128(vT),A2);
@@ -875,6 +883,7 @@ void FastThermo::idealGas::DerivativeThermoYT
         vExpNegGstdByRT = _mm256_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,logT1v,vExpNegGstdByRT);
         store256d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i+0],vExpNegGstdByRT);
 
         __m256d vCp = _mm256_fmadd_pd(A4 ,vT,A3);
         vCp = _mm256_fmadd_pd(vCp,vT,A2);
@@ -900,7 +909,8 @@ void FastThermo::idealGas::DerivativeThermoYT
 void FastThermo::idealGas::negGstdByRT
 (
     double T,
-    double* __restrict__ negGstdByRT
+    double* __restrict__ negGstdByRT,
+    double* __restrict__ negGstdByRT2
 )const 
 {
 
@@ -935,6 +945,7 @@ void FastThermo::idealGas::negGstdByRT
         vExpNegGstdByRT = _mm256_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,logT1v,vExpNegGstdByRT);
         store256d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i+0],vExpNegGstdByRT);
     }
     if(remain ==1)
     {
@@ -942,6 +953,7 @@ void FastThermo::idealGas::negGstdByRT
         const std::array<double,7>& a = *this->PtrCoeffs[i];        
         double negGstdByRT_ = (((a[4]*0.05*T+a[3]*(1.0/12.0))*T+a[2]*(1.0/6.0))*T+a[1]*0.5)*T-a[5]*invT+a[6]+(this->logT-1)*a[0];
         negGstdByRT[i] = negGstdByRT_;
+        negGstdByRT2[i] = negGstdByRT_;
     }
     else if(remain==2)
     {
@@ -968,6 +980,7 @@ void FastThermo::idealGas::negGstdByRT
         vExpNegGstdByRT = _mm_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm_fmadd_pd(A0,_mm256_castpd256_pd128(logT1v),vExpNegGstdByRT);
         store128d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store128d(&negGstdByRT2[i+0],vExpNegGstdByRT);
     }
     else if(remain==3)
     {
@@ -995,6 +1008,7 @@ void FastThermo::idealGas::negGstdByRT
         vExpNegGstdByRT = _mm256_add_pd(vExpNegGstdByRT,A6);
         vExpNegGstdByRT = _mm256_fmadd_pd(A0,logT1v,vExpNegGstdByRT);
         store256d(&negGstdByRT[i+0],vExpNegGstdByRT);
+        store256d(&negGstdByRT2[i+0],vExpNegGstdByRT);
     }
 }
 

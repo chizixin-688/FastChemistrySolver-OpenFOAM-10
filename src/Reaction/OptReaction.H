@@ -437,7 +437,7 @@ public:
         // Thermodynamic function
 
             // Pointing the janaf coefficient using the given temperature.
-            inline void setPtrCoeffs (const double T) const noexcept;
+            //inline void setPtrCoeffs (const double T) const noexcept;
 
             // Compute the thermodynamic variable for Jacobian matrix
                 // YTp:             Array for species mass fraction, temperature and pressure.
@@ -457,7 +457,7 @@ public:
                 //                                                          [dimLess].
                 // WiByrhoM:        Molecular weight of i-th species divided
                 //                  by mixture density                      [m^3/kmol].
-            inline void JacobianThermo
+            /*inline void JacobianThermo
             (
                 double p,
                 double T,
@@ -470,16 +470,16 @@ public:
                 double* __restrict__ Ha,
                 double* __restrict__ rhoMByRhoi,
                 double* __restrict__ WiByrhoM
-            ) const noexcept;
+            ) const noexcept;*/
 
             // Compute the thermodynamic variable for reaction rate.
-            inline void CpHaExpNegGstdByRT
+            /*inline void CpHaExpNegGstdByRT
             (
                 const double T,
                 double* __restrict__ Cp,
                 double* __restrict__ Ha,
                 double* __restrict__ ExpNegGstdByRT
-            )const noexcept;
+            )const noexcept;*/
 
             // Compute the exp(-Gstd/(Ru*T)).           
             inline void ExpNegGstdByRT (const double T, double* ExpNegGstdByRT) const;
@@ -540,6 +540,8 @@ public:
                 const unsigned int i
             ) const;
 
+            void evaTroePartialDerivative() const noexcept;
+
             void Troe_F_1() const noexcept;
 
             void Troe_F_2() const noexcept;         
@@ -560,7 +562,7 @@ public:
         // Jacobian matrix function
 
             // Compute the Jacobian matrix and reaction rate
-            void ddNdtByVdcTp    
+            /*void ddNdtByVdcTp    
             (
                 const double p,
                 const double T,
@@ -574,7 +576,7 @@ public:
                 double* __restrict__ rhoMvj,
                 double* __restrict__ WiByrhoM,
                 double* __restrict__ ddNdtByVdcT  
-            ) const noexcept;
+            ) const noexcept;*/
 
             void ddNdtByVdcTp    
             (
@@ -588,7 +590,7 @@ public:
             ) const noexcept;
             // Convert the concentration based Jacobian matrix
             // to the mass fraction based Jacobian matrix
-                void ddYdtdY
+                /*void ddYdtdY
                 (
                     const double* __restrict__ ddNdtByVdcT,
                     const double* __restrict__ rhoMByRhoi,
@@ -596,9 +598,9 @@ public:
                     const double* __restrict__ dPhidt,  
                     const double* __restrict__ Phi,
                     double* __restrict__ Jac
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddYdtdY_Vec1_0
+                /*void ddYdtdY_Vec1_0
                 (
                     const double* __restrict__ ddNdtByVdcT,
                     const double* __restrict__ rhoMByRhoi,
@@ -606,9 +608,9 @@ public:
                     const double* __restrict__ dPhidt,  
                     const double* __restrict__ Phi,
                     double* __restrict__ Jac
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddYdtdY_Vec1_1
+                /*void ddYdtdY_Vec1_1
                 (
                     const double* __restrict__ ddNdtByVdcT,
                     const double* __restrict__ rhoMByRhoi,
@@ -616,9 +618,9 @@ public:
                     const double* __restrict__ dPhidt,  
                     const double* __restrict__ Phi,
                     double* __restrict__ Jac
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddYdtdY_Vec1_2
+                /*void ddYdtdY_Vec1_2
                 (
                     const double* __restrict__ ddNdtByVdcT,
                     const double* __restrict__ rhoMByRhoi,
@@ -626,9 +628,9 @@ public:
                     const double* __restrict__ dPhidt,  
                     const double* __restrict__ Phi,
                     double* __restrict__ Jac
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddYdtdY_Vec1_3
+                /*void ddYdtdY_Vec1_3
                 (
                     const double* __restrict__ ddNdtByVdcT,
                     const double* __restrict__ rhoMByRhoi,
@@ -636,134 +638,134 @@ public:
                     const double* __restrict__ dPhidt,  
                     const double* __restrict__ Phi,
                     double* __restrict__ Jac
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void FastddYdtdY_Vec0
+                /*void FastddYdtdY_Vec0
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ rhoMvj,
                     const double* __restrict__ WiByrhoM,  
                     const double* __restrict__ dYTpdt,  
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void FastddYdtdY_Vec1
+                /*void FastddYdtdY_Vec1
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ rhoMvj,
                     const double* __restrict__ WiByrhoM,  
                     const double* __restrict__ dYTpdt,  
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void FastddYdtdY_Vec2
+                /*void FastddYdtdY_Vec2
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ rhoMvj,
                     const double* __restrict__ WiByrhoM,  
                     const double* __restrict__ dYTpdt,  
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void FastddYdtdY_Vec3
+                /*void FastddYdtdY_Vec3
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ rhoMvj,
                     const double* __restrict__ WiByrhoM,  
                     const double* __restrict__ dYTpdt,  
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddYdtdTP
+                /*void ddYdtdTP
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ WiByrhoM,
                     const double* __restrict__ c,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;  
+                ) const noexcept;  */
 
-                void ddYdtdTP_Vec_0
+                /*void ddYdtdTP_Vec_0
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ WiByrhoM,
                     const double* __restrict__ c,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;  
+                ) const noexcept;  */
 
-                void ddYdtdTP_Vec_1
+                /*void ddYdtdTP_Vec_1
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ WiByrhoM,
                     const double* __restrict__ c,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;  
+                ) const noexcept;  */
 
-                void ddYdtdTP_Vec_2
+                /*void ddYdtdTP_Vec_2
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ WiByrhoM,
                     const double* __restrict__ c,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;   
+                ) const noexcept;   */
 
-                void ddYdtdTP_Vec_3
+                /*void ddYdtdTP_Vec_3
                 (
                     const double* __restrict__ ddNdtByVdcTp,
                     const double* __restrict__ WiByrhoM,
                     const double* __restrict__ C,  
                     double* __restrict__ dPhidt,
                     double* __restrict__ Jac
-                ) const noexcept;         
+                ) const noexcept;  */       
 
-                void ddTdtdYT
+                /*void ddTdtdYT
                 (
                     const double* __restrict__ Cp,
                     const double* __restrict__ dCpdT,
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
 
-                void ddTdtdYT_Vec_0
+                /*void ddTdtdYT_Vec_0
                 (
                     const double* __restrict__ Cp,
                     const double* __restrict__ dCpdT,
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddTdtdYT_Vec_1
+                /*void ddTdtdYT_Vec_1
                 (
                     const double* __restrict__ Cp,
                     const double* __restrict__ dCpdT,
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;
+                ) const noexcept;*/
 
-                void ddTdtdYT_Vec_2
+                /*void ddTdtdYT_Vec_2
                 (
                     const double* __restrict__ Cp,
                     const double* __restrict__ dCpdT,
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;          
+                ) const noexcept; */         
                 
-                void ddTdtdYT_Vec_3
+                /*void ddTdtdYT_Vec_3
                 (
                     const double* __restrict__ Cp,
                     const double* __restrict__ dCpdT,
                     const double* __restrict__ Ha,
                     double* __restrict__ dYTpdt,
                     double* __restrict__ J
-                ) const noexcept;        
+                ) const noexcept;   */     
 
             // for one-one reactions. e.g. A<=>B.
             void inline JF11
@@ -922,7 +924,7 @@ public:
 
 
             // Compute the reaction rate
-            void dNdtByV
+            /*void dNdtByV
             (
                 double p,
                 double T,
@@ -930,7 +932,7 @@ public:
                 double* __restrict__ dNdtByV,
                 double* __restrict__ Cp,
                 double* __restrict__ Ha
-            ) const noexcept;
+            ) const noexcept;*/
 
             // Compute the reaction rate
             void dNdtByV
@@ -1127,10 +1129,12 @@ public:
 #include "ChemicalEquilibriumFunctionI.H"
 #include "thirdBodyReactionI.H"
 #include "pressureReactionFunctionI.H"
-#include "JacobianFunctionI.H"
+
 #include "ReactionFunctionI.H"
 
 #ifdef NoRepository
+    #include "EvalTroePartialDerivative.C"
+    #include "JacobianFunction.C"
     #include "OptReaction.C"
     #include "Jacobian.C"
     #include "ReactionRate.C"

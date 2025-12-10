@@ -172,6 +172,7 @@ public:
                 double* __restrict__ Phi,
                 double* __restrict__ c,
                 double* __restrict__ negGstdByRT,
+                double* __restrict__ negGstdByRT2,
                 double* __restrict__ dBdT,
                 double* __restrict__ dCpdT,
                 double* __restrict__ Cp,
@@ -198,7 +199,8 @@ public:
                 double* __restrict__ c,
                 double* __restrict__ Cp,
                 double* __restrict__ Ha,
-                double* __restrict__ negGstdByRT
+                double* __restrict__ negGstdByRT,
+                double* __restrict__ negGstdByRT2
             ) const;
 
 
@@ -234,7 +236,8 @@ public:
             void negGstdByRT
             (
                 double T,
-                double* __restrict__ negGstdByRT
+                double* __restrict__ negGstdByRT,
+                double* __restrict__ negGstdByRT2
             )const;
 
     // Thermo inline function

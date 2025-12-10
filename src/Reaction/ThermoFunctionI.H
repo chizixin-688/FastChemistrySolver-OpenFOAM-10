@@ -1,4 +1,4 @@
-inline void OptReaction::setPtrCoeffs(const double T_) const noexcept
+/*inline void OptReaction::setPtrCoeffs(const double T_) const noexcept
 {
     if(T_<this->TcommonMin)
     {
@@ -28,9 +28,9 @@ inline void OptReaction::setPtrCoeffs(const double T_) const noexcept
             }
         }
     }    
-}
+}*/
 
-inline void OptReaction::JacobianThermo
+/*inline void OptReaction::JacobianThermo
 (
     const double p,
     const double T_,
@@ -356,9 +356,9 @@ inline void OptReaction::JacobianThermo
     Cp[this->nSpecies] = CpM + hsum4(ArrCpM_);
     dCpdT[this->nSpecies] = dCpMdT + hsum4(ArrdCpMdT_);  
 
-}
+}*/
 
-inline void OptReaction::CpHaExpNegGstdByRT
+/*inline void OptReaction::CpHaExpNegGstdByRT
 (
     const double T_,
     double* __restrict__ Cp,
@@ -425,20 +425,20 @@ inline void OptReaction::CpHaExpNegGstdByRT
     }
     else if(remain==2)
     {
-        unsigned int i = this->nSpecies-2;
-        /*const std::array<double,7>& a = *this->PtrCoeffs[i0];        
-        const std::array<double,7>& b = *this->PtrCoeffs[i1];
-        Cp[i0] = ((((a[4]*T_+a[3])*T_+a[2])*T_+a[1])*T_+a[0])*this->Ru*this->invW[i0];
-        Cp[i1] = ((((b[4]*T_+b[3])*T_+b[2])*T_+b[1])*T_+b[0])*this->Ru*this->invW[i1]; 
-        Ha[i0] = (((((a[4]*T_*0.2+a[3]*0.25)*T_+a[2]*(1.0/3.0))*T_+a[1]*0.5)*T_+a[0])*T_ +a[5])*this->Ru*this->invW[i0]; 
-        Ha[i1] = (((((b[4]*T_*0.2+b[3]*0.25)*T_+b[2]*(1.0/3.0))*T_+b[1]*0.5)*T_+b[0])*T_ +b[5])*this->Ru*this->invW[i1]; 
+        //unsigned int i = this->nSpecies-2;
+        //const std::array<double,7>& a = *this->PtrCoeffs[i0];        
+        //const std::array<double,7>& b = *this->PtrCoeffs[i1];
+        //Cp[i0] = ((((a[4]*T_+a[3])*T_+a[2])*T_+a[1])*T_+a[0])*this->Ru*this->invW[i0];
+        //Cp[i1] = ((((b[4]*T_+b[3])*T_+b[2])*T_+b[1])*T_+b[0])*this->Ru*this->invW[i1]; 
+        //Ha[i0] = (((((a[4]*T_*0.2+a[3]*0.25)*T_+a[2]*(1.0/3.0))*T_+a[1]*0.5)*T_+a[0])*T_ +a[5])*this->Ru*this->invW[i0]; 
+        //Ha[i1] = (((((b[4]*T_*0.2+b[3]*0.25)*T_+b[2]*(1.0/3.0))*T_+b[1]*0.5)*T_+b[0])*T_ +b[5])*this->Ru*this->invW[i1]; 
 
-        double negGstdByRT_0 = (((a[4]*0.05*T_+a[3]*(1.0/12.0))*T_+a[2]*(1.0/6.0))*T_+a[1]*0.5)*T_-a[5]*invT+a[6]+(this->logT-1)*a[0]; 
-        double negGstdByRT_1 = (((b[4]*0.05*T_+b[3]*(1.0/12.0))*T_+b[2]*(1.0/6.0))*T_+b[1]*0.5)*T_-b[5]*invT+b[6]+(this->logT-1)*b[0]; 
-        ExpNegGstdByRT[i0] = negGstdByRT_0;
-        ExpNegGstdByRT[i1] = negGstdByRT_1;
-        negGstdByRT[i0] = negGstdByRT_0;
-        negGstdByRT[i1] = negGstdByRT_1;*/
+        //double negGstdByRT_0 = (((a[4]*0.05*T_+a[3]*(1.0/12.0))*T_+a[2]*(1.0/6.0))*T_+a[1]*0.5)*T_-a[5]*invT+a[6]+(this->logT-1)*a[0]; 
+        //double negGstdByRT_1 = (((b[4]*0.05*T_+b[3]*(1.0/12.0))*T_+b[2]*(1.0/6.0))*T_+b[1]*0.5)*T_-b[5]*invT+b[6]+(this->logT-1)*b[0]; 
+        //ExpNegGstdByRT[i0] = negGstdByRT_0;
+        //ExpNegGstdByRT[i1] = negGstdByRT_1;
+        //negGstdByRT[i0] = negGstdByRT_0;
+        //negGstdByRT[i1] = negGstdByRT_1;
 
 
         const std::array<double,7>& a = *this->PtrCoeffs[i+0];
@@ -481,30 +481,31 @@ inline void OptReaction::CpHaExpNegGstdByRT
     }
     else if(remain==3)
     {
-        /*unsigned int i0 = this->nSpecies-3;
-        unsigned int i1 = this->nSpecies-2;
-        unsigned int i2 = this->nSpecies-1;      
-        const std::array<double,7>& a = *this->PtrCoeffs[i0]; 
-        const std::array<double,7>& b = *this->PtrCoeffs[i1];        
-        const std::array<double,7>& c = *this->PtrCoeffs[i2];
-        Cp[i0] = ((((a[4]*T_+a[3])*T_+a[2])*T_+a[1])*T_+a[0])*this->Ru*this->invW[i0];
-        Cp[i1] = ((((b[4]*T_+b[3])*T_+b[2])*T_+b[1])*T_+b[0])*this->Ru*this->invW[i1]; 
-        Cp[i2] = ((((c[4]*T_+c[3])*T_+c[2])*T_+c[1])*T_+c[0])*this->Ru*this->invW[i2];
-        Ha[i0] = (((((a[4]*T_*0.2+a[3]*0.25)*T_+a[2]*(1.0/3.0))*T_+a[1]*0.5)*T_+a[0])*T_ +a[5])*this->Ru*this->invW[i0]; 
-        Ha[i1] = (((((b[4]*T_*0.2+b[3]*0.25)*T_+b[2]*(1.0/3.0))*T_+b[1]*0.5)*T_+b[0])*T_ +b[5])*this->Ru*this->invW[i1]; 
-        Ha[i2] = (((((c[4]*T_*0.2+c[3]*0.25)*T_+c[2]*(1.0/3.0))*T_+c[1]*0.5)*T_+c[0])*T_ +c[5])*this->Ru*this->invW[i2]; 
+        //unsigned int i0 = this->nSpecies-3;
+        //unsigned int i1 = this->nSpecies-2;
+        //unsigned int i2 = this->nSpecies-1;      
+        //const std::array<double,7>& a = *this->PtrCoeffs[i0]; 
+        //const std::array<double,7>& b = *this->PtrCoeffs[i1];        
+        //const std::array<double,7>& c = *this->PtrCoeffs[i2];
+        //Cp[i0] = ((((a[4]*T_+a[3])*T_+a[2])*T_+a[1])*T_+a[0])*this->Ru*this->invW[i0];
+        //Cp[i1] = ((((b[4]*T_+b[3])*T_+b[2])*T_+b[1])*T_+b[0])*this->Ru*this->invW[i1]; 
+        //Cp[i2] = ((((c[4]*T_+c[3])*T_+c[2])*T_+c[1])*T_+c[0])*this->Ru*this->invW[i2];
+        //Ha[i0] = (((((a[4]*T_*0.2+a[3]*0.25)*T_+a[2]*(1.0/3.0))*T_+a[1]*0.5)*T_+a[0])*T_ +a[5])*this->Ru*this->invW[i0]; 
+        //Ha[i1] = (((((b[4]*T_*0.2+b[3]*0.25)*T_+b[2]*(1.0/3.0))*T_+b[1]*0.5)*T_+b[0])*T_ +b[5])*this->Ru*this->invW[i1]; 
+        //Ha[i2] = (((((c[4]*T_*0.2+c[3]*0.25)*T_+c[2]*(1.0/3.0))*T_+c[1]*0.5)*T_+c[0])*T_ +c[5])*this->Ru*this->invW[i2]; 
         
-        double  ExpNegGstdByRT0 = (((a[4]*0.05*T_+a[3]*(1.0/12.0))*T_+a[2]*(1.0/6.0))*T_+a[1]*0.5)*T_-a[5]*invT+a[6]+(this->logT-1)*a[0]; 
-        double  ExpNegGstdByRT1 = (((b[4]*0.05*T_+b[3]*(1.0/12.0))*T_+b[2]*(1.0/6.0))*T_+b[1]*0.5)*T_-b[5]*invT+b[6]+(this->logT-1)*b[0]; 
-        double  ExpNegGstdByRT2 = (((c[4]*0.05*T_+c[3]*(1.0/12.0))*T_+c[2]*(1.0/6.0))*T_+c[1]*0.5)*T_-c[5]*invT+c[6]+(this->logT-1)*c[0]; 
+        //double  ExpNegGstdByRT0 = (((a[4]*0.05*T_+a[3]*(1.0/12.0))*T_+a[2]*(1.0/6.0))*T_+a[1]*0.5)*T_-a[5]*invT+a[6]+(this->logT-1)*a[0]; 
+        //double  ExpNegGstdByRT1 = (((b[4]*0.05*T_+b[3]*(1.0/12.0))*T_+b[2]*(1.0/6.0))*T_+b[1]*0.5)*T_-b[5]*invT+b[6]+(this->logT-1)*b[0]; 
+        //double  ExpNegGstdByRT2 = (((c[4]*0.05*T_+c[3]*(1.0/12.0))*T_+c[2]*(1.0/6.0))*T_+c[1]*0.5)*T_-c[5]*invT+c[6]+(this->logT-1)*c[0]; 
             
-        ExpNegGstdByRT[i0] = ExpNegGstdByRT0; 
-        ExpNegGstdByRT[i1] = ExpNegGstdByRT1; 
-        ExpNegGstdByRT[i2] = ExpNegGstdByRT2;
+        //ExpNegGstdByRT[i0] = ExpNegGstdByRT0; 
+        //ExpNegGstdByRT[i1] = ExpNegGstdByRT1; 
+        //ExpNegGstdByRT[i2] = ExpNegGstdByRT2;
         
-        negGstdByRT[i0] = ExpNegGstdByRT0; 
-        negGstdByRT[i1] = ExpNegGstdByRT1; 
-        negGstdByRT[i2] = ExpNegGstdByRT2;    */
+        //negGstdByRT[i0] = ExpNegGstdByRT0; 
+        //negGstdByRT[i1] = ExpNegGstdByRT1; 
+        //negGstdByRT[i2] = ExpNegGstdByRT2;    
+
         unsigned int i = this->nSpecies-3;
         const std::array<double,7>& a = *this->PtrCoeffs[i+0];
         const std::array<double,7>& b = *this->PtrCoeffs[i+1];
@@ -546,10 +547,10 @@ inline void OptReaction::CpHaExpNegGstdByRT
         vHa = _mm256_mul_pd(RuInvW,vHa);
         store256d(&Ha[i+0],vHa);
     }
-}
+}*/
 
 
-inline void OptReaction::ExpNegGstdByRT (const double T_, double* ExpNegGstdByRT)const
+/*inline void OptReaction::ExpNegGstdByRT (const double T_, double* ExpNegGstdByRT)const
 {  
 
     unsigned int remain = this->nSpecies%4;
@@ -627,6 +628,6 @@ inline void OptReaction::ExpNegGstdByRT (const double T_, double* ExpNegGstdByRT
         negGstdByRT[i1] = ExpNegGstdByRT_1;
         negGstdByRT[i2] = ExpNegGstdByRT_2;        
     }
-}
+}*/
 
 

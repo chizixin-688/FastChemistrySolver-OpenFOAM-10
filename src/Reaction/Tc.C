@@ -12,17 +12,17 @@ OptReaction::Tc
     double& sumWRateByCTot
 ) const noexcept
 {
-    Temperature = Temperature<TlowMin?TlowMin:Temperature;
-    Temperature = Temperature>ThighMax?ThighMax:Temperature;
-    this->logT = std::log(Temperature);
-    this->invT = 1/Temperature;
+    //Temperature = Temperature<TlowMin?TlowMin:Temperature;
+    //Temperature = Temperature>ThighMax?ThighMax:Temperature;
+    //this->logT = std::log(Temperature);
+    //this->invT = 1/Temperature;
 
 
 
-    this->setPtrCoeffs(Temperature);
+    //this->setPtrCoeffs(Temperature);
 
     
-    this->ExpNegGstdByRT(Temperature,&this->tmp_Exp[0]);
+    //this->ExpNegGstdByRT(Temperature,&this->tmp_Exp[0]);
     
     this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);

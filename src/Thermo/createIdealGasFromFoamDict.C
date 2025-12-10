@@ -16,7 +16,7 @@ void createIdealGasFromFoamDict
     hashedWordList speciesTable(physicalDict.lookup("species"));
     int nSpecies = speciesTable.size();
 
-    // Create temporary idealgas object
+
     gas = std::make_unique<idealGas>(nSpecies);
 
 
@@ -59,6 +59,24 @@ void createIdealGasFromFoamDict
         {
             gas->ThighMax = gas->Thigh[i];
         }
+    }
+
+
+    for(int i = 0; i < gas->nSpecies; i++)
+    {
+        const double Tstd = 298.15;
+        
+        if(gas->Tcommon[i]<Tstd)
+        {
+            auto& Coeff = gas->HCoeffs[i];
+            gas->Hf[i] = (((((Coeff[4]*Tstd*0.2+Coeff[3]*0.25)*Tstd+Coeff[2]*(1.0/3.0))*Tstd+Coeff[1]*0.5)*Tstd+Coeff[0])*Tstd +Coeff[5])*gas->Ru*gas->invW[i];
+        }
+        else
+        {
+            auto& Coeff = gas->LCoeffs[i];
+            gas->Hf[i] = (((((Coeff[4]*Tstd*0.2+Coeff[3]*0.25)*Tstd+Coeff[2]*(1.0/3.0))*Tstd+Coeff[1]*0.5)*Tstd+Coeff[0])*Tstd +Coeff[5])*gas->Ru*gas->invW[i];
+        }
+        
     }
 }
 }
