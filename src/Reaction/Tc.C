@@ -927,7 +927,7 @@ OptReaction::Tc
                 sumWRateByCTot += (wr*wr);
             }
         }
-        else if(J>3 || K>3)
+        if(J>3 || K>3)
         {
             //this->RFGI(i,this->Kf_[i],c,dNdtByV,&tmp_Exp[0]);
             double Kf = this->Kf_[i];
