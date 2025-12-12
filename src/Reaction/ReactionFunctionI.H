@@ -14,7 +14,7 @@ void inline OptReaction::RF11
     {
         const double Kp = ExpNegGbyRT[sr0]/ExpNegGbyRT[sl0];
         double Kc = Kp;
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;       
     }
     else if(this->isIrreversible[i]==2)
@@ -50,7 +50,7 @@ void inline OptReaction::RF12
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]);
         double Kc = Kp*this->Pow_pByRT_SumVki[3];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;       
     }
     else if(this->isIrreversible[i]==2)
@@ -91,7 +91,7 @@ void inline OptReaction::RF13
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]);
         double Kc = Kp*this->Pow_pByRT_SumVki[4];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;         
     }
     else if(this->isIrreversible[i]==2)
@@ -131,7 +131,7 @@ void inline OptReaction::RF21
     {
         const double Kp = ExpNegGbyRT[sr0]/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
         double Kc = Kp*this->Pow_pByRT_SumVki[1];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;        
     }
     else if(this->isIrreversible[i]==2)
@@ -172,7 +172,7 @@ void inline OptReaction::RF22
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
         double Kc = Kp;
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;         
     }
     else if(this->isIrreversible[i]==2)
@@ -216,7 +216,7 @@ void inline OptReaction::RF23
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
         double Kc = Kp*this->Pow_pByRT_SumVki[3];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;    
     }
     else if(this->isIrreversible[i]==2)
@@ -258,7 +258,7 @@ void inline OptReaction::RF31
     {
         const double Kp = (ExpNegGbyRT[sr0])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
         double Kc = Kp*this->Pow_pByRT_SumVki[0];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;         
     }
     else if(this->isIrreversible[i]==2)
@@ -299,7 +299,7 @@ void inline OptReaction::RF32
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
         double Kc = Kp*this->Pow_pByRT_SumVki[1];
-        Kc = std::max(Kc,1.4901171103413047e-8);
+        Kc = std::max(Kc,KcLimiter);
         Kr = Kf/Kc;
     }
     else if(this->isIrreversible[i]==2)
@@ -345,8 +345,8 @@ void inline OptReaction::RF33
     {
         const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
         double Kc = Kp;
-        Kc = std::max(Kc,1.4901171103413047e-8);
-        Kr = Kf/Kc;   
+        Kc = std::max(Kc,KcLimiter);
+        Kr = Kf/Kc;
     }
     else if(this->isIrreversible[i]==2)
     {

@@ -2,7 +2,7 @@
 #include <immintrin.h>  
 
 
-void 
+/*void 
 OptReaction::ddNdtByVdcTp
 (
     double p,
@@ -711,7 +711,7 @@ OptReaction::ddNdtByVdcTp
         }
         if(j>3 || k>3){this->JFGI(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
     }
-}
+}*/
 void 
 OptReaction::ddNdtByVdcTp
 (
@@ -734,10 +734,10 @@ OptReaction::ddNdtByVdcTp
     this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);
 
-    for(unsigned int i=0; i<this->nSpecies; i++)
+    /*for(unsigned int i=0; i<this->nSpecies; i++)
     {
         this->negGstdByRT[i] = this->tmp_Exp[i];
-    }
+    }*/
     for(size_t i = 0; i <this->Troe.size();i++)
     {
         size_t j0 = i + this->nSpecies;
@@ -1083,259 +1083,22 @@ OptReaction::ddNdtByVdcTp
         this->dKfdT_[this->Ikf[10]+i] = this->dKfdT_[this->Ikf[10]+i]*Mrev;
     } 
 
-
+    if(Lindemann.size()>0)
     {
-        size_t remain_Lindemann = (Lindemann.size())%4;
-        for (size_t i = 0;i<Lindemann.size()-remain_Lindemann;i=i+4)
-        {
-            const unsigned int j0 = this->Lindemann[i+0]+0;
-            const unsigned int j1 = this->Lindemann[i+0]+1;
-            const unsigned int j2 = this->Lindemann[i+0]+2;
-            const unsigned int j3 = this->Lindemann[i+0]+3;
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const unsigned int k3 = j3 - this->Ikf[4];
-            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0 + this->offset_kinf]);    
-            __m256d one = _mm256_set1_pd(1.0);       
-            __m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
-            __m256d dKinfdT = _mm256_loadu_pd(&this->dKfdT_[j0 + this->offset_kinf]);
-            __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);        
-            __m256d dK0dT = _mm256_loadu_pd(&this->dKfdT_[j0]);     
-            __m256d M = _mm256_loadu_pd(&tmp_M[m0]);
-            __m256d Pr = _mm256_mul_pd(_mm256_mul_pd(K0,M),invKinf);
-            __m256d dPrdT = _mm256_fmsub_pd(M,dK0dT,_mm256_mul_pd(Pr,dKinfdT));
-            dPrdT = _mm256_mul_pd(dPrdT,invKinf);
-            __m256d k = _mm256_setr_pd(k0,k1,k2,k3);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d dKdT = _mm256_blendv_pd(dK0dT,_mm256_mul_pd(Pr,dKinfdT),cmp);
-            __m256d K = _mm256_blendv_pd(K0,Kinf,cmp);
-            __m256d KK = _mm256_blendv_pd(_mm256_mul_pd(K0,invKinf),one,cmp);
-            __m256d tmp = _mm256_div_pd(one,_mm256_add_pd(one,Pr));
-            __m256d N1 = _mm256_blendv_pd(-tmp,tmp,cmp);
-            __m256d N = _mm256_mul_pd(tmp,K0);
-            __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
-            dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
-            _mm256_storeu_pd(&this->dKfdT_[j0],dKfdT);
-            __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,tmp),KK),N1);
-            _mm256_storeu_pd(&this->dKfdC_[m0],dKfdC);
-            __m256d KF = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);
-            _mm256_storeu_pd(&this->Kf_[j0],KF);
-        }
-        if(remain_Lindemann==1)
-        {
-            size_t i = this->Lindemann.size()-1;
-            const unsigned int j0 = this->Lindemann[i+0];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const double Kinf0 = this->Kf_[j0 + this->offset_kinf];
-            const double dKinfdT0 = this->dKfdT_[j0 + this->offset_kinf];
-            const double K00 = this->Kf_[j0];
-            double M0 = tmp_M[m0];
-            const double invKinf0 = 1.0/Kinf0;
-            const double Pr0 = K00*M0*invKinf0; 
-            const double dK0dT0 =  this->dKfdT_[j0];
-            const double dPrdT0 = (M0*dK0dT0-Pr0*dKinfdT0)*invKinf0;
-            const double invOnePlusPr0 = 1/(1+Pr0);
-            const double dKdT0   = j0 - this->Ikf[4]<this->n_Fall_Off_Reaction?Pr0*dKinfdT0:dK0dT0;
-            const double K0      = j0 - this->Ikf[4]<this->n_Fall_Off_Reaction?Kinf0      :K00;
-            const double KK0     = j0 - this->Ikf[4]<this->n_Fall_Off_Reaction?1         :K00*invKinf0;
-            const double N10     = j0 - this->Ikf[4]<this->n_Fall_Off_Reaction?invOnePlusPr0  :-invOnePlusPr0;
-            const double N0  = invOnePlusPr0*1*K00;
-            this->dKfdT_[j0] = invOnePlusPr0*dKdT0 + invOnePlusPr0*invOnePlusPr0*dPrdT0*K0;
-            this->dKfdC_[m0] =  K00*KK0*(N10)*invOnePlusPr0; 
-            this->Kf_[j0] = k0<this->n_Fall_Off_Reaction ? M0*N0 : N0;    
-        }
-        else if (remain_Lindemann==2)
-        {
-            size_t i = this->Lindemann.size()-2;
-
-            const unsigned int j0 = this->Lindemann[i+0]+0;
-            const unsigned int j1 = this->Lindemann[i+0]+1;
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];            
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            __m256d Kinf = _mm256_setr_pd(Kf_[j0 + this->offset_kinf],Kf_[j1 + this->offset_kinf],1,1);    
-            __m256d one = _mm256_set1_pd(1.0);       
-            __m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
-            __m256d dKinfdT = _mm256_setr_pd(dKfdT_[j0 + this->offset_kinf],dKfdT_[j1 + this->offset_kinf],1,1);
-            __m256d K0 = _mm256_setr_pd(Kf_[j0],Kf_[j1],1,1);        
-            __m256d dK0dT = _mm256_setr_pd(dKfdT_[j0],dKfdT_[j1],1,1);     
-            __m256d M = _mm256_setr_pd(tmp_M[m0],tmp_M[m1],1,1);
-            __m256d Pr = _mm256_mul_pd(_mm256_mul_pd(K0,M),invKinf);
-            __m256d dPrdT = _mm256_fmsub_pd(M,dK0dT,_mm256_mul_pd(Pr,dKinfdT));
-            dPrdT = _mm256_mul_pd(dPrdT,invKinf);
-            __m256d k = _mm256_setr_pd(k0,k1,1,1);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d dKdT = _mm256_blendv_pd(dK0dT,_mm256_mul_pd(Pr,dKinfdT),cmp);
-            __m256d K = _mm256_blendv_pd(K0,Kinf,cmp);
-            __m256d KK = _mm256_blendv_pd(_mm256_mul_pd(K0,invKinf),one,cmp);
-            __m256d tmp = _mm256_div_pd(one,_mm256_add_pd(one,Pr));
-            __m256d N1 = _mm256_blendv_pd(-tmp,tmp,cmp);
-            __m256d N = _mm256_mul_pd(tmp,K0);
-            __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
-            dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
-            dKfdT_[j0] = get_elem0(dKfdT);
-            dKfdT_[j1] = get_elem1(dKfdT);
-            __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,tmp),KK),N1);
-            dKfdC_[m0] = get_elem0(dKfdC);
-            dKfdC_[m1] = get_elem1(dKfdC);
-            __m256d KF = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);   
-            Kf_[j0] = get_elem0(KF);
-            Kf_[j1] = get_elem1(KF);
-        }
-        else if (remain_Lindemann==3)
-        {
-            size_t i = this->Lindemann.size()-3;
-            const unsigned int j0 = this->Lindemann[i+0]+0;
-            const unsigned int j1 = this->Lindemann[i+0]+1;
-            const unsigned int j2 = this->Lindemann[i+0]+2;
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
-            __m256d Kinf = _mm256_setr_pd(Kf_[j0+this->offset_kinf],Kf_[j1+this->offset_kinf],Kf_[j2+this->offset_kinf],1);    
-            __m256d one = _mm256_set1_pd(1.0);       
-            __m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
-            __m256d dKinfdT = _mm256_setr_pd(dKfdT_[j0+this->offset_kinf],dKfdT_[j1+this->offset_kinf],dKfdT_[j2+this->offset_kinf],1);
-            __m256d K0 = _mm256_setr_pd(Kf_[j0],Kf_[j1],Kf_[j2],1);        
-            __m256d dK0dT = _mm256_setr_pd(dKfdT_[j0],dKfdT_[j1],dKfdT_[j2],1);     
-            __m256d M = _mm256_setr_pd(tmp_M[m0],tmp_M[m1],tmp_M[m2],1);
-            __m256d Pr = _mm256_mul_pd(_mm256_mul_pd(K0,M),invKinf);
-            __m256d dPrdT = _mm256_fmsub_pd(M,dK0dT,_mm256_mul_pd(Pr,dKinfdT));
-            dPrdT = _mm256_mul_pd(dPrdT,invKinf);
-            __m256d k = _mm256_setr_pd(k0,k1,k2,1);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d dKdT = _mm256_blendv_pd(dK0dT,_mm256_mul_pd(Pr,dKinfdT),cmp);
-            __m256d K = _mm256_blendv_pd(K0,Kinf,cmp);
-            __m256d KK = _mm256_blendv_pd(_mm256_mul_pd(K0,invKinf),one,cmp);
-            __m256d tmp = _mm256_div_pd(one,_mm256_add_pd(one,Pr));
-            __m256d N1 = _mm256_blendv_pd(-tmp,tmp,cmp);
-            __m256d N = _mm256_mul_pd(tmp,K0);
-            __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
-            dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
-            this->dKfdT_[j0] = get_elem0(dKfdT);
-            this->dKfdT_[j1] = get_elem1(dKfdT);
-            this->dKfdT_[j2] = get_elem2(dKfdT);
-            __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,tmp),KK),N1);
-            this->dKfdC_[m0] = get_elem0(dKfdC);
-            this->dKfdC_[m1] = get_elem1(dKfdC);
-            this->dKfdC_[m2] = get_elem2(dKfdC);
-            __m256d KF = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);
-            this->Kf_[j0] = get_elem0(KF);
-            this->Kf_[j1] = get_elem1(KF);
-            this->Kf_[j2] = get_elem2(KF);
-        }   
+        this->evalLindemannPartialDerivative();
     }
 
-
+    if(Troe.size()>0)
     {
-        size_t remain_Troe = (Troe.size())%4;
-        for (size_t i = 0;i<Troe.size()-remain_Troe;i=i+4)
-        {
-            const unsigned int j0 = this->Troe[i+0];
-            const unsigned int j1 = this->Troe[i+1];
-            const unsigned int j2 = this->Troe[i+2];
-            const unsigned int j3 = this->Troe[i+3];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const unsigned int k3 = j3 - this->Ikf[4];
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-            __m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
-            __m256d dKinfdT = _mm256_loadu_pd(&this->dKfdT_[j0+this->offset_kinf]);
-            __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);           
-            __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
-            __m256d Pr = _mm256_mul_pd(_mm256_mul_pd(M,K0),invKinf);
-            __m256d small = _mm256_set1_pd(2.2e-16);
-            __m256d cmp_result_Pr = _mm256_cmp_pd(Pr,small,_CMP_GE_OQ);
-            Pr = _mm256_add_pd(Pr,_mm256_set1_pd(1e-100));
-            const double invLog10 = 1.0/std::log(10);
-            __m256d logPr_ = _mm256_mul_pd(vec256_logd(_mm256_max_pd(small,Pr)),_mm256_set1_pd(invLog10));
-            __m256d InvTsss = _mm256_loadu_pd(&this->invTsss_[i]);
-            __m256d InvTs = _mm256_loadu_pd(&this->invTs_[i]);
-            __m256d Tss = _mm256_loadu_pd(&this->Tss_[i]);
-            __m256d expTTsss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies]);
-            __m256d expTTss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->Troe.size()]);
-            __m256d expTTs = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->Troe.size()*2]);
-            __m256d one = _mm256_set1_pd(1.0);
-            __m256d alpha = _mm256_loadu_pd(&this->alpha_[i]);
-            __m256d Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha),expTTsss);
-            Fcent = _mm256_fmadd_pd(alpha,expTTs,Fcent);
-            Fcent = _mm256_add_pd(expTTss,Fcent);
-            __m256d logFcent = _mm256_mul_pd(vec256_logd(_mm256_max_pd(Fcent,small)),_mm256_set1_pd(invLog10));
-            __m256d cc = _mm256_fmadd_pd(logFcent,_mm256_set1_pd(0.67),_mm256_set1_pd(0.4));
-            __m256d n = _mm256_fmadd_pd(logFcent,_mm256_set1_pd(-1.27),_mm256_set1_pd(0.75));
-            __m256d x1 = _mm256_fmadd_pd(_mm256_sub_pd(cc,logPr_),_mm256_set1_pd(0.14),n);
-            __m256d invx1 = _mm256_div_pd(one,x1);
-            __m256d x2 = _mm256_mul_pd(_mm256_sub_pd(logPr_,cc),invx1);
-            __m256d x3 = _mm256_fmadd_pd(x2,x2,one);
-            __m256d invx3 = _mm256_div_pd(one,x3);
-            __m256d x4 = _mm256_mul_pd(logFcent,invx3);
-            __m256d  F = vec256_powd(_mm256_set1_pd(10),x4);
-            __m256d logTen = _mm256_set1_pd(std::log(10));
-            __m256d dFcentdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_sub_pd(alpha,one),InvTsss),expTTsss);
-            dFcentdT = _mm256_sub_pd(dFcentdT,_mm256_mul_pd(_mm256_mul_pd(alpha,InvTs),expTTs));
-            __m256d invT2 = _mm256_set1_pd(invT*invT);
-            dFcentdT = _mm256_fmadd_pd(expTTss,_mm256_mul_pd(Tss,invT2),dFcentdT);
-            __m256d cmp2 = _mm256_cmp_pd(Fcent,small,_CMP_GE_OQ);
-            __m256d dlogFcentdT = _mm256_div_pd(_mm256_div_pd(dFcentdT,_mm256_max_pd(Fcent,small)),logTen);
-            dlogFcentdT = _mm256_blendv_pd(_mm256_setzero_pd(), dlogFcentdT, cmp2);
-            __m256d dcdT = _mm256_mul_pd(dlogFcentdT,_mm256_set1_pd(-0.67));
-            __m256d dndT = _mm256_mul_pd(dlogFcentdT,_mm256_set1_pd(-1.27));
-            __m256d dx1dT = _mm256_fmadd_pd(dcdT,_mm256_set1_pd(-0.14),dndT);
-            __m256d dx2dT = _mm256_mul_pd(_mm256_sub_pd(dcdT,_mm256_mul_pd(x2,dx1dT)),invx1);
-            __m256d dx3dT = _mm256_mul_pd(_mm256_mul_pd(x2,dx2dT),_mm256_set1_pd(2.0));
-            __m256d dx4dT = _mm256_mul_pd(_mm256_sub_pd(dlogFcentdT,_mm256_mul_pd(x4,dx3dT)),invx3);
-            __m256d dFdT = _mm256_mul_pd(logTen,_mm256_mul_pd(F,dx4dT));
-            __m256d dlogPrdPr = _mm256_div_pd(_mm256_set1_pd(1.0),_mm256_mul_pd(Pr,logTen));
-            dlogPrdPr = _mm256_blendv_pd(_mm256_setzero_pd(), dlogPrdPr, cmp_result_Pr);
-            __m256d dx1dPr = _mm256_mul_pd(dlogPrdPr,_mm256_set1_pd(-0.14));
-            __m256d dx2dPr = _mm256_mul_pd(_mm256_sub_pd(dlogPrdPr,_mm256_mul_pd(x2,dx1dPr)),invx1);
-            __m256d dx3dPr = _mm256_mul_pd(_mm256_mul_pd(x2,dx2dPr),_mm256_set1_pd(2.0));
-            __m256d dx4dPr = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(_mm256_set1_pd(-1.0),x4),dx3dPr),invx3);
-            __m256d dFdPr  = _mm256_mul_pd(_mm256_mul_pd(logTen,F),dx4dPr);    
-            __m256d dK0dT = _mm256_loadu_pd(&this->dKfdT_[j0]);            
-            __m256d dPrdT = _mm256_mul_pd(_mm256_fmsub_pd(M,dK0dT,_mm256_mul_pd(Pr,dKinfdT)),invKinf);
-            dFdT = _mm256_fmadd_pd(dFdPr,dPrdT,dFdT);
-            __m256d k = _mm256_setr_pd(k0,k1,k2,k3);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d dKdT = _mm256_blendv_pd(dK0dT, _mm256_mul_pd(Pr,dKinfdT), cmp);
-            __m256d K = _mm256_blendv_pd(K0, Kinf, cmp);
-            __m256d MM = _mm256_blendv_pd(_mm256_set1_pd(1), M, cmp);
-            __m256d KK = _mm256_blendv_pd(_mm256_mul_pd(K0,invKinf), _mm256_set1_pd(1), cmp);
-            __m256d invOnePlusPr = _mm256_div_pd(_mm256_set1_pd(1.0),_mm256_add_pd(_mm256_set1_pd(1.0),Pr));
-            __m256d N1 = _mm256_mul_pd(F,invOnePlusPr);
-            N1 = _mm256_blendv_pd(_mm256_sub_pd(_mm256_setzero_pd(),N1),N1,cmp);            
-            __m256d N2 = _mm256_blendv_pd(dFdPr,_mm256_mul_pd(Pr,dFdPr),cmp);
-            __m256d N = _mm256_mul_pd(_mm256_mul_pd(F,K0),invOnePlusPr);
-            __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(F,invOnePlusPr),dKdT);
-            dKfdT = _mm256_fmadd_pd(K,_mm256_mul_pd(_mm256_mul_pd(F,_mm256_mul_pd(invOnePlusPr,invOnePlusPr)),dPrdT),dKfdT);
-            dKfdT = _mm256_fmadd_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),dFdT),MM,dKfdT); 
-            _mm256_storeu_pd(&this->dKfdT_[j0],dKfdT);           
-            __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),KK),_mm256_add_pd(N1,N2));
-            _mm256_storeu_pd(&this->dKfdC_[m0],dKfdC);     
-            __m256d KF = _mm256_blendv_pd(N,_mm256_mul_pd(N,M),cmp);
-            _mm256_storeu_pd(&this->Kf_[j0],KF);
-        }
-        if(remain_Troe==1)
-        {
-            this->Troe_Jac_1();
-        }
-        else if(remain_Troe==2)
-        {
-
-            this->Troe_Jac_2();
-        }
-        else if(remain_Troe==3)
-        {
-            this->Troe_Jac_3();
-        }
+//auto TimeStart = std::chrono::high_resolution_clock::now();
+//for(int i = 0; i < 10000000;i++)
+//{
+        this->evalTroePartialDerivative();
+//}
+//auto duration = (std::chrono::duration_cast<std::chrono::microseconds>
+//                (std::chrono::high_resolution_clock::now()-TimeStart));
+//std::cout<<duration.count()<<std::endl;
+//std::exit(0);
     }        
 
 
@@ -1405,7 +1168,7 @@ OptReaction::ddNdtByVdcTp
     }
 }
 
-void 
+/*void 
 OptReaction::ddYdtdY_Vec1_0
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -1522,10 +1285,10 @@ OptReaction::ddYdtdY_Vec1_0
             _mm256_storeu_pd(&Jac[(i+3)*(alignN)+ j+0],ddYi3dtdYj);
         }     
     }     
-}
+}*/
 
 
-void 
+/*void 
 OptReaction::ddYdtdY_Vec1_1
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -1770,9 +1533,9 @@ OptReaction::ddYdtdY_Vec1_1
         ddNi0dtByVdYj += JcRowi[k]*buffer[k];
         Jac[(i+0)*(alignN) + j] = WiByrhoM_0*ddNi0dtByVdYj + rhoMvj_*dYi0dt;
     }
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddYdtdY_Vec1_2
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2215,9 +1978,9 @@ OptReaction::ddYdtdY_Vec1_2
         _mm_storeu_pd(&Jac[(i+0)*(alignN) + j0],result0);
         _mm_storeu_pd(&Jac[(i+1)*(alignN) + j0],result1);
     }  
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddYdtdY_Vec1_3
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2490,11 +2253,11 @@ OptReaction::ddYdtdY_Vec1_3
             Jac[i*(alignN) + j2] = r2;
         }
     }        
-}
+}*/
 
 
 
-void 
+/*void 
 OptReaction::ddYdtdTP_Vec_3
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2627,11 +2390,11 @@ OptReaction::ddYdtdTP_Vec_3
         J[i1*(alignN) + nSpecies] = Wi1ByrhoM_*ddNi1dtByVdT + alphavM*dYi1dt;
         J[i2*(alignN) + nSpecies] = Wi2ByrhoM_*ddNi2dtByVdT + alphavM*dYi2dt;
     }
-}
+}*/
 
 
 
-void 
+/*void 
 OptReaction::ddYdtdTP_Vec_2
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2744,10 +2507,10 @@ OptReaction::ddYdtdTP_Vec_2
         Jac[i0*(alignN) + nSpecies] = Wi0ByrhoM_*ddNi0dtByVdT + alphavM*dYi0dt;
         Jac[i1*(alignN) + nSpecies] = Wi1ByrhoM_*ddNi1dtByVdT + alphavM*dYi1dt;
     }
-}
+}*/
 
 
-void 
+/*void 
 OptReaction::ddYdtdTP_Vec_1
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2837,10 +2600,10 @@ OptReaction::ddYdtdTP_Vec_1
         
         Jac[i0*(alignN) + nSpecies] = Wi0ByrhoM_*ddNi0dtByVdT + alphavM*dYi0dt;
     }
-}
+}*/
 
 
-void 
+/*void 
 OptReaction::ddYdtdTP_Vec_0
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -2900,11 +2663,11 @@ OptReaction::ddYdtdTP_Vec_0
         Jac[i2*(alignN) + nSpecies] = get_elem2(result);
         Jac[i3*(alignN) + nSpecies] = get_elem3(result);
     }
-}
+}*/
 
 
 
-void 
+/*void 
 OptReaction::ddTdtdYT_Vec_0
 (
     const double* __restrict__ Cp,
@@ -2959,9 +2722,9 @@ OptReaction::ddTdtdYT_Vec_0
     ddTdtdT = ddTdtdT - hsum4(ddTdtdTv);
     ddTdtdT -= dTdt*dCpMdT; 
     ddTdtdT *= invCpM;
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddTdtdYT_Vec_1
 (
     const double* __restrict__ Cp,
@@ -3052,9 +2815,9 @@ OptReaction::ddTdtdYT_Vec_1
     }
     ddTdtdT -= dTdt*dCpMdT;
     ddTdtdT *= invCpM;   
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddTdtdYT_Vec_2
 (
     const double* __restrict__ Cp,
@@ -3163,9 +2926,9 @@ OptReaction::ddTdtdYT_Vec_2
     }
     ddTdtdT -= dTdt*dCpMdT;
     ddTdtdT = ddTdtdT*invCpM;
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddTdtdYT_Vec_3
 (
     const double* __restrict__ Cp,
@@ -3302,9 +3065,9 @@ OptReaction::ddTdtdYT_Vec_3
     }
     ddTdtdT -= dTdt*dCpMdT;
     ddTdtdT = ddTdtdT*invCpM;   
-}
+}*/
 
-void 
+/*void 
 OptReaction::FastddYdtdY_Vec0
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -3352,9 +3115,9 @@ OptReaction::FastddYdtdY_Vec0
             _mm256_storeu_pd(&Jac[(i+3)*(alignN) + j+0],ddYi3dtdYj);
         }
     }
-}
+}*/
 
-void 
+/*void 
 OptReaction::FastddYdtdY_Vec1
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -3443,9 +3206,9 @@ OptReaction::FastddYdtdY_Vec1
             ddYi0dtdYj0 = Wi0ByrhoM_*ddNi0dtByVdYj0 + rhoMByRhoi[j+0]*dYi0dt;
         }
     }
-}
+}*/
 
-void 
+/*void 
 OptReaction::FastddYdtdY_Vec2
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -3559,8 +3322,8 @@ OptReaction::FastddYdtdY_Vec2
             _mm_storeu_pd(&Jac[(i+1)*(alignN) + j+0],ddYi1dtdYj);
         }
     }
-}
-void 
+}*/
+/*void 
 OptReaction::FastddYdtdY_Vec3
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -3674,9 +3437,9 @@ OptReaction::FastddYdtdY_Vec3
             _mm256_storeu_pd(&Jac[(i+2)*(alignN) + j+0],ddYi2dtdYj);
         }
     }
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddTdtdYT
 (
     const double* __restrict__ Cp,
@@ -3727,9 +3490,9 @@ OptReaction::ddTdtdYT
 
     ddTdtdT -= dTdt*dCpMdT;
     ddTdtdT /= CpM;   
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddYdtdTP
 (
     const double* __restrict__ ddNdtByVdcTp,
@@ -3761,9 +3524,9 @@ OptReaction::ddYdtdTP
         ddYi0dtdT = Wi0ByrhoM_*ddNi0dtByVdT + alphavM*dYi0dt;
      
     }
-}
+}*/
 
-void 
+/*void 
 OptReaction::ddYdtdY
 (
     const double* __restrict__ ddNdtByVdcT,
@@ -3811,7 +3574,5 @@ OptReaction::ddYdtdY
             ddYidtdYj = WiByrhoM_*ddNidtByVdYj + rhoMvj_*dYidt;
         }
     }
-
-
-}
+}*/
 

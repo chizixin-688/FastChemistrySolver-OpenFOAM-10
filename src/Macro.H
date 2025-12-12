@@ -25,7 +25,13 @@
 //#define SIMD_LOAD_MODE 2    	//use the aligned load/store instruction with security check, for Debug purpose
 
 
+//#define KcLimiter 1.4901171103413047e-8
+#define KcLimiter 0.0
 
+//#define TroeLimiter 2.220446049250313e-16
+#define TroeLimiter 2.220446049250313e-32
+
+#define LuLimiter 2.220446049250313e-16
 
 inline __m256d load256d(const double* p)
 {

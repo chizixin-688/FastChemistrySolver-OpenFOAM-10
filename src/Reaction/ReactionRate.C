@@ -1164,8 +1164,10 @@ OptReaction::dNdtByV
         } 
     }
 
+    if(Lindemann.size()>0)
     {
-        __m256d one = _mm256_set1_pd(1.0);
+        this->evalLindemannRateConstant();
+        /*__m256d one = _mm256_set1_pd(1.0);
         __m256d cond = _mm256_set1_pd(double(this->n_Fall_Off_Reaction));
         __m256d inc = _mm256_setr_pd(0.0,1.0,2.0,3.0);
         unsigned int remain = this->Lindemann.size()%4;
@@ -1256,11 +1258,12 @@ OptReaction::dNdtByV
             this->Kf_[j0] = get_elem0(Kf);
             this->Kf_[j1] = get_elem1(Kf);
             this->Kf_[j2] = get_elem2(Kf);
-        }
+        }*/
     }
 
     {
-        unsigned int remain = this->Troe.size()%4;
+        this->evalTroeRateConstant();
+        /*unsigned int remain = this->Troe.size()%4;
 
         __m256d inc = _mm256_setr_pd(0.0,1.0,2.0,3.0);
         __m256d one = _mm256_set1_pd(1.0);
@@ -1310,7 +1313,7 @@ OptReaction::dNdtByV
         }        
         if(remain==1)       {this->Troe_F_1();}
         else if(remain==2)  {this->Troe_F_2();}
-        else if(remain==3)  {this->Troe_F_3();}
+        else if(remain==3)  {this->Troe_F_3();}*/
     
     }
     {
@@ -1507,6 +1510,7 @@ OptReaction::dNdtByV
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[4];
                     //Kc = std::max(Kc,1.4901171103413047e-8);
+                    
                     Kc = std::max(Kc,KcLimiter);
                     Kr = this->Kf_[i]/Kc;         
                 }

@@ -482,7 +482,7 @@ public:
             )const noexcept;*/
 
             // Compute the exp(-Gstd/(Ru*T)).           
-            inline void ExpNegGstdByRT (const double T, double* ExpNegGstdByRT) const;
+            //inline void ExpNegGstdByRT (const double T, double* ExpNegGstdByRT) const;
 
         // Chemical equilibrium function
 
@@ -498,6 +498,13 @@ public:
             inline double dMdC(const unsigned int ri, const unsigned int cj) const noexcept;
 
         // Pressure depedent reaction function
+
+            void evalLindemannPartialDerivative() const noexcept;
+
+            void evalLindemannRateConstant() const noexcept;
+
+
+            void evalSRIRateConstant(double T) const noexcept;
 
             // Compute the F using SRI form.
             inline double SRI_F
@@ -540,7 +547,9 @@ public:
                 const unsigned int i
             ) const;
 
-            void evaTroePartialDerivative() const noexcept;
+            void evalTroeRateConstant() const noexcept;
+
+            void evalTroePartialDerivative() const noexcept;
 
             void Troe_F_1() const noexcept;
 
@@ -1134,6 +1143,10 @@ public:
 
 #ifdef NoRepository
     #include "EvalTroePartialDerivative.C"
+    #include "EvalTroeRateConstant.C"
+    #include "EvalSRIRateConstant.C"
+    #include "EvalLindemannPartialDerivative.C"
+    #include "EvalLindemannRateConstant.C"
     #include "JacobianFunction.C"
     #include "OptReaction.C"
     #include "Jacobian.C"

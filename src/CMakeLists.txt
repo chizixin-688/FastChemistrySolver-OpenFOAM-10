@@ -68,6 +68,8 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/ODE/OptRosenbrock34
         ${CMAKE_SOURCE_DIR}/ODE/OptSeulex
         ${CMAKE_SOURCE_DIR}/Reaction 
+        ${CMAKE_SOURCE_DIR}/Reaction/Troe
+        ${CMAKE_SOURCE_DIR}/Reaction/Lindemann
         ${CMAKE_SOURCE_DIR}/Thermo/idealGas 
         ${CMAKE_SOURCE_DIR}/Thermo
         ) #change here

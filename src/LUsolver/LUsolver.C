@@ -127,7 +127,7 @@ void LUsolver::LUDecompose4
     }
     if(rowk0[k0]==0)
     {
-        rowk0[k0] = 2.2204460492503131e-16;
+        rowk0[k0] = LuLimiter;
     }
     double rU00 = 1.0/rowk0[k0];
 
@@ -170,7 +170,7 @@ void LUsolver::LUDecompose4
 
     if(rowk1[k0+1]==0)
     {
-        rowk1[k0+1] = 2.2204460492503131e-16;
+        rowk1[k0+1] = LuLimiter;
     }
 
     rowk1[k0+2] = rowk1[k0+2] - rowk1[k0+0]*rowk0[k0+2];
@@ -198,7 +198,7 @@ void LUsolver::LUDecompose4
     }
     if(rowk2[k0+2]==0)
     {
-        rowk2[k0+2] = 2.2204460492503131e-16;
+        rowk2[k0+2] = LuLimiter;
     }
 
     rowk2[k0+3] =  rowk2[k0+3] - rowk2[k0+0]*rowk0[k0+3] - rowk2[k0+1]*rowk1[k0+3];
@@ -211,7 +211,7 @@ void LUsolver::LUDecompose4
     rowk3[k0+3] =  rowk3[k0+3] - rowk3[k0+0]*rowk0[k0+3] - rowk3[k0+1]*rowk1[k0+3] - rowk3[k0+2]*rowk2[k0+3];
     if(rowk3[k0+3]==0)
     {
-        rowk3[k0+3] = 2.2204460492503131e-16;
+        rowk3[k0+3] = LuLimiter;
     }
     double rU33 = 1.0/rowk3[k0+3];
     this->invD[k0+0] = rU00;
@@ -238,7 +238,7 @@ void LUsolver::LUDecompose4_2
     {
         if(a==0)
         {
-            a = 2.2204460492503131e-16;
+            a = LuLimiter;
         }
         double inva = 1.0/a;        
         rowN1[N-2] = c*inva;
@@ -246,7 +246,7 @@ void LUsolver::LUDecompose4_2
         this->invD[N-2] = inva;
         if(rowN1[N-1]==0)
         {
-            rowN1[N-1] = 2.2204460492503131e-16;
+            rowN1[N-1] = LuLimiter;
         }
         this->invD[N-1] = 1.0/rowN1[N-1];
     }
@@ -254,7 +254,7 @@ void LUsolver::LUDecompose4_2
     {
         if(c==0)
         {
-            c = 2.2204460492503131e-16;
+            c = LuLimiter;
         }        
         double invc = 1.0/c;        
         rowN2[N-2] = c;
@@ -265,7 +265,7 @@ void LUsolver::LUDecompose4_2
         this->invD[N-2] = invc;
         if(rowN1[N-1]==0)
         {
-            rowN1[N-1] = 2.2204460492503131e-16;
+            rowN1[N-1] = LuLimiter;
         }    
         this->invD[N-1] = 1.0/rowN1[N-1];
     }
@@ -314,7 +314,7 @@ void LUsolver::LUDecompose4_3
 
         if(rowk0[k0+0]==0)
         {
-            rowk0[k0+0] = 2.2204460492503131e-16;
+            rowk0[k0+0] = LuLimiter;
         }
         double rU00 = 1.0/rowk0[k0+0];
 
@@ -350,7 +350,7 @@ void LUsolver::LUDecompose4_3
 
         if(rowk1[k0+1]==0)
         {
-            rowk1[k0+1] = 2.2204460492503131e-16;
+            rowk1[k0+1] = LuLimiter;
         }
 
         rowk1[k0+2] = rowk1[k0+2] - rowk1[k0+0]*rowk0[k0+2];
@@ -360,7 +360,7 @@ void LUsolver::LUDecompose4_3
 
         if(rowk2[k0+2]==0)
         {
-            rowk2[k0+2] = 2.2204460492503131e-16;
+            rowk2[k0+2] = LuLimiter;
         }
         double rU22 = 1.0/rowk2[k0+2];        
         this->invD[N-3] = rU00;
@@ -3907,7 +3907,7 @@ void LUsolver::Block4LUDecompose
         }
         if(v_[(N-1)*alignN+N-1]==0)
         {
-            v_[(N-1)*alignN+N-1] = 2.2204460492503131e-16;
+            v_[(N-1)*alignN+N-1] = LuLimiter;
         }
         this->invD[N-1] = 1.0/v_[(N-1)*alignN+N-1];
     }

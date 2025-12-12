@@ -1,1 +1,0 @@
-in original file, the 'Tsss' and 'Ts' of troe reaction is zero. The value is modified from zero to 1e-30 to avoid illegal mathematical operations
