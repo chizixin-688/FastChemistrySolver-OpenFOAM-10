@@ -1898,6 +1898,168 @@ void OptReaction::readInfo
     }
 
 
+    // find reaction index and information for reactions with different reactant and product number
+    /*********************************************************************************************/
+    this->lhsSpeciesIndex1D11.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D11.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D12.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D12.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D13.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D13.reserve(lhsSpeciesIndex1D.size());
+
+    this->lhsSpeciesIndex1D21.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D21.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D22.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D22.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D23.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D23.reserve(lhsSpeciesIndex1D.size());
+
+    this->lhsSpeciesIndex1D31.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D31.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D32.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D32.reserve(lhsSpeciesIndex1D.size());
+    this->lhsSpeciesIndex1D33.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D33.reserve(lhsSpeciesIndex1D.size());
+
+    for(std::size_t i = 0; i < this->lhsSpeciesIndex.size();i++)
+    {
+        std::size_t lhsNumber = this->lhsSpeciesIndex[i].size();
+        std::size_t rhsNumber = this->rhsSpeciesIndex[i].size();
+
+        if(lhsNumber==1 && rhsNumber==1)
+        {
+            this->lhsSpeciesIndex1D11.push_back(this->lhsSpeciesIndex[i][0]);
+
+            this->rhsSpeciesIndex1D11.push_back(this->rhsSpeciesIndex[i][0]);
+
+            this->reaction11index.push_back(i);
+        }
+        else if(lhsNumber==1 && rhsNumber==2)
+        {
+            this->lhsSpeciesIndex1D12.push_back(this->lhsSpeciesIndex[i][0]);
+
+            this->rhsSpeciesIndex1D12.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D12.push_back(this->rhsSpeciesIndex[i][1]);
+
+            this->reaction12index.push_back(i);
+        }
+        else if(lhsNumber==1 && rhsNumber==3)
+        {
+            this->lhsSpeciesIndex1D13.push_back(this->lhsSpeciesIndex[i][0]);
+
+            this->rhsSpeciesIndex1D13.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D13.push_back(this->rhsSpeciesIndex[i][1]);
+            this->rhsSpeciesIndex1D13.push_back(this->rhsSpeciesIndex[i][2]);
+
+            this->reaction13index.push_back(i);
+        }
+        else if(lhsNumber==2 && rhsNumber==1)
+        {
+            this->lhsSpeciesIndex1D21.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D21.push_back(this->lhsSpeciesIndex[i][1]);
+
+            this->rhsSpeciesIndex1D21.push_back(this->rhsSpeciesIndex[i][0]);
+
+            this->reaction21index.push_back(i);
+        }
+        else if(lhsNumber==2 && rhsNumber==2)
+        {
+            this->lhsSpeciesIndex1D22.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D22.push_back(this->lhsSpeciesIndex[i][1]);
+            this->rhsSpeciesIndex1D22.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D22.push_back(this->rhsSpeciesIndex[i][1]);
+            if(this->isIrreversible[i]==0)
+            {
+                this->reversibleReaction22index.push_back(i);
+                this->lhsSpeciesIndex1D22RR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D22RR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D22RR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D22RR.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+            else if(this->isIrreversible[i]==1)
+            {
+                this->irreversibleReaction22index.push_back(i);
+                this->lhsSpeciesIndex1D22IR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D22IR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D22IR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D22IR.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+            else if(this->isIrreversible[i]==2)
+            {
+                this->nonEquilibriumReaction22index.push_back(i);
+                this->lhsSpeciesIndex1D22NER.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D22NER.push_back(this->lhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D22NER.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D22NER.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+            this->reaction22index.push_back(i);
+        }
+        else if(lhsNumber==2 && rhsNumber==3)
+        {
+            this->lhsSpeciesIndex1D23.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D23.push_back(this->lhsSpeciesIndex[i][1]);
+
+            this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][1]);
+            this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][2]);
+
+            this->reaction23index.push_back(i);
+        }
+        else if(lhsNumber==3 && rhsNumber==1)
+        {
+            this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][1]);
+            this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][2]);
+
+            this->rhsSpeciesIndex1D31.push_back(this->rhsSpeciesIndex[i][0]);
+
+            this->reaction31index.push_back(i);
+        }
+        else if(lhsNumber==3 && rhsNumber==2)
+        {
+            this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][1]);
+            this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][2]);
+
+            this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][1]);
+            
+            this->reaction32index.push_back(i);
+        }
+        else if(lhsNumber==3 && rhsNumber==3)
+        {
+            this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][0]);
+            this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][1]);
+            this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][2]);
+
+            this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][0]);
+            this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][1]);
+            this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][2]);
+            
+            this->reaction33index.push_back(i);
+        }
+        if(this->isGlobal[i]==1)
+        {
+            this->reactionGNIindex.push_back(i);
+        }
+        if(lhsNumber>3 || rhsNumber>3)
+        {
+            this->reactionGIindex.push_back(i);
+        }
+    }
+    for(int i = 0;i<this->n_Reactions;i++)
+    {
+        //std::cout<<this->rhsSpeciesIndex[i].size()<<" "<<this->lhsSpeciesIndex[i].size()<<std::endl;
+    }
+    //std::cout<<lhsSpeciesIndex1D1.size()<<std::endl;
+    //std::cout<<lhsSpeciesIndex1D2.size()<<std::endl;
+    //std::cout<<lhsSpeciesIndex1D3.size()<<std::endl;
+    //std::cout<<rhsSpeciesIndex1D1.size()<<std::endl;
+    //std::cout<<rhsSpeciesIndex1D2.size()<<std::endl;
+    //std::cout<<rhsSpeciesIndex1D3.size()<<std::endl;
+    //std::exit(0);
+    /*********************************************************************************************/
+
 }
 
 

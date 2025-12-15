@@ -722,12 +722,14 @@ void FastThermo::idealGas::DerivativeThermoYT
 
     __m256d rhoMvv = _mm256_set1_pd(this->rhoM);
 
+    __m256d zerov = _mm256_setzero_pd();
     for (int i=0; i<this->nSpecies-remain; i=i+4)
     {
         //concentration[i] = rhoM*this->invW[i]*Phi[i];
         __m256d invWv = load256d(&this->invW[i]);
         __m256d Phiv = load256d(&Phi[i]);
         __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
+        cv = _mm256_max_pd(cv,zerov);
         store256d(&concentration[i],cv);
     }
     if(remain==1)

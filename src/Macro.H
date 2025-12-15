@@ -25,11 +25,13 @@
 //#define SIMD_LOAD_MODE 2    	//use the aligned load/store instruction with security check, for Debug purpose
 
 
-//#define KcLimiter 1.4901171103413047e-8
-#define KcLimiter 0.0
+#define KcLimiter 1.4901171103413047e-8
+//#define KcLimiter 0.0
 
-//#define TroeLimiter 2.220446049250313e-16
-#define TroeLimiter 2.220446049250313e-32
+#define TroeLimiter 2.220446049250313e-16
+//#define TroeLimiter 2.220446049250313e-32
+
+#define SRILimiter 2.220446049250313e-16
 
 #define LuLimiter 2.220446049250313e-16
 
