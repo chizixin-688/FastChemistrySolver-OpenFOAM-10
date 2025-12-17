@@ -1,6 +1,6 @@
 # Chemistry Model 
 
-An improved chemistry integration module for OpenFOAM-10 to accelerates the chemistry solver.
+A fast chemistry solver for OpenFOAM-10 chemistry computation
 
 # Key Advantages
 
@@ -14,28 +14,29 @@ An improved chemistry integration module for OpenFOAM-10 to accelerates the chem
 
 This optimized combustion solver is still under development.  
 Some functions and reaction types may not work as expected:  
-1. Doesn't support tabulation method or reduction method to further accelerating computation.  
+1. Doesn't support tabulation method or reduction method to  
+ further accelerating computation.  
 2. Only support ideal gas  
 3. Support the following reaction type:
     irreversibleArrhenius  
-    irreversibleArrheniusLindemannChemicallyActivated  
     irreversibleArrheniusLindemannFallOff  
-    irreversibleArrheniusSRIChemicallyActivated  
     irreversibleArrheniusSRIFallOff  
-    irreversibleArrheniusTroeChemicallyActivated  
     irreversibleArrheniusTroeFallOff  
     irreversibleThirdBodyArrhenius  
     nonEquilibriumReversibleArrhenius  
     nonEquilibriumReversibleThirdBodyArrhenius  
     reversibleArrhenius  
-    reversibleArrheniusLindemannChemicallyActivated  
     reversibleArrheniusLindemannFallOff  
-    reversibleArrheniusSRIChemicallyActivated  
     reversibleArrheniusSRIFallOff  
-    reversibleArrheniusTroeChemicallyActivated  
     reversibleArrheniusTroeFallOff  
     reversibleThirdBodyArrhenius  
 4. Unsupport the following reaction type:
+    irreversibleArrheniusLindemannChemicallyActivated  
+    irreversibleArrheniusSRIChemicallyActivated  
+    irreversibleArrheniusTroeChemicallyActivated  
+    reversibleArrheniusLindemannChemicallyActivated  
+    reversibleArrheniusSRIChemicallyActivated  
+    reversibleArrheniusTroeChemicallyActivated  
     irreversibleJanev  
     irreversibleLandauTeller  
     irreversibleLangmuirHinshelwood  
@@ -46,12 +47,13 @@ Some functions and reaction types may not work as expected:
     reversibleLangmuirHinshelwood  
     reversiblePowerSeries  
     irreversibleFluxLimitedLangmuirHinshelwood  
-    irreversibleSurfaceArrhenius
-   
-# Numerical consistency
-This code includes the analytical derivatives for Falloff and ChemicallyActivated reactions,  
-which are not considered by default during compilation in OpenFOAM-10.  
-For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM-10.  
+    irreversibleSurfaceArrhenius  
+
+## Numerical considerations
+This code includes the analytical derivatives for Falloff and 
+ChemicallyActivated reactions, which are not considered by default during 
+compilation in OpenFOAM-10. For reference, see the 
+ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM
 
 # Prerequisites
 
@@ -62,8 +64,10 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
 # Compilation
 
 **Option 1: using wmake**
-    If your glibc version is ≥ 2.22, you can build with the OpenFOAM wmake command,
-    since glibc-2.22 provides vectorized mathematical functions. The installation steps are:
+
+    If your glibc version is ≥ 2.22, you can build with the OpenFOAM wmake 
+    command, since glibc-2.22 provides vectorized mathematical functions. 
+    The installation steps are:
 
      1. Enter the `src` folder.
 
@@ -91,19 +95,21 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
      6. Build with Make.
         `make`  
 
-     7. Copy the dynamic library `libFastChemistryModel.so` to the folder `$FOAM_USER_LIBBIN`
+     7. Copy the dynamic library `libFastChemistryModel.so` to the folder 
+     `$FOAM_USER_LIBBIN`
 
-     *  Note: When building on a compute cluster, CMake may pick the system’s GCC by default, 
-        which can be too old (e.g., GCC 4.8.5 lacks C++14 support) and cause compilation failures.
-        In that case, load a newer GCC and run:
-       `cmake -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) ..`
+     *  Note: When building on a compute cluster, CMake may pick the system’s 
+        GCC by default, which can be too old (e.g., GCC 4.8.5 lacks C++14 
+        support) and cause compilation failures. In that case, load a newer GCC 
+        and run:
+    `cmake -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) ..`
 
 **Vectorized math function**
 
-    If your glibc version is **< 2.22**, the libmvec.so lacks and the vector math 
-    function exp, pow or log cannot be used. In this situation, you can set 
-    the macro `USE_LOCALFILE_ true` in Macro.H. The module will use 
-    assembly code of vectorized math function of glibc 2.22 in asmCode folder.
+    If your glibc version is **< 2.22**, the libmvec.so lacks and the vector 
+    math function exp, pow or log cannot be used. In this situation, you can 
+    set the macro `USE_LOCALFILE_ true` in Macro.H. The module will use 
+    assembly code of vectorized math function of glibc 2.22 in asmCode folder
 
 
 # Usage
@@ -127,11 +133,12 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
     }
 
 
-    // The option is consistent with OpenFOAM-10. The Jacobian matrix of OF-10 is based on the 
-    // mass fraction (Jy). The matrix dCdY is used to convert the Jc to Jy. If fast option is used, 
-    // the non-diagonal element dCdY is zero, and the converting will be fast. However, this may 
-    // influence the converging rate, especially the torelance is tight.
-    // The convergence rate can be evaluated through 0D ignition problems
+    // The option is consistent with OpenFOAM-10. The Jacobian matrix of OF-10 
+    // is based on the mass fraction (Jy). The matrix dCdY is used to convert 
+    // the Jc to Jy. If fast option is used, the non-diagonal element dCdY is 
+    // zero, and the converting will be fast. However, this may influence the 
+    // converging rate, especially the torelance is tight. The convergence rate 
+    // can be evaluated through 0D ignition problems
     jacobian    exact;
     //jacobian    fast;
 
@@ -149,12 +156,13 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
     // Turn on the load balancing when parallel computing is performed.
     balance         on;
 
-    // After a specified number of iterations, the DLB algorithm re evaluates the load.
-    // Default value is 1.
+    // After a specified number of iterations, the DLB algorithm re evaluates 
+    // the load. Default value is 1.
     Iter            1;
 
-    // Only chemistry integration time large than Tave*DLBthreshold is identified as a high load process
-    // Tave is the average time of chemical reaction integration for all processes.
+    // Only chemistry integration time large than Tave*DLBthreshold is 
+    // identified as a high load process Tave is the average time of chemical 
+    // reaction integration for all processes.
     DLBthreshold    1.0;
 
 
@@ -171,23 +179,24 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
 
 # PLOG reaction
 
-    This chemistry solver supports Plog reaction, for more details about Plog Reaction in OpenFOAM, see
+    This chemistry solver supports Plog reaction, for more details about Plog 
+    Reaction in OpenFOAM, see
 
     https://github.com/ZmengXu/PLOGArrheniusReactions
     https://github.com/yuchenzh/plogOF10
 
 
-    You need to convert the CHEMKIN format to OF format manually or using other utility.
-    The following variable needs to be modified.
+    You need to convert the CHEMKIN format to OF format manually or using other 
+    utility. The following variable needs to be modified.
     1. pressure p
     2. prefactor A
     3. Ea->Ta
-    The conversion of A should be careful. For reaction with one reactant. A is unchanged.
-    For reaction with two reactant. A=A*1e-3. For reaction with three reactant. A=A*1e-6
+    The conversion of A should be careful. For reaction with one reactant. A is
+    unchanged. For reaction with two reactant. A=A*1e-3. For reaction with 
+    three reactant. A=A*1e-6
 
 **CHEMKIN**
 
-    !Stagni, A. et al. React. Chem. Eng. doi:10.1039/C9RE00429G(2020).
     HNO=H+NO        .18259e+21  -3.008  47880.0 
     PLOG /  0.100   .20121e+20  -3.021  47792.0   /
     PLOG /  1.000   .18259e+21  -3.008  47880.0   /
@@ -195,7 +204,6 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
     PLOG /  100.0   .56445e+22  -2.855  48459.0   /
     PLOG /  1000.   .97111e+22  -2.642  48940.0   / 
 
-    !\AUTHOR: AS !\REF: Chen, X., Fuller, M. E., & Goldsmith, C. F. Reac Chem Eng, 4(2), 323-333 (2019). !\COMMENT:
     H+HNO2=NO+H2O   .3380E+10   1.070   5565.0 
     PLOG /  0.010   .3390E+10   1.070   5568.0    /
     PLOG /  0.100   .3390E+10   1.070   5567.0    /
@@ -219,7 +227,8 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
         (
             // PLOG /p A beta Ta/
             // convert atm to Pa
-            // convert Ea to Ta, Ta = Ea/R (8.314 J⋅K−1⋅mol−1), cal to J (4.18400 J/cal)
+            // convert Ea to Ta, Ta = Ea/R (8.314 J⋅K−1⋅mol−1), cal to J 
+            // (4.18400 J/cal)
             (1E4  2.0121e+19   -3.021   24051.2     )   
             (1E5  1.8259e+20   -3.008   24095.4     )   
             (1E6  1.2762e+21   -2.959   24206.2     )   
@@ -239,7 +248,8 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
         (
             // PLOG /p A beta Ta/
             // convert atm to Pa
-            // convert Ea to Ta, Ta = Ea/R (8.314 J⋅K−1⋅mol−1), cal to J (4.18400 J/cal)
+            // convert Ea to Ta, Ta = Ea/R (8.314 J⋅K−1⋅mol−1), cal to J 
+            // (4.18400 J/cal)
             (1.00E3 3390000  1.07 2802.082271 )
             (1.00E4 3390000  1.07 2801.579023 )
             (3.16E4 3390000  1.07 2801.579023 )
@@ -261,5 +271,8 @@ For reference, see the ChemicallyActivatedReactionRateI.H and FallOffReactionRat
     Email: chizixin@buaa.edu.cn  
     Issues: Please use the [GitHub Issues] page for bug reports and questions.
 
+  If you use this library in your research, please cite the following paper:
+  [1] Z. Chi, X. Hui, K. Ji, B. Wang. A high-performance chemistry solver for 
+  reactive flow simulations in OpenFOAM. Physics of Fluids 37 (2025) 125154.
 
 
