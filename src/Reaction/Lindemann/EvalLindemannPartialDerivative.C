@@ -64,8 +64,8 @@ void OptReaction::evalLindemannPartialDerivative()const noexcept
         const unsigned int j1 = this->LindemannFO[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];            
-        const unsigned int k0 = j0 - this->Ikf[4];
-        const unsigned int k1 = j1 - this->Ikf[4];
+        //const unsigned int k0 = j0 - this->Ikf[4];
+        //const unsigned int k1 = j1 - this->Ikf[4];
         __m256d Kinf = _mm256_setr_pd(Kf_[j0 + this->offset_kinf],Kf_[j1 + this->offset_kinf],1,1);    
         __m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
         __m256d dKinfdT = _mm256_setr_pd(dKfdT_[j0 + this->offset_kinf],dKfdT_[j1 + this->offset_kinf],1,1);
@@ -100,9 +100,9 @@ void OptReaction::evalLindemannPartialDerivative()const noexcept
         const unsigned int j0 = this->LindemannFO[i+0]+0;
         const unsigned int j1 = this->LindemannFO[i+0]+1;
         const unsigned int j2 = this->LindemannFO[i+0]+2;
-        const unsigned int k0 = j0 - this->Ikf[4];
-        const unsigned int k1 = j1 - this->Ikf[4];
-        const unsigned int k2 = j2 - this->Ikf[4];
+        //const unsigned int k0 = j0 - this->Ikf[4];
+        //const unsigned int k1 = j1 - this->Ikf[4];
+        //const unsigned int k2 = j2 - this->Ikf[4];
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];

@@ -284,7 +284,15 @@ public:
             mutable std::vector<unsigned int> reaction11index;
             mutable std::vector<unsigned int> reaction12index;
             mutable std::vector<unsigned int> reaction13index;
+
+
+
             mutable std::vector<unsigned int> reaction21index;
+            mutable std::vector<unsigned int> reversibleReaction21index;
+            mutable std::vector<unsigned int> irreversibleReaction21index;
+            mutable std::vector<unsigned int> nonEquilibriumReaction21index;
+
+
             mutable std::vector<unsigned int> reaction22index;
 
             mutable std::vector<unsigned int> reversibleReaction22index;
@@ -328,8 +336,19 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D13;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D13;
 
+
             mutable std::vector<unsigned int> lhsSpeciesIndex1D21;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21;
+
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D21RR;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D21RR;
+
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D21IR;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D21IR;
+
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D21NER;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D21NER;
+
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22;
@@ -342,6 +361,7 @@ public:
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22NER;
+
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23;
@@ -1324,6 +1344,27 @@ public:
             )const noexcept;
 
             void update21Reaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+
+            void update21ReversibleReaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+
+            void update21IrreversibleReaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+
+            void update21NonEquilibriumReaction
             (
                 const double* __restrict__ C,
                 double*  __restrict__ dNdtByV,

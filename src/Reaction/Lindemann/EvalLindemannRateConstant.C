@@ -22,7 +22,7 @@ void OptReaction::evalLindemannRateConstant()const noexcept
         const unsigned int i = this->n_LindemannFO-1;
         const unsigned int j = this->LindemannFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-        const unsigned int k = j - this->Ikf[4];
+        //const unsigned int k = j - this->Ikf[4];
         const double Kinf = this->Kf_[j+this->offset_kinf];
         double M = this->tmp_M[m];     
         const double K0 = this->Kf_[j];
@@ -36,8 +36,8 @@ void OptReaction::evalLindemannRateConstant()const noexcept
         const unsigned int j0 = this->LindemannFO[i+0]+0;
         const unsigned int j1 = this->LindemannFO[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-        const unsigned int k0 = j0 - this->Ikf[4];
-        const unsigned int k1 = j1 - this->Ikf[4];
+        //const unsigned int k0 = j0 - this->Ikf[4];
+        //const unsigned int k1 = j1 - this->Ikf[4];
         __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
         __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
         __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);
@@ -56,9 +56,9 @@ void OptReaction::evalLindemannRateConstant()const noexcept
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
-        const unsigned int k0 = j0 - this->Ikf[4];
-        const unsigned int k1 = j1 - this->Ikf[4];
-        const unsigned int k2 = j2 - this->Ikf[4];
+        //const unsigned int k0 = j0 - this->Ikf[4];
+        //const unsigned int k1 = j1 - this->Ikf[4];
+        //const unsigned int k2 = j2 - this->Ikf[4];
         const double Kinf0 = this->Kf_[j0+this->offset_kinf];
         const double Kinf1 = this->Kf_[j1+this->offset_kinf];
         const double Kinf2 = this->Kf_[j2+this->offset_kinf];
@@ -113,7 +113,7 @@ void OptReaction::evalLindemannRateConstant()const noexcept
     {
         const unsigned int i = this->n_LindemannCA-2;
         const unsigned int j0 = this->LindemannCA[i+0]+0;
-        const unsigned int j1 = this->LindemannCA[i+0]+1;
+        //const unsigned int j1 = this->LindemannCA[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[5] + this->Itbr[3];
 
         __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);

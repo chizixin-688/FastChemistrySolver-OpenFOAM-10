@@ -9,7 +9,7 @@ OptReaction::update12Reaction
 )const noexcept
 {
     std::size_t end = reaction12index.size();
-    std::size_t remain = end%4;
+    //std::size_t remain = end%4;
     std::size_t lhsIndex = 0;
     std::size_t rhsIndex = 0;
 

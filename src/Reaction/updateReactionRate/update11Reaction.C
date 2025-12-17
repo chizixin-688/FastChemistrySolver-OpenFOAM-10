@@ -9,7 +9,7 @@ OptReaction::update11Reaction
 )const noexcept
 {
     std::size_t end = reaction11index.size();
-    std::size_t remain = end%4;
+    //std::size_t remain = end%4;
     std::size_t rhsIndex = 0;
     for(std::size_t i=0; i<end; i++)
     {

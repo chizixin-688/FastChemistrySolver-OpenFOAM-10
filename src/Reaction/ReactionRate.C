@@ -373,11 +373,16 @@ OptReaction::dNdtByV
     this->update11Reaction(c,dNdtByV,tmp_Exp);
     this->update12Reaction(c,dNdtByV,tmp_Exp);
     this->update13Reaction(c,dNdtByV,tmp_Exp);
+
     this->update21Reaction(c,dNdtByV,tmp_Exp);
+
+    //this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
+    //this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
+    //this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
 
     this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
     this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
+    this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
 
     this->update23ReversibleReaction(c,dNdtByV,tmp_Exp);
     this->update23IrreversibleReaction(c,dNdtByV,tmp_Exp);    

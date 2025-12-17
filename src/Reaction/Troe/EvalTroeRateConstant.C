@@ -83,8 +83,8 @@ void OptReaction::evalTroeRateConstant()const noexcept
             const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
             const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
 
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
+            //const unsigned int k0 = j0 - this->Ikf[4];
+            //const unsigned int k1 = j1 - this->Ikf[4];
 
             const double Kinf0 = this->Kf_[j0+this->offset_kinf];
             const double Kinf1 = this->Kf_[j1+this->offset_kinf];
@@ -155,9 +155,9 @@ void OptReaction::evalTroeRateConstant()const noexcept
             const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
             const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
 
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
+            //const unsigned int k0 = j0 - this->Ikf[4];
+            //const unsigned int k1 = j1 - this->Ikf[4];
+            //const unsigned int k2 = j2 - this->Ikf[4];
 
             const double Kinf0 = this->Kf_[j0+this->offset_kinf];
             const double Kinf1 = this->Kf_[j1+this->offset_kinf];
@@ -276,7 +276,7 @@ void OptReaction::evalTroeRateConstant()const noexcept
             const unsigned int i = this->n_TroeCA-1;
             const unsigned int j0 = this->TroeCA[i+0];
             const unsigned int m0 = j0 - this->Ikf[5] + this->Itbr[3];
-            const unsigned int k0 = j0 - this->Ikf[5];
+            //const unsigned int k0 = j0 - this->Ikf[5];
             const double Kinf0 = this->Kf_[j0+this->offset_kinf];
             double M0 = this->tmp_M[m0];   
             const double K00 = this->Kf_[j0];
