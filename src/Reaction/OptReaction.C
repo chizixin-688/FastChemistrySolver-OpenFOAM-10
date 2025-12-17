@@ -1948,16 +1948,13 @@ void OptReaction::readInfo
     {
         std::size_t lhsNumber = this->lhsSpeciesIndex[i].size();
         std::size_t rhsNumber = this->rhsSpeciesIndex[i].size();
+
         if(this->isGlobal[i]==1)
         {
             this->reactionGNIindex.push_back(i);
-            break;
+            continue;
         }
-        if(lhsNumber>3 || rhsNumber>3)
-        {
-            this->reactionGIindex.push_back(i);
-            break;
-        }
+
 
         if(lhsNumber==1 && rhsNumber==1)
         {
@@ -2119,9 +2116,12 @@ void OptReaction::readInfo
             
             this->reaction33index.push_back(i);
         }
-
+        if(lhsNumber>3 || rhsNumber>3)
+        {
+            this->reactionGIindex.push_back(i);
+        }
     }
-    std::cout<<"debug"<<std::endl;
+
     //for(int i = 0;i<this->n_Reactions;i++)
     //{
         //std::cout<<this->rhsSpeciesIndex[i].size()<<" "<<this->lhsSpeciesIndex[i].size()<<std::endl;

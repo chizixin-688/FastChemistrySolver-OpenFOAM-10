@@ -138,6 +138,7 @@ void  OptReaction::updateJacobian22
 
         lhsIndex = lhsIndex + 2;
         rhsIndex = rhsIndex + 2;
+
     }
 }   
 

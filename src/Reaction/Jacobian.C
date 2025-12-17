@@ -413,26 +413,65 @@ OptReaction::ddNdtByVdcTp
         }
     }
 
-    this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    /*this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian12(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian13(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian21(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    //this->updateJacobian22(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian22ReversibleReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian22IrreversibleReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian22NonEquilibriumReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
     this->updateJacobian23(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian31(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian32(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian33(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobianGlobalNonIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);*/
 
-for(int i = 0; i < this->nSpecies;i++)
+
+
+
+    for(unsigned int z = 0; z < this->Ikf[7];z++)
+    {
+
+        if(this->isGlobal[z]==1)
+        {
+            this->JFGNI(z,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);            
+            continue;
+        }    
+        const unsigned int i = z ;
+        const auto j = lhsOffset[i+1]-lhsOffset[i];
+        const auto k = rhsOffset[i+1]-rhsOffset[i];
+        if(j==2)
+        {
+            if(k==2)        {this->JF22(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else 
+            if(k==1)   {this->JF21(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else
+            if(k==3)   {this->JF23(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+        }
+        else 
+        if(j==1)
+        {
+            if(k==2)        {this->JF12(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else 
+            if(k==1)   {this->JF11(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else 
+            if(k==3)   {this->JF13(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+        }
+        else 
+        if(j==3)
+        {
+            if(k==2)        {this->JF32(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else 
+            if(k==1)   {this->JF31(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+            else 
+            if(k==3)   {this->JF33(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+        }
+        if(j>3 || k>3){this->JFGI(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
+        //std::cout<<j<<" "<<k<<std::endl;
+    }
+
+/*for(int i = 0; i < this->nSpecies;i++)
 {
     for(int j = 0; j < this->nSpecies-1;j++)
     {
@@ -446,40 +485,7 @@ for(int i = 0; i < this->nSpecies;i++)
 {
     std::cout<<dNdtByV[i]<<std::endl;
 }
-std::exit(0);
-    /*for(unsigned int z = 0; z < this->Ikf[7];z++)
-    {
+std::exit(0);*/
 
-        if(this->isGlobal[z]==1)
-        {
-            this->JFGNI(z,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);            
-            continue;
-        }      
-        const unsigned int i = z ;
-        const auto j = lhsOffset[i+1]-lhsOffset[i];
-        const auto k = rhsOffset[i+1]-rhsOffset[i];
-        if(j==2)
-        {
-            if(k==2)        {this->JF22(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==1)   {this->JF21(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==3)   {this->JF23(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        if(j==1)
-        {
-            if(k==2)        {this->JF12(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==1)   {this->JF11(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==3)   {this->JF13(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        else if(j==3)
-        {
-            if(k==2)        {this->JF32(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==1)   {this->JF31(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else if(k==3)   {this->JF33(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        if(j>3 || k>3){this->JFGI(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-
-    
-    }*/
-    return;
 }
 
