@@ -374,11 +374,11 @@ OptReaction::dNdtByV
     this->update12Reaction(c,dNdtByV,tmp_Exp);
     this->update13Reaction(c,dNdtByV,tmp_Exp);
 
-    this->update21Reaction(c,dNdtByV,tmp_Exp);
+    //this->update21Reaction(c,dNdtByV,tmp_Exp);
 
-    //this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
-    //this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    //this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
+    this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
+    this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
+    this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
 
     this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
     this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
@@ -393,6 +393,10 @@ OptReaction::dNdtByV
     this->update33Reaction(c,dNdtByV,tmp_Exp);
     this->updateGlobalIntegerReaction(c,dNdtByV,tmp_Exp);
     this->updateGlobalNonIntegerReaction(c,dNdtByV,tmp_Exp);
+
+
+
+    
     return;
 
     for (unsigned int i = 0; i < this->Ikf[7]; i++) 

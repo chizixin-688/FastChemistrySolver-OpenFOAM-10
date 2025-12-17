@@ -432,7 +432,7 @@ OptReaction::ddNdtByVdcTp
     this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobianGlobalNonIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
 
-/*for(int i = 0; i < this->nSpecies;i++)
+for(int i = 0; i < this->nSpecies;i++)
 {
     for(int j = 0; j < this->nSpecies-1;j++)
     {
@@ -441,12 +441,12 @@ OptReaction::ddNdtByVdcTp
     int j = this->nSpecies-1;
     std::cout<<ddNdtByVdcT[i*(this->alignN)+j]<<std::endl;
 }
-std::exit(0);*/
-/*for(int i = 0; i < this->nSpecies;i++)
+
+for(int i = 0; i < this->nSpecies;i++)
 {
     std::cout<<dNdtByV[i]<<std::endl;
 }
-std::exit(0);*/
+std::exit(0);
     /*for(unsigned int z = 0; z < this->Ikf[7];z++)
     {
 
