@@ -198,7 +198,7 @@ OptReaction::update22ReversibleReaction
     std::size_t end = reversibleReaction22index.size();
     std::size_t remain = end%4;
     std::size_t rhsIndex = 0;
-    __m256d KcLimiterv = _mm256_set1_pd(KcLimiter);
+    //__m256d KcLimiterv = _mm256_set1_pd(KcLimiter);
     for(std::size_t i=0; i<end-remain; i=i+4)
     {
 
@@ -206,7 +206,7 @@ OptReaction::update22ReversibleReaction
         const unsigned int KfIndex1 = this->reversibleReaction22index[i+1];
         const unsigned int KfIndex2 = this->reversibleReaction22index[i+2];
         const unsigned int KfIndex3 = this->reversibleReaction22index[i+3];
-        const __m256d Kfv = _mm256_setr_pd(Kf_[KfIndex0],Kf_[KfIndex1],Kf_[KfIndex2],Kf_[KfIndex3]);
+        //const __m256d Kfv = _mm256_setr_pd(Kf_[KfIndex0],Kf_[KfIndex1],Kf_[KfIndex2],Kf_[KfIndex3]);
         {
 
             /*const unsigned int sl0a = lhsSpeciesIndex1D22RR[rhsIndex+0];

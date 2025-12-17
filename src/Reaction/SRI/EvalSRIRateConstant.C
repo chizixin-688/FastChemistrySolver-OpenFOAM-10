@@ -1,7 +1,7 @@
 void OptReaction::evalSRIRateConstant(double T)const noexcept
 {
 
-    unsigned int remain = this->SRI.size()%4;
+    unsigned int remain = this->n_SRI%4;
     __m256d invLog10v = _mm256_set1_pd(0.43429448190325182765112891891661);
     __m256d SRILimiterv = _mm256_set1_pd(SRILimiter);
     __m256d onev = _mm256_set1_pd(1);
@@ -11,9 +11,9 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
 
     __m256d condition = _mm256_set1_pd(double(this->n_Fall_Off_Reaction));
     __m256d inc = _mm256_setr_pd(0.0,1.0,2.0,3.0);
-    for (unsigned int i = 0; i<this->SRI.size()-remain; i=i+4)
+    for (unsigned int i = 0; i<this->n_SRI-remain; i=i+4)
     {
-        const unsigned int j = this->SRI[i];
+        const unsigned int j = this->SRIFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
         const unsigned int k = j - this->Ikf[4];
 
@@ -146,8 +146,8 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
     }
     if(remain==1)
     {
-        unsigned int i = this->SRI.size()-1;
-        const unsigned int j = this->SRI[i];
+        unsigned int i = this->n_SRI-1;
+        const unsigned int j = this->SRIFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
         const unsigned int k = j - this->Ikf[4];
         
@@ -196,8 +196,8 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
     }
     else if(remain==2)
     {
-        unsigned int i = this->SRI.size()-2;
-        const unsigned int j = this->SRI[i];
+        unsigned int i = this->n_SRI-2;
+        const unsigned int j = this->SRIFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
         const unsigned int k = j - this->Ikf[4];
         
@@ -258,8 +258,8 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
     }
     else if(remain==3)
     {
-        unsigned int i = this->SRI.size()-3;
-        const unsigned int j = this->SRI[i];
+        unsigned int i = this->n_SRI-3;
+        const unsigned int j = this->SRIFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
         const unsigned int k = j - this->Ikf[4];
         

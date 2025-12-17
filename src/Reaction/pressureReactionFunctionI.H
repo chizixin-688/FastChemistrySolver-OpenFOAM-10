@@ -55,8 +55,8 @@ inline void OptReaction::SRI_F_dFdT_dFdPr
     double& __restrict__ dFdPr
 ) const
 {
-    const double expbT = this->tmp_Exp[i+this->nSpecies+this->Troe.size()*3];
-    const double expTc = this->tmp_Exp[i+this->nSpecies+this->Troe.size()*3+this->SRI.size()];
+    const double expbT = this->tmp_Exp[i+this->nSpecies+this->TroeFO.size()*3];
+    const double expTc = this->tmp_Exp[i+this->nSpecies+this->TroeFO.size()*3+this->SRIFO.size()];
     const double logPr = std::log10(max(Pr, small));
     const double X = 1/(1 + (logPr*logPr));
     const double psi = this->a_[i]*expbT + expTc;
@@ -122,11 +122,11 @@ inline void OptReaction::SRI_F_dFdT_dFdPr
 
 void OptReaction::Troe_F_3() const noexcept
 {
-    const size_t i = this->Troe.size()-3;
+    const size_t i = this->TroeFO.size()-3;
 
-    const unsigned int j0 = this->Troe[i+0];
-    const unsigned int j1 = this->Troe[i+1];
-    const unsigned int j2 = this->Troe[i+2];
+    const unsigned int j0 = this->TroeFO[i+0];
+    const unsigned int j1 = this->TroeFO[i+1];
+    const unsigned int j2 = this->TroeFO[i+2];
 
     const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
     const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
@@ -160,13 +160,13 @@ void OptReaction::Troe_F_3() const noexcept
     const double expTTsss1 = this->tmp_Exp[i + 1 + this->nSpecies];
     const double expTTsss2 = this->tmp_Exp[i + 2 + this->nSpecies];
 
-    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()];
-    const double expTTss1  = this->tmp_Exp[i + 1 + this->nSpecies + this->Troe.size()];
-    const double expTTss2  = this->tmp_Exp[i + 2 + this->nSpecies + this->Troe.size()];
+    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()];
+    const double expTTss1  = this->tmp_Exp[i + 1 + this->nSpecies + this->TroeFO.size()];
+    const double expTTss2  = this->tmp_Exp[i + 2 + this->nSpecies + this->TroeFO.size()];
 
-    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()*2];
-    const double expTTs1   = this->tmp_Exp[i + 1 + this->nSpecies + this->Troe.size()*2];
-    const double expTTs2   = this->tmp_Exp[i + 2 + this->nSpecies + this->Troe.size()*2];
+    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()*2];
+    const double expTTs1   = this->tmp_Exp[i + 1 + this->nSpecies + this->TroeFO.size()*2];
+    const double expTTs2   = this->tmp_Exp[i + 2 + this->nSpecies + this->TroeFO.size()*2];
 
     const double Fcent0 =(1 - this->alpha_[i + 0])*expTTsss0 + this->alpha_[i + 0]*expTTs0 + expTTss0;
     const double Fcent1 =(1 - this->alpha_[i + 1])*expTTsss1 + this->alpha_[i + 1]*expTTs1 + expTTss1;
@@ -214,10 +214,10 @@ void OptReaction::Troe_F_3() const noexcept
 }
 void OptReaction::Troe_F_2() const noexcept
 {
-    const size_t i = this->Troe.size()-2;
+    const size_t i = this->TroeFO.size()-2;
     
-    const unsigned int j0 = this->Troe[i+0];
-    const unsigned int j1 = this->Troe[i+1];
+    const unsigned int j0 = this->TroeFO[i+0];
+    const unsigned int j1 = this->TroeFO[i+1];
 
     const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
     const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
@@ -243,11 +243,11 @@ void OptReaction::Troe_F_2() const noexcept
     const double expTTsss0 = this->tmp_Exp[i + 0 + this->nSpecies];
     const double expTTsss1 = this->tmp_Exp[i + 1 + this->nSpecies];
 
-    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()];
-    const double expTTss1  = this->tmp_Exp[i + 1 + this->nSpecies + this->Troe.size()];
+    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()];
+    const double expTTss1  = this->tmp_Exp[i + 1 + this->nSpecies + this->TroeFO.size()];
 
-    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()*2];
-    const double expTTs1   = this->tmp_Exp[i + 1 + this->nSpecies + this->Troe.size()*2];
+    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()*2];
+    const double expTTs1   = this->tmp_Exp[i + 1 + this->nSpecies + this->TroeFO.size()*2];
 
     const double Fcent0 =(1 - this->alpha_[i + 0])*expTTsss0 + this->alpha_[i + 0]*expTTs0 + expTTss0;
     const double Fcent1 =(1 - this->alpha_[i + 1])*expTTsss1 + this->alpha_[i + 1]*expTTs1 + expTTss1;
@@ -285,8 +285,8 @@ void OptReaction::Troe_F_2() const noexcept
 
 void OptReaction::Troe_F_1() const noexcept
 {
-    const size_t i = this->Troe.size()-1;
-    const unsigned int j0 = this->Troe[i+0];
+    const size_t i = this->TroeFO.size()-1;
+    const unsigned int j0 = this->TroeFO[i+0];
     const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
     const unsigned int k0 = j0 - this->Ikf[4];
     const double Kinf0 = this->Kf_[j0+this->offset_kinf];
@@ -295,8 +295,8 @@ void OptReaction::Troe_F_1() const noexcept
     const double Pr0 = K00*M0/Kinf0;  
     const double logPr0 = std::log10(std::max(Pr0, small));
     const double expTTsss0 = this->tmp_Exp[i + 0 + this->nSpecies];
-    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()];
-    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->Troe.size()*2];
+    const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()];
+    const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->TroeFO.size()*2];
     const double Fcent0 =(1 - this->alpha_[i + 0])*expTTsss0 + this->alpha_[i + 0]*expTTs0 + expTTss0;
     const double logFcent0 = std::log10(std::max(Fcent0, small));
     const double c0 = -0.4 - 0.67*logFcent0;
@@ -312,8 +312,8 @@ void OptReaction::Troe_F_1() const noexcept
 }
 void OptReaction::Troe_Jac_1() const noexcept
 {
-    size_t i = this->Troe.size()-1;
-    const unsigned int j = this->Troe[i];
+    size_t i = this->TroeFO.size()-1;
+    const unsigned int j = this->TroeFO[i];
     const unsigned int k = j - this->Ikf[4];
     const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
     const double Kinf = this->Kf_[j+this->offset_kinf];
@@ -324,8 +324,8 @@ void OptReaction::Troe_Jac_1() const noexcept
     const double invKinf = 1.0/Kinf;
     const double logPr = std::log10(std::max(Pr, small));
     const double expTTsss = this->tmp_Exp[i+this->nSpecies];
-    const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->Troe.size()];
-    const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->Troe.size()*2];
+    const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->TroeFO.size()];
+    const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->TroeFO.size()*2];
     const double Fcent = (1 - this->alpha_[i])*expTTsss + this->alpha_[i]*expTTs + expTTss;
     const double logFcent = std::log10(std::max(Fcent, small));
     const double c = -0.4 - 0.67*logFcent;
@@ -372,8 +372,8 @@ void OptReaction::Troe_Jac_1() const noexcept
 
 void OptReaction::Troe_Jac_2() const noexcept
 {
-    size_t i = this->Troe.size()-2;
-    const unsigned int j0 = this->Troe[i+0];
+    size_t i = this->TroeFO.size()-2;
+    const unsigned int j0 = this->TroeFO[i+0];
     const unsigned int j1 = j0 + 1;
     const unsigned int k0 = j0 - this->Ikf[4];
     const unsigned int k1 = j1 - this->Ikf[4];
@@ -394,8 +394,8 @@ void OptReaction::Troe_Jac_2() const noexcept
     __m256d InvTs = _mm256_setr_pd(invTs_[i+0],invTs_[i+1],1,1);
     __m256d Tss = _mm256_setr_pd(Tss_[i+0],Tss_[i+1],1,1);
     __m256d expTTsss = _mm256_setr_pd(tmp_Exp[i+0+this->nSpecies],tmp_Exp[i+1+this->nSpecies],1,1);
-    __m256d expTTss = _mm256_setr_pd(tmp_Exp[i+0+this->nSpecies+this->Troe.size()],tmp_Exp[i+1+this->nSpecies+this->Troe.size()],1,1);
-    __m256d expTTs = _mm256_setr_pd(tmp_Exp[i+0+this->nSpecies+this->Troe.size()*2],tmp_Exp[i+1+this->nSpecies+this->Troe.size()*2],1,1);
+    __m256d expTTss = _mm256_setr_pd(tmp_Exp[i+0+this->nSpecies+this->TroeFO.size()],tmp_Exp[i+1+this->nSpecies+this->TroeFO.size()],1,1);
+    __m256d expTTs = _mm256_setr_pd(tmp_Exp[i+0+this->nSpecies+this->TroeFO.size()*2],tmp_Exp[i+1+this->nSpecies+this->TroeFO.size()*2],1,1);
     __m256d one = _mm256_set1_pd(1.0);
     __m256d alpha = _mm256_setr_pd(alpha_[i+0],alpha_[i+1],1,1);
     __m256d Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha),expTTsss);
@@ -463,8 +463,8 @@ void OptReaction::Troe_Jac_2() const noexcept
 void OptReaction::Troe_Jac_3() const noexcept
 {
 
-    size_t i = this->Troe.size() - 3;
-    const unsigned int j0 = this->Troe[i+0];
+    size_t i = this->TroeFO.size() - 3;
+    const unsigned int j0 = this->TroeFO[i+0];
     const unsigned int j1 = j0 + 1;
     const unsigned int j2 = j1 + 1;
     const unsigned int k0 = j0 - this->Ikf[4];
@@ -490,8 +490,8 @@ void OptReaction::Troe_Jac_3() const noexcept
     __m256d InvTs = _mm256_setr_pd(invTs_[i+0],invTs_[i+1],invTs_[i+2],1);
     __m256d Tss = _mm256_setr_pd(Tss_[i+0],Tss_[i+1],Tss_[i+2],1);
     __m256d expTTsss = _mm256_setr_pd(  tmp_Exp[i+0+this->nSpecies],tmp_Exp[i+1+this->nSpecies],tmp_Exp[i+2+this->nSpecies],1);
-    __m256d expTTss = _mm256_setr_pd(   tmp_Exp[i+0+this->nSpecies+this->Troe.size()],tmp_Exp[i+1+this->nSpecies+this->Troe.size()],tmp_Exp[i+2+this->nSpecies+this->Troe.size()],1);
-    __m256d expTTs = _mm256_setr_pd(    tmp_Exp[i+0+this->nSpecies+this->Troe.size()*2],tmp_Exp[i+1+this->nSpecies+this->Troe.size()*2],tmp_Exp[i+2+this->nSpecies+this->Troe.size()*2],1);
+    __m256d expTTss = _mm256_setr_pd(   tmp_Exp[i+0+this->nSpecies+this->TroeFO.size()],tmp_Exp[i+1+this->nSpecies+this->TroeFO.size()],tmp_Exp[i+2+this->nSpecies+this->TroeFO.size()],1);
+    __m256d expTTs = _mm256_setr_pd(    tmp_Exp[i+0+this->nSpecies+this->TroeFO.size()*2],tmp_Exp[i+1+this->nSpecies+this->TroeFO.size()*2],tmp_Exp[i+2+this->nSpecies+this->TroeFO.size()*2],1);
     __m256d one = _mm256_set1_pd(1.0);
     __m256d alpha = _mm256_setr_pd(alpha_[i+0],alpha_[i+1],alpha_[i+2],1);
     __m256d Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha),expTTsss);

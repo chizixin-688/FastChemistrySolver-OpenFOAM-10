@@ -164,6 +164,34 @@ public:
             // The number of third body reactions with reverse Arrhenius rate constant.
             mutable unsigned int n_NonEquilibriumThirdBodyReaction=0;
 
+            // The number of Lindemann reaction(including Falloff and ChemicallyActivated).
+            mutable unsigned int n_Lindemann=0;
+
+            // The number of Lindemann reaction(Falloff).
+            mutable unsigned int n_LindemannFO=0;
+
+            // The number of Lindemann reaction(ChemicallyActivated).
+            mutable unsigned int n_LindemannCA=0;
+
+            // The number of Troe reaction(including Falloff and ChemicallyActivated).
+            mutable unsigned int n_Troe=0;
+
+            // The number of Troe reaction(Falloff).
+            mutable unsigned int n_TroeFO=0;
+
+            // The number of Troe reaction(ChemicallyActivated).
+            mutable unsigned int n_TroeCA=0;
+
+            // The number of SRI reaction(including Falloff and ChemicallyActivated).
+            mutable unsigned int n_SRI=0;
+
+            // The number of SRI reaction(Falloff).
+            mutable unsigned int n_SRIFO=0;
+
+            // The number of SRI reaction(ChemicallyActivated).
+            mutable unsigned int n_SRICA=0;
+
+
             // The number of third body reactions.
             mutable unsigned int n_ThirdBodyReaction=0;     
 
@@ -228,13 +256,23 @@ public:
         // Data to save the index of falloff and chemicallyactivated reactions.
 
             // Store the index of the Lindemann form.
-            mutable std::vector<unsigned int> Lindemann;
+            mutable std::vector<unsigned int> LindemannFO;
 
-            // Store the index of the Troe form.        
-            mutable std::vector<unsigned int> Troe;
+            // Store the index of the Troe form.
+            mutable std::vector<unsigned int> TroeFO;
 
-            // Store the index of the SRI form.        
-            mutable std::vector<unsigned int> SRI;
+            // Store the index of the SRI form.
+            mutable std::vector<unsigned int> SRIFO;
+
+
+            // Store the index of the Lindemann form.
+            mutable std::vector<unsigned int> LindemannCA;
+
+            // Store the index of the Troe form.
+            mutable std::vector<unsigned int> TroeCA;
+
+            // Store the index of the SRI form.
+            mutable std::vector<unsigned int> SRICA;
 
         // Data to save the information of elementary reaction with integer stoichiometric number.
 
@@ -254,6 +292,11 @@ public:
             mutable std::vector<unsigned int> nonEquilibriumReaction22index;
 
             mutable std::vector<unsigned int> reaction23index;
+
+            mutable std::vector<unsigned int> reversibleReaction23index;
+            mutable std::vector<unsigned int> irreversibleReaction23index;
+            mutable std::vector<unsigned int> nonEquilibriumReaction23index;
+
             mutable std::vector<unsigned int> reaction31index;
             mutable std::vector<unsigned int> reaction32index;
             mutable std::vector<unsigned int> reaction33index;
@@ -303,6 +346,15 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23;
 
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D23RR;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D23RR;
+
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D23IR;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D23IR;
+
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D23NER;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D23NER;
+
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31;
 
@@ -319,8 +371,8 @@ public:
 
             // Data to save the reaction order of reaction with non-integer stoichiometric number.
             // For integer stoichiometric number, value = 1.
-            mutable std::vector<std::vector<double>>     lhsReactionOrder;
-            mutable std::vector<std::vector<double>>     rhsReactionOrder;
+            mutable std::vector<std::vector<double>>  lhsReactionOrder;
+            mutable std::vector<std::vector<double>>  rhsReactionOrder;
 
         // Store the Arrhenius parameters for all reactions. For pressure depedent reaction,
         // these contains the parameters of low pressure limits and high pressure limits.
@@ -1307,6 +1359,25 @@ public:
             )const noexcept;
 
             void update23Reaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+
+            void update23ReversibleReaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+            void update23IrreversibleReaction
+            (
+                const double* __restrict__ C,
+                double*  __restrict__ dNdtByV,
+                const double*  __restrict__ ExpNegGbyRT
+            )const noexcept;
+            void update23NonEquilibriumReaction
             (
                 const double* __restrict__ C,
                 double*  __restrict__ dNdtByV,

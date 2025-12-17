@@ -12,27 +12,16 @@ OptReaction::Tc
     double& sumWRateByCTot
 ) const noexcept
 {
-    //Temperature = Temperature<TlowMin?TlowMin:Temperature;
-    //Temperature = Temperature>ThighMax?ThighMax:Temperature;
-    //this->logT = std::log(Temperature);
-    //this->invT = 1/Temperature;
 
-
-
-    //this->setPtrCoeffs(Temperature);
-
-    
-    //this->ExpNegGstdByRT(Temperature,&this->tmp_Exp[0]);
-    
     this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);
 
     {
-        for(size_t i = 0; i <this->Troe.size();i++)
+        for(unsigned i = 0; i <this->n_Troe;i++)
         {
-            size_t j0 = i + this->nSpecies;
-            size_t j1 = i + this->nSpecies + this->Troe.size();
-            size_t j2 = i + this->nSpecies + this->Troe.size()*2;         
+            const unsigned j0 = i + this->nSpecies;
+            const unsigned j1 = i + this->nSpecies + this->n_Troe;
+            const unsigned j2 = i + this->nSpecies + this->n_Troe*2;         
             this->tmp_Exp[j0] = -Temperature*this->invTsss_[i];
             this->tmp_Exp[j1] = -this->Tss_[i]*invT;    
             this->tmp_Exp[j2] = -Temperature*this->invTs_[i];
@@ -40,10 +29,10 @@ OptReaction::Tc
     }
 
     {
-        for(size_t i = 0; i <this->SRI.size();i++)
+        for(unsigned i = 0; i <this->n_SRI;i++)
         {
-            size_t j0 = i + this->nSpecies + this->Troe.size()*3;
-            size_t j1 = i + this->nSpecies + this->Troe.size()*3 + this->SRI.size();
+            const unsigned j0 = i + this->nSpecies + this->n_Troe*3;
+            const unsigned j1 = i + this->nSpecies + this->n_Troe*3 + this->n_SRI;
             this->tmp_Exp[j0] = -this->b_[i]*invT;
             this->tmp_Exp[j1] = -Temperature*this->invc_[i];
         }   
@@ -57,13 +46,13 @@ OptReaction::Tc
         }
         if(remain==1)
         {
-            size_t i = this->tmp_ExpSize-1;
+            const unsigned i = this->tmp_ExpSize-1;
             this->tmp_Exp[i] = std::exp(this->tmp_Exp[i]);
         }
         else if(remain==2)
         {
-            size_t i0 = this->tmp_ExpSize-2;
-            size_t i1 = this->tmp_ExpSize-1;
+            const unsigned i0 = this->tmp_ExpSize-2;
+            const unsigned i1 = this->tmp_ExpSize-1;
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],0,0);
             tmp = vec256_expd(tmp);
             this->tmp_Exp[i0] = get_elem0(tmp);
@@ -71,9 +60,9 @@ OptReaction::Tc
         }
         else if(remain==3)
         {
-            size_t i0 = this->tmp_ExpSize-3;
-            size_t i1 = this->tmp_ExpSize-2;
-            size_t i2 = this->tmp_ExpSize-1;
+            const unsigned i0 = this->tmp_ExpSize-3;
+            const unsigned i1 = this->tmp_ExpSize-2;
+            const unsigned i2 = this->tmp_ExpSize-1;
 
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],tmp_Exp[i2],0);
             tmp = vec256_expd(tmp);
@@ -354,13 +343,13 @@ OptReaction::Tc
     }
 
     {
-        unsigned int remain = this->Lindemann.size()%4;
-        for (unsigned int i = 0;i<this->Lindemann.size()-remain;i=i+4)
+        unsigned int remain = this->n_LindemannFO%4;
+        for (unsigned int i = 0;i<this->n_LindemannFO-remain;i=i+4)
         {
-            const unsigned int j0 = this->Lindemann[i+0]+0;
-            const unsigned int j1 = this->Lindemann[i+0]+1;
-            const unsigned int j2 = this->Lindemann[i+0]+2;
-            const unsigned int j3 = this->Lindemann[i+0]+3;
+            const unsigned int j0 = this->LindemannFO[i+0]+0;
+            const unsigned int j1 = this->LindemannFO[i+0]+1;
+            const unsigned int j2 = this->LindemannFO[i+0]+2;
+            const unsigned int j3 = this->LindemannFO[i+0]+3;
 
             const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
             const unsigned int k0 = j0 - this->Ikf[4];
@@ -379,8 +368,8 @@ OptReaction::Tc
         }
         if(remain==1)
         {
-            size_t i = this->Lindemann.size()-1;
-            const unsigned int j = this->Lindemann[i];
+            const unsigned i = this->n_LindemannFO-1;
+            const unsigned int j = this->LindemannFO[i];
             const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
             const unsigned int k = j - this->Ikf[4];
             const double Kinf = this->Kf_[j+this->offset_kinf];
@@ -392,9 +381,9 @@ OptReaction::Tc
         }
         else if(remain==2)
         {
-            size_t i = this->Lindemann.size()-2;
-            const unsigned int j0 = this->Lindemann[i+0]+0;
-            const unsigned int j1 = this->Lindemann[i+0]+1;
+            const unsigned i = this->n_LindemannFO-2;
+            const unsigned int j0 = this->LindemannFO[i+0]+0;
+            const unsigned int j1 = this->LindemannFO[i+0]+1;
             const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
             const unsigned int k0 = j0 - this->Ikf[4];
             const unsigned int k1 = j1 - this->Ikf[4];
@@ -410,10 +399,10 @@ OptReaction::Tc
         }
         else if(remain==3)
         {
-            size_t i = this->Lindemann.size()-3;
-            const unsigned int j0 = this->Lindemann[i+0];
-            const unsigned int j1 = this->Lindemann[i+1];
-            const unsigned int j2 = this->Lindemann[i+2];
+            const unsigned i = this->n_LindemannFO-3;
+            const unsigned int j0 = this->LindemannFO[i+0];
+            const unsigned int j1 = this->LindemannFO[i+1];
+            const unsigned int j2 = this->LindemannFO[i+2];
             const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
             const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
             const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
@@ -447,10 +436,10 @@ OptReaction::Tc
 
 
     {
-        unsigned int remain = this->Troe.size()%4;
-        for(unsigned int i = 0; i < this->Troe.size()-remain;i=i+4)
+        unsigned int remain = this->n_Troe%4;
+        for(unsigned int i = 0; i < this->n_Troe-remain;i=i+4)
         {
-            const unsigned int j0 = this->Troe[i+0];
+            const unsigned int j0 = this->TroeFO[i+0];
             const unsigned int j1 = j0 + 1;
             const unsigned int j2 = j0 + 2;
             const unsigned int j3 = j0 + 3;
@@ -470,8 +459,8 @@ OptReaction::Tc
             __m256d alpha = _mm256_loadu_pd(&this->alpha_[i]);
             __m256d one = _mm256_set1_pd(1.0);
             __m256d expTTsss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies]);
-            __m256d expTTss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->Troe.size()]);
-            __m256d expTTs = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->Troe.size()*2]);
+            __m256d expTTss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe]);
+            __m256d expTTs = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*2]);
             __m256d Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha), expTTsss);
             Fcent = _mm256_fmadd_pd(alpha, expTTs,Fcent);
             Fcent = _mm256_add_pd(expTTss,Fcent);
@@ -495,9 +484,9 @@ OptReaction::Tc
     
     }
     {
-        for (unsigned int i = 0;i<this->SRI.size();i++)
+        for (unsigned int i = 0;i<this->n_SRI;i++)
         {
-            const unsigned int j = this->SRI[i];
+            const unsigned int j = this->SRIFO[i];
 
             const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
             const unsigned int k = j - this->Ikf[4];

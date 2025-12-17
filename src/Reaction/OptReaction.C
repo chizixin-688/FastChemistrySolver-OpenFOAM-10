@@ -637,8 +637,13 @@ void OptReaction::readInfo
 
     unsigned int nLindemann = 0;
     unsigned int nTroe = 0;
-    unsigned int nSRI = 0;   
-
+    unsigned int nSRI = 0;
+    unsigned int nLindemannFO = 0;
+    unsigned int nTroeFO = 0;
+    unsigned int nSRIFO = 0;
+    unsigned int nLindemannCA = 0;
+    unsigned int nTroeCA = 0;
+    unsigned int nSRICA = 0;
 
     forAllConstIter(dictionary, reactions, iter)
     {
@@ -679,7 +684,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusLindemannFallOff"
         )
         {
-            this->n_Fall_Off_Reaction++;nLindemann++;
+            this->n_Fall_Off_Reaction++;nLindemann++;nLindemannFO++;
         }
         else if
         (
@@ -687,7 +692,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusTroeFallOff"
         )
         {
-            this->n_Fall_Off_Reaction++;nTroe++;
+            this->n_Fall_Off_Reaction++;nTroe++;nTroeFO++;
         }
         else if
         (
@@ -695,7 +700,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusSRIFallOff"
         )
         {
-            this->n_Fall_Off_Reaction++;nSRI++;
+            this->n_Fall_Off_Reaction++;nSRI++;nSRIFO++;
         }
         else if
         (
@@ -703,7 +708,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusLindemannChemicallyActivated"
         )
         {
-            this->n_ChemicallyActivated_Reaction++;nLindemann++;
+            this->n_ChemicallyActivated_Reaction++;nLindemann++;nLindemannCA++;
         }
         else if
         (
@@ -711,7 +716,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusTroeChemicallyActivated"
         )
         {
-            this->n_ChemicallyActivated_Reaction++;nTroe++;
+            this->n_ChemicallyActivated_Reaction++;nTroe++;nTroeCA++;
         }
         else if
         (
@@ -719,7 +724,7 @@ void OptReaction::readInfo
             reactionTypeName == "irreversibleArrheniusSRIChemicallyActivated"
         )
         {
-            this->n_ChemicallyActivated_Reaction++;nSRI++;
+            this->n_ChemicallyActivated_Reaction++;nSRI++;nSRICA++;
         }
         else if
         (
@@ -735,7 +740,17 @@ void OptReaction::readInfo
                 << reactionTypeName << exit(FatalError);
         }
     }
+    this->n_Lindemann = nLindemann;
+    this->n_Troe = nTroe;
+    this->n_SRI = nSRI;
 
+    this->n_LindemannFO = nLindemannFO;
+    this->n_TroeFO = nTroeFO;
+    this->n_SRIFO = nSRIFO;
+    
+    this->n_LindemannCA = nLindemannCA;
+    this->n_TroeCA = nTroeCA;
+    this->n_SRICA = nSRICA;
     {
         this->Itbr[0] = 0;
         this->Itbr[1] = this->n_NonEquilibriumThirdBodyReaction;
@@ -776,7 +791,7 @@ void OptReaction::readInfo
     this->lhsReactionOrder.resize(this->n_Reactions);
     this->rhsReactionOrder.resize(this->n_Reactions);
     std::vector<std::vector<double>> ThirdBodyFactor(this->Itbr[5]);
-    //ThirdBodyFactor.resize(Itbr[5]);
+
     this->alpha_.resize(0);
     this->alpha_.reserve(nTroe);
     this->Ts_.resize(0);
@@ -785,6 +800,7 @@ void OptReaction::readInfo
     this->Tss_.reserve(nTroe);    
     this->Tsss_.resize(0);
     this->Tsss_.reserve(nTroe);
+
     this->a_.resize(0);
     this->b_.resize(0);
     this->c_.resize(0);
@@ -1169,6 +1185,7 @@ void OptReaction::readInfo
         }
     }
 
+
     forAllConstIter(dictionary, reactions, iter)
     {
         const word& key = iter().keyword();
@@ -1210,7 +1227,8 @@ void OptReaction::readInfo
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
-            this->Lindemann.push_back(iArrhenius);
+            this->LindemannFO.push_back(iArrhenius);
+
             if(isInteger==true)
             {
                 this->readReactionInfo
@@ -1239,7 +1257,7 @@ void OptReaction::readInfo
             iArrhenius++;k++;
        }
     }
-    
+
     forAllConstIter(dictionary, reactions, iter)
     {
         const word& key = iter().keyword();
@@ -1281,7 +1299,7 @@ void OptReaction::readInfo
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
 
-            this->Troe.push_back(iArrhenius);
+            this->TroeFO.push_back(iArrhenius);
             this->alpha_.push_back(FDict.lookup<scalar>("alpha"));    
             this->Ts_.push_back(FDict.lookup<scalar>("Ts"));    
             this->Tss_.push_back(FDict.lookup<scalar>("Tss"));    
@@ -1356,7 +1374,7 @@ void OptReaction::readInfo
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
             
-            this->SRI.push_back(iArrhenius);
+            this->SRIFO.push_back(iArrhenius);
             this->a_.push_back(FDict.lookup<scalar>("a"));    
             this->b_.push_back(FDict.lookup<scalar>("b"));    
             this->c_.push_back(FDict.lookup<scalar>("c"));    
@@ -1406,15 +1424,14 @@ void OptReaction::readInfo
         {
             if(reactionTypeName.find("irreversible",0)!=std::string::npos)
             {this->isIrreversible[iArrhenius]=1;}
-
             this->reactionType_.push_back(reactionTypeName); 
             this->reactionName_.push_back(key);   
 
-            const dictionary& k0Dict = reactions.subDict("k0");
-            const dictionary& kInfDict = reactions.subDict("kInf");
+            const dictionary& k0Dict = reactDict.subDict("k0");
+            const dictionary& kInfDict = reactDict.subDict("kInf");
 
             const dictionary& thirdBodyEfficienciesDict = 
-            reactions.subDict("thirdBodyEfficiencies");
+            reactDict.subDict("thirdBodyEfficiencies");
 
             this->A[iArrhenius] = k0Dict.lookup<scalar>("A");
             this->beta[iArrhenius] = k0Dict.lookup<scalar>("beta");
@@ -1433,7 +1450,8 @@ void OptReaction::readInfo
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
-            this->Lindemann.push_back(iArrhenius);
+            this->LindemannCA.push_back(iArrhenius);
+
             if(isInteger==true)
             {
                 this->readReactionInfo
@@ -1444,6 +1462,7 @@ void OptReaction::readInfo
                     speciesTable
                 );
             }
+            else
             {
                 this->readReactionInfo
                 (
@@ -1482,11 +1501,11 @@ void OptReaction::readInfo
             this->reactionType_.push_back(reactionTypeName); 
             this->reactionName_.push_back(key);   
 
-            const dictionary& k0Dict = reactions.subDict("k0");
-            const dictionary& kInfDict = reactions.subDict("kInf");
-            const dictionary& FDict = reactions.subDict("F");
+            const dictionary& k0Dict = reactDict.subDict("k0");
+            const dictionary& kInfDict = reactDict.subDict("kInf");
+            const dictionary& FDict = reactDict.subDict("F");
             const dictionary& thirdBodyEfficienciesDict = 
-            reactions.subDict("thirdBodyEfficiencies");
+            reactDict.subDict("thirdBodyEfficiencies");
 
             this->A[iArrhenius] = k0Dict.lookup<scalar>("A");
             this->beta[iArrhenius] = k0Dict.lookup<scalar>("beta");
@@ -1506,7 +1525,7 @@ void OptReaction::readInfo
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
 
-            this->Troe.push_back(iArrhenius);
+            this->TroeCA.push_back(iArrhenius);
             this->alpha_.push_back(FDict.lookup<scalar>("alpha"));    
             this->Ts_.push_back(FDict.lookup<scalar>("Ts"));    
             this->Tss_.push_back(FDict.lookup<scalar>("Tss"));    
@@ -1559,11 +1578,11 @@ void OptReaction::readInfo
             this->reactionType_.push_back(reactionTypeName); 
             this->reactionName_.push_back(key);   
 
-            const dictionary& k0Dict = reactions.subDict("k0");
-            const dictionary& kInfDict = reactions.subDict("kInf");
-            const dictionary& FDict = reactions.subDict("F");
+            const dictionary& k0Dict = reactDict.subDict("k0");
+            const dictionary& kInfDict = reactDict.subDict("kInf");
+            const dictionary& FDict = reactDict.subDict("F");
             const dictionary& thirdBodyEfficienciesDict = 
-            reactions.subDict("thirdBodyEfficiencies");
+            reactDict.subDict("thirdBodyEfficiencies");
 
             this->A[iArrhenius] = k0Dict.lookup<scalar>("A");
             this->beta[iArrhenius] = k0Dict.lookup<scalar>("beta");
@@ -1582,7 +1601,7 @@ void OptReaction::readInfo
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
                 ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
             }
-            this->SRI.push_back(iArrhenius);
+            this->SRICA.push_back(iArrhenius);
             this->a_.push_back(FDict.lookup<scalar>("a"));    
             this->b_.push_back(FDict.lookup<scalar>("b"));    
             this->c_.push_back(FDict.lookup<scalar>("c"));    
@@ -1618,7 +1637,7 @@ void OptReaction::readInfo
         }
     }
 
-   {
+    {
         unsigned int remain = 4 - this->nSpecies%4;
 
         this->AlignSpecies = this->nSpecies+remain;
@@ -1761,14 +1780,18 @@ void OptReaction::readInfo
         {this->Pow_pByRT_SumVki_I.insert({sumVki[i],0.0});}
     }
 
-    this->Kf_.resize(this->Ikf[12]);
-    this->dKfdT_.resize(this->Ikf[12]);
-    this->dKfdC_.resize(this->Itbr[5]);
-    this->tmp_M.resize(this->Itbr[5]);
+    int alignNKf = ((this->Ikf[12]+3)/4)*4;
+    this->Kf_.resize(alignNKf);
+    this->dKfdT_.resize(alignNKf);
+
+
+    int alignNtmp_M = ((this->Itbr[5]+3)/4)*4;
+    this->dKfdC_.resize(alignNtmp_M);
+    this->tmp_M.resize(alignNtmp_M);
 
     {
-        tmp_ExpSize = (this->nSpecies + static_cast<unsigned int>(this->Troe.size())*3 + static_cast<unsigned int>(this->SRI.size())*2);
-        size_t bytes = (this->nSpecies + this->Troe.size()*3 + this->SRI.size()*2)  * sizeof(double);
+        this->tmp_ExpSize = (this->nSpecies + nTroe*3 + nSRI*2);
+        const unsigned int bytes = (this->nSpecies + nTroe*3 + nSRI*2)  * sizeof(double);
         if (posix_memalign(reinterpret_cast<void**>(&this->tmp_Exp), 32, bytes))
         {
             throw std::bad_alloc();
@@ -1778,19 +1801,19 @@ void OptReaction::readInfo
 
 
 
-    this->invTs_.resize(this->Ts_.size());
-    this->invTsss_.resize(this->Tsss_.size());
-    for(unsigned int i = 0; i < this->Ts_.size();i++)
+    this->invTs_.resize(nTroe);
+    this->invTsss_.resize(nTroe);
+    for(unsigned int i = 0; i < nTroe;i++)
     {
         this->invTs_[i] = 1.0/this->Ts_[i];
     }
-    for(unsigned int i = 0; i < this->Tsss_.size();i++)
+    for(unsigned int i = 0; i < nTroe;i++)
     {
         this->invTsss_[i] = 1.0/this->Tsss_[i];
     }
 
-    this->invc_.resize(this->c_.size());
-    for(unsigned int i = 0; i < this->c_.size();i++)
+    this->invc_.resize(nSRI);
+    for(unsigned int i = 0; i < nSRI;i++)
     {
         this->invc_[i] = 1.0/this->c_[i];
     }    
@@ -1998,12 +2021,41 @@ void OptReaction::readInfo
         {
             this->lhsSpeciesIndex1D23.push_back(this->lhsSpeciesIndex[i][0]);
             this->lhsSpeciesIndex1D23.push_back(this->lhsSpeciesIndex[i][1]);
-
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][2]);
-
             this->reaction23index.push_back(i);
+            if(this->isIrreversible[i]==0)
+            {
+                this->reversibleReaction23index.push_back(i);
+
+                this->lhsSpeciesIndex1D23RR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D23RR.push_back(this->lhsSpeciesIndex[i][1]);
+
+                this->rhsSpeciesIndex1D23RR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D23RR.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D23RR.push_back(this->rhsSpeciesIndex[i][2]);
+            }
+            else if(this->isIrreversible[i]==1)
+            {
+                this->irreversibleReaction23index.push_back(i);
+                this->lhsSpeciesIndex1D23IR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D23IR.push_back(this->lhsSpeciesIndex[i][1]);
+
+                this->rhsSpeciesIndex1D23IR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D23IR.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D23IR.push_back(this->rhsSpeciesIndex[i][2]);
+            }
+            else if(this->isIrreversible[i]==2)
+            {
+                this->nonEquilibriumReaction23index.push_back(i);
+                this->lhsSpeciesIndex1D23NER.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D23NER.push_back(this->lhsSpeciesIndex[i][1]);
+
+                this->rhsSpeciesIndex1D23NER.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D23NER.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D23NER.push_back(this->rhsSpeciesIndex[i][2]);
+            }
         }
         else if(lhsNumber==3 && rhsNumber==1)
         {
@@ -2047,10 +2099,10 @@ void OptReaction::readInfo
             this->reactionGIindex.push_back(i);
         }
     }
-    for(int i = 0;i<this->n_Reactions;i++)
-    {
+    //for(int i = 0;i<this->n_Reactions;i++)
+    //{
         //std::cout<<this->rhsSpeciesIndex[i].size()<<" "<<this->lhsSpeciesIndex[i].size()<<std::endl;
-    }
+    //}
     //std::cout<<lhsSpeciesIndex1D1.size()<<std::endl;
     //std::cout<<lhsSpeciesIndex1D2.size()<<std::endl;
     //std::cout<<lhsSpeciesIndex1D3.size()<<std::endl;
