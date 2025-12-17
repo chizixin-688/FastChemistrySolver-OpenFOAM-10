@@ -330,6 +330,17 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
 
     LU.Block4LUDecompose();
 
+for(int i = 0; i < this->nSpecie()+1;i++)
+{
+    for(int j = 0; j < this->nSpecie()-1+1;j++)
+    {
+        std::cout<<Jac[i*(this->alignN)+j]<<" ";
+    }
+    int j = this->nSpecie()-1+1;
+    std::cout<<Jac[i*(this->alignN)+j]<<std::endl;
+}
+std::exit(0);
+
     {
         const double dxd1 = dx*d1+1;
         __m256d dxd1v = _mm256_set1_pd(dxd1);

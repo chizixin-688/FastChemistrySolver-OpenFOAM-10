@@ -2099,6 +2099,7 @@ void OptReaction::readInfo
             this->reactionGIindex.push_back(i);
         }
     }
+    std::cout<<"debug"<<std::endl;
     //for(int i = 0;i<this->n_Reactions;i++)
     //{
         //std::cout<<this->rhsSpeciesIndex[i].size()<<" "<<this->lhsSpeciesIndex[i].size()<<std::endl;

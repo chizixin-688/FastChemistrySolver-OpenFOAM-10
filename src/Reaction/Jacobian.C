@@ -440,7 +440,8 @@ OptReaction::ddNdtByVdcTp
     }
     int j = this->nSpecies-1;
     std::cout<<ddNdtByVdcT[i*(this->alignN)+j]<<std::endl;
-}*/
+}
+std::exit(0);*/
 /*for(int i = 0; i < this->nSpecies;i++)
 {
     std::cout<<dNdtByV[i]<<std::endl;

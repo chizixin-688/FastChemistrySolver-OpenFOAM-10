@@ -505,6 +505,17 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
     (this->*ddYdtdTPtr)(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
     (this->*ddTdtdYTPtr)(Cp,dCpdT,Ha,dPhidt,Jac);
 
+/*for(int i = 0; i < this->nSpecie()+1;i++)
+{
+    for(int j = 0; j < this->nSpecie()-1+1;j++)
+    {
+        std::cout<<Jac[i*(this->alignN)+j]<<" ";
+    }
+    int j = this->nSpecie()-1+1;
+    std::cout<<Jac[i*(this->alignN)+j]<<std::endl;
+}
+std::exit(0);*/
+
     /*int remain = this->nSpecie()%4;
     switch (jacobianType_)
     {
