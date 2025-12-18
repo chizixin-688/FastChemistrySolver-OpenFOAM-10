@@ -157,7 +157,7 @@ class OptSeulex
             // Fields used in "seul" function
             //mutable scalarField dy_, yTemp_, dydx_;
 
-        mutable LUsolver LU;
+        mutable FastChemistry::LUsolver LU;
 
 
 

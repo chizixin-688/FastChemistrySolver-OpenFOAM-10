@@ -6,8 +6,9 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <cmath>
 
-LUsolver::LUsolver(double* externalData, int size)
+FastChemistry::LUsolver::LUsolver(double* externalData, int size)
 {
     this->owner = false;
 
@@ -31,7 +32,7 @@ LUsolver::LUsolver(double* externalData, int size)
     invD.resize(N);
 }
 
-LUsolver::~LUsolver()
+FastChemistry::LUsolver::~LUsolver()
 {
     delete[] this->pivotIndice_;
     this->pivotIndice_ = nullptr;
@@ -46,7 +47,7 @@ LUsolver::~LUsolver()
 }
 
 
-void LUsolver::printMatrix(double*A,int mRows, int nCol)
+void FastChemistry::LUsolver::printMatrix(double*A,int mRows, int nCol)
 {
     for(int i = 0;i<mRows;i++)
     {
@@ -58,7 +59,7 @@ void LUsolver::printMatrix(double*A,int mRows, int nCol)
     }
 }
 
-void LUsolver::printMatrix()
+void FastChemistry::LUsolver::printMatrix()
 {
     for(unsigned int i = 0;i<this->N;i++)
     {
@@ -70,7 +71,7 @@ void LUsolver::printMatrix()
     }
 }
 
-void LUsolver::printPivotIndice()
+void FastChemistry::LUsolver::printPivotIndice()
 {
     for(unsigned int i = 0;i<this->N;i++)
     {
@@ -78,7 +79,7 @@ void LUsolver::printPivotIndice()
     }    
 }
 
-void LUsolver::LUDecompose4
+void FastChemistry::LUsolver::LUDecompose4
 (
     unsigned int k0
 )
@@ -221,7 +222,7 @@ void LUsolver::LUDecompose4
 }
 
 
-void LUsolver::LUDecompose4_2
+void FastChemistry::LUsolver::LUDecompose4_2
 (
 )
 {
@@ -271,7 +272,7 @@ void LUsolver::LUDecompose4_2
     }
 }
 
-void LUsolver::LUDecompose4_3
+void FastChemistry::LUsolver::LUDecompose4_3
 (
 )
 {
@@ -370,7 +371,7 @@ void LUsolver::LUDecompose4_3
     
 }
 
-void LUsolver::forwardSitituate4_0
+void FastChemistry::LUsolver::forwardSitituate4_0
 (
     unsigned int k0,
     unsigned int k1
@@ -415,7 +416,7 @@ void LUsolver::forwardSitituate4_0
     }
 }
 
-void LUsolver::forwardSitituate4_1
+void FastChemistry::LUsolver::forwardSitituate4_1
 (
     unsigned int k0,
     unsigned int k1
@@ -474,7 +475,7 @@ void LUsolver::forwardSitituate4_1
     }
 }
 
-void LUsolver::forwardSitituate4_2
+void FastChemistry::LUsolver::forwardSitituate4_2
 (
     unsigned int k0,
     unsigned int k1
@@ -543,7 +544,7 @@ void LUsolver::forwardSitituate4_2
 
 }
 
-void LUsolver::forwardSitituate4_3
+void FastChemistry::LUsolver::forwardSitituate4_3
 (
     unsigned int k0,
     unsigned int k1
@@ -626,7 +627,7 @@ void LUsolver::forwardSitituate4_3
 
 
 
-void LUsolver::backSitituate4_0
+void FastChemistry::LUsolver::backSitituate4_0
 (
     unsigned int k0,
     unsigned int k1
@@ -694,7 +695,7 @@ void LUsolver::backSitituate4_0
 }
 
 
-void LUsolver::backSitituate4_1
+void FastChemistry::LUsolver::backSitituate4_1
 (
     unsigned int k0,
     unsigned int k1
@@ -776,7 +777,7 @@ void LUsolver::backSitituate4_1
     }
 }
 
-void LUsolver::backSitituate4_2
+void FastChemistry::LUsolver::backSitituate4_2
 (
     unsigned int k0,
     unsigned int k1
@@ -866,7 +867,7 @@ void LUsolver::backSitituate4_2
     }
 }
 
-void LUsolver::backSitituate4_3
+void FastChemistry::LUsolver::backSitituate4_3
 (
     unsigned int k0,
     unsigned int k1
@@ -967,7 +968,7 @@ void LUsolver::backSitituate4_3
 
 }
 
-void LUsolver::UpdateL22U22_Vec2_0
+void FastChemistry::LUsolver::UpdateL22U22_Vec2_0
 (
     unsigned int k0,
     unsigned int k1
@@ -1056,7 +1057,7 @@ void LUsolver::UpdateL22U22_Vec2_0
         }
     }
 }
-void LUsolver::UpdateL22U22_Vec2_1
+void FastChemistry::LUsolver::UpdateL22U22_Vec2_1
 (
     unsigned int k0,
     unsigned int k1
@@ -1217,7 +1218,7 @@ void LUsolver::UpdateL22U22_Vec2_1
 }
 
 
-void LUsolver::UpdateL22U22_Vec2_2
+void FastChemistry::LUsolver::UpdateL22U22_Vec2_2
 (
     unsigned int k0,
     unsigned int k1
@@ -1444,7 +1445,7 @@ void LUsolver::UpdateL22U22_Vec2_2
 
 }
 
-void LUsolver::UpdateL22U22_Vec2_3
+void FastChemistry::LUsolver::UpdateL22U22_Vec2_3
 (
     unsigned int k0,
     unsigned int k1
@@ -1701,7 +1702,7 @@ void LUsolver::UpdateL22U22_Vec2_3
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_00
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_00
 (
     unsigned int k0,
     unsigned int k1,
@@ -1799,7 +1800,7 @@ void LUsolver::UpdateL22U22_Vec_38_00
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_10
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_10
 (
     unsigned int k0,
     unsigned int k1,
@@ -1932,7 +1933,7 @@ void LUsolver::UpdateL22U22_Vec_38_10
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_20
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_20
 (
     unsigned int k0,
     unsigned int k1,
@@ -2092,7 +2093,7 @@ void LUsolver::UpdateL22U22_Vec_38_20
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_04
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_04
 (
     unsigned int k0,
     unsigned int k1,
@@ -2220,7 +2221,7 @@ void LUsolver::UpdateL22U22_Vec_38_04
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_14
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_14
 (
     unsigned int k0,
     unsigned int k1,
@@ -2398,7 +2399,7 @@ void LUsolver::UpdateL22U22_Vec_38_14
     }
 }
 
-void LUsolver::UpdateL22U22_Vec_38_24
+void FastChemistry::LUsolver::UpdateL22U22_Vec_38_24
 (
     unsigned int k0,
     unsigned int k1,
@@ -2615,7 +2616,7 @@ void LUsolver::UpdateL22U22_Vec_38_24
     }
 }
 
-void LUsolver::permutation0
+void FastChemistry::LUsolver::permutation0
 (
     unsigned int k0,
     unsigned int k1
@@ -2641,7 +2642,7 @@ void LUsolver::permutation0
     }
 }
 
-void LUsolver::permutation1
+void FastChemistry::LUsolver::permutation1
 (
     unsigned int k0,
     unsigned int k1
@@ -2676,7 +2677,7 @@ void LUsolver::permutation1
     }
 }
 
-void LUsolver::permutation2
+void FastChemistry::LUsolver::permutation2
 (
     unsigned int k0,
     unsigned int k1
@@ -2715,7 +2716,7 @@ void LUsolver::permutation2
     }
 }
 
-void LUsolver::permutation3
+void FastChemistry::LUsolver::permutation3
 (
     unsigned int k0,
     unsigned int k1
@@ -2759,7 +2760,7 @@ void LUsolver::permutation3
     }
 }
 
-void LUsolver::permutation_2
+void FastChemistry::LUsolver::permutation_2
 (
 )
 {
@@ -2789,7 +2790,7 @@ void LUsolver::permutation_2
     }
 }
 
-void LUsolver::permutation_3
+void FastChemistry::LUsolver::permutation_3
 (
 )
 {
@@ -2831,7 +2832,7 @@ void LUsolver::permutation_3
 
 
 
-void LUsolver::xSolve
+void FastChemistry::LUsolver::xSolve
 (
     double* __restrict__ b
 )
@@ -2859,7 +2860,7 @@ void LUsolver::xSolve
     }
 }
 
-void LUsolver::xSolve_Vec_3
+void FastChemistry::LUsolver::xSolve_Vec_3
 (
     double* __restrict__ b
 )
@@ -3136,7 +3137,7 @@ void LUsolver::xSolve_Vec_3
         b[i0] = (sum0 - Lrow0[i2]*b[i2] - Lrow0[i1]*b[i1]) * invD00;   
     }
 }
-void LUsolver::xSolve_Vec_2
+void FastChemistry::LUsolver::xSolve_Vec_2
 (
     double* __restrict__ b
 )
@@ -3383,7 +3384,7 @@ void LUsolver::xSolve_Vec_2
     }
 }
 
-void LUsolver::xSolve_Vec_1
+void FastChemistry::LUsolver::xSolve_Vec_1
 (
     double* __restrict__ b
 )
@@ -3618,7 +3619,7 @@ void LUsolver::xSolve_Vec_1
         b[i00] = (sum00) * invD00;
     }
 }
-void LUsolver::xSolve_Vec_0
+void FastChemistry::LUsolver::xSolve_Vec_0
 (
     double* __restrict__ b
 )
@@ -3809,7 +3810,7 @@ void LUsolver::xSolve_Vec_0
     }
 }
 
-void LUsolver::xSolve_Serial
+void FastChemistry::LUsolver::xSolve_Serial
 (
     double* __restrict__ b
 )
@@ -3849,7 +3850,7 @@ void LUsolver::xSolve_Serial
     }
 }
 
-void LUsolver::Block4LUDecompose
+void FastChemistry::LUsolver::Block4LUDecompose
 (
 )
 {
@@ -3963,7 +3964,7 @@ void LUsolver::Block4LUDecompose
     }
 }
 
-void LUsolver::ReadTxt
+/*void LUsolver::ReadTxt
 (
     std::string fileName
 )
@@ -3989,8 +3990,8 @@ void LUsolver::ReadTxt
         }
         ifs.close();
     }
-}
-void LUsolver::ReAssign(double* externalData)
+}*/
+void FastChemistry::LUsolver::ReAssign(double* externalData)
 {this->v_ = externalData;}
 
 

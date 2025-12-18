@@ -5,7 +5,7 @@
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-FastThermo::idealGas::idealGas(const int n)
+FastChemistry::idealGas::idealGas(const int n)
 :
     nSpecies(n),
     HCoeffs(n),
@@ -41,7 +41,7 @@ FastThermo::idealGas::idealGas(const int n)
     this->Hf = &this->buffer[alignSpecies*2];
 }
 
-FastThermo::idealGas::idealGas(const idealGas&& gas)
+FastChemistry::idealGas::idealGas(const idealGas&& gas)
 :
     nSpecies(gas.nSpecies),
     HCoeffs(std::move(gas.HCoeffs)),
@@ -74,7 +74,7 @@ FastThermo::idealGas::idealGas(const idealGas&& gas)
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-FastThermo::idealGas::~idealGas()
+FastChemistry::idealGas::~idealGas()
 {
     this->W=nullptr;
     this->invW=nullptr;
@@ -88,7 +88,7 @@ FastThermo::idealGas::~idealGas()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void FastThermo::idealGas::JacobianThermoYT
+void FastChemistry::idealGas::JacobianThermoYT
 (
     double p,
     double T_,
@@ -418,7 +418,7 @@ void FastThermo::idealGas::JacobianThermoYT
     dCpdT[this->nSpecies] = dCpMdT + hsum4(ArrdCpMdT_);  
 }
 
-void FastThermo::idealGas::CpHaNegGstdByRT
+void FastChemistry::idealGas::CpHaNegGstdByRT
 (
     double T,
     double* __restrict__ Cp,
@@ -570,7 +570,7 @@ void FastThermo::idealGas::CpHaNegGstdByRT
     }
 }
 
-void FastThermo::idealGas::rhoMc
+void FastChemistry::idealGas::rhoMc
 (
     double T,
     const double p,
@@ -659,7 +659,7 @@ void FastThermo::idealGas::rhoMc
 
 }
 
-void FastThermo::idealGas::DerivativeThermoYT
+void FastChemistry::idealGas::DerivativeThermoYT
 (
     double T,
     const double p,
@@ -908,7 +908,7 @@ void FastThermo::idealGas::DerivativeThermoYT
     Cp[this->nSpecies] = Cpm;
 }
 
-void FastThermo::idealGas::negGstdByRT
+void FastChemistry::idealGas::negGstdByRT
 (
     double T,
     double* __restrict__ negGstdByRT,
@@ -1014,7 +1014,7 @@ void FastThermo::idealGas::negGstdByRT
     }
 }
 
-inline void FastThermo::idealGas::setPtrCoeffs(double T) const
+inline void FastChemistry::idealGas::setPtrCoeffs(double T) const
 {
     if(T<this->TcommonMin)
     {
@@ -1046,7 +1046,7 @@ inline void FastThermo::idealGas::setPtrCoeffs(double T) const
     }    
 }
 
-inline double FastThermo::idealGas::hsum4(__m256d v) const
+inline double FastChemistry::idealGas::hsum4(__m256d v) const
 {
     __m128d lo = _mm256_castpd256_pd128(v);
     __m128d hi = _mm256_extractf128_pd(v,1);
@@ -1056,7 +1056,7 @@ inline double FastThermo::idealGas::hsum4(__m256d v) const
     return _mm_cvtsd_f64(s);
 }
 
-inline __m256d FastThermo::idealGas::hsum4x4(__m256d sum0, __m256d sum1,__m256d sum2, __m256d sum3) const
+inline __m256d FastChemistry::idealGas::hsum4x4(__m256d sum0, __m256d sum1,__m256d sum2, __m256d sum3) const
 {
     __m256d t0 = _mm256_hadd_pd(sum0, sum1);  // [a0+a1, b0+b1, a2+a3, b2+b3]
     __m256d t1 = _mm256_hadd_pd(sum2, sum3);  // [c0+c1, d0+d1, c2+c3, d2+d3]
@@ -1067,7 +1067,7 @@ inline __m256d FastThermo::idealGas::hsum4x4(__m256d sum0, __m256d sum1,__m256d 
     return t5;
 }
 
-inline void FastThermo::idealGas::transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)const
+inline void FastChemistry::idealGas::transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)const
 {
     __m256d t0 = _mm256_unpacklo_pd(v0, v1); // a0 b0 a1 b1
     __m256d t1 = _mm256_unpackhi_pd(v0, v1); // a2 b2 a3 b3
@@ -1080,24 +1080,24 @@ inline void FastThermo::idealGas::transpose4x4_pd(__m256d& v0,__m256d& v1,__m256
     v3 = _mm256_permute2f128_pd(t1, t3, 0x31); // [a3 b3 c3 d3]
 }
         
-inline double FastThermo::idealGas::get_elem0(__m256d vec) const
+inline double FastChemistry::idealGas::get_elem0(__m256d vec) const
 {
     return _mm256_cvtsd_f64(vec); 
 }
 
-inline double FastThermo::idealGas::get_elem1(__m256d vec) const
+inline double FastChemistry::idealGas::get_elem1(__m256d vec) const
 {
     __m128d low = _mm256_castpd256_pd128(vec); 
     return _mm_cvtsd_f64(_mm_unpackhi_pd(low, low));
 }
 
-inline double FastThermo::idealGas::get_elem2(__m256d vec) const
+inline double FastChemistry::idealGas::get_elem2(__m256d vec) const
 {
     __m128d high = _mm256_extractf128_pd(vec, 1); 
     return _mm_cvtsd_f64(high);
 }
 
-inline double FastThermo::idealGas::get_elem3(__m256d vec) const
+inline double FastChemistry::idealGas::get_elem3(__m256d vec) const
 {
     __m128d high = _mm256_extractf128_pd(vec, 1); 
     return _mm_cvtsd_f64(_mm_unpackhi_pd(high, high));

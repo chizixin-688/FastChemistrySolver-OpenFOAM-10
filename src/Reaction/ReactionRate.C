@@ -370,38 +370,38 @@ OptReaction::dNdtByV
 
 
 
-    //this->update11Reaction(c,dNdtByV,tmp_Exp);
-    //this->update12Reaction(c,dNdtByV,tmp_Exp);
-    //this->update13Reaction(c,dNdtByV,tmp_Exp);
+    this->update11Reaction(c,dNdtByV,tmp_Exp);
+    this->update12Reaction(c,dNdtByV,tmp_Exp);
+    this->update13Reaction(c,dNdtByV,tmp_Exp);
 
     //this->update21Reaction(c,dNdtByV,tmp_Exp);
 
-    //this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
-    //this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    //this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
+    this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
+    this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
+    this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
     //this->update22Reaction(c,dNdtByV,tmp_Exp);
-    //this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
-    //this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    //this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
+    this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
+    this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
+    this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
 
-    //this->update23ReversibleReaction(c,dNdtByV,tmp_Exp);
-    //this->update23IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    //this->update23NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
+    this->update23ReversibleReaction(c,dNdtByV,tmp_Exp);
+    this->update23IrreversibleReaction(c,dNdtByV,tmp_Exp);    
+    this->update23NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
 
     //this->update23Reaction(c,dNdtByV,tmp_Exp);
 
-    //this->update31Reaction(c,dNdtByV,tmp_Exp);
-    //this->update32Reaction(c,dNdtByV,tmp_Exp);
-    //this->update33Reaction(c,dNdtByV,tmp_Exp);
-    //this->updateGlobalIntegerReaction(c,dNdtByV,tmp_Exp);
-    //this->updateGlobalNonIntegerReaction(c,dNdtByV,tmp_Exp);
+    this->update31Reaction(c,dNdtByV,tmp_Exp);
+    this->update32Reaction(c,dNdtByV,tmp_Exp);
+    this->update33Reaction(c,dNdtByV,tmp_Exp);
+    this->updateGlobalIntegerReaction(c,dNdtByV,tmp_Exp);
+    this->updateGlobalNonIntegerReaction(c,dNdtByV,tmp_Exp);
 
 
 
     
     //return;
 
-    for (unsigned int i = 0; i < this->Ikf[7]; i++) 
+    /*for (unsigned int i = 0; i < this->Ikf[7]; i++) 
     {
         if(this->isGlobal[i]==1)
         {
@@ -438,7 +438,7 @@ OptReaction::dNdtByV
                 const double CF = c[sl0]*c[sl1];
                 const double CR = c[sr0]*c[sr1];
                 const double q = (this->Kf_[i]*CF) - (Kr*CR);
-//std::cout<<this->Kf_[i]<<" "<<CF<<" "<<Kr<<" "<<CR<<std::endl;
+
                 dNdtByV[sl0] = dNdtByV[sl0] - q; 
                 dNdtByV[sl1] = dNdtByV[sl1] - q;
                 dNdtByV[sr0] = dNdtByV[sr0] + q;
@@ -707,7 +707,7 @@ OptReaction::dNdtByV
         {
             this->RFGI(i,this->Kf_[i],c,dNdtByV,&tmp_Exp[0]);
         }
-    }
+    }*/
 //std::exit(0);
 }
 

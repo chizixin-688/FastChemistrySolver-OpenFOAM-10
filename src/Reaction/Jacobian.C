@@ -379,8 +379,10 @@ OptReaction::ddNdtByVdcTp
     }        
 
 
+    if(this->n_SRI>0)
     {
-        for (unsigned int i = 0;i<this->n_SRI;i++)
+        this->evalSRIPartialDerivative(T);
+        /*for (unsigned int i = 0;i<this->n_SRI;i++)
         {
             const unsigned int j = this->SRIFO[i];
             const unsigned int k = j - this->Ikf[4];
@@ -410,7 +412,7 @@ OptReaction::ddNdtByVdcTp
             + K0*invOnePlusPr*dFdT*MM;
             this->dKfdC_[m] =  K0*invOnePlusPr*KK*(N1 + N2); 
             this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }
+        }*/
     }
 
     this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
@@ -471,7 +473,7 @@ OptReaction::ddNdtByVdcTp
         //std::cout<<j<<" "<<k<<std::endl;
     }*/
 
-for(int i = 0; i < this->nSpecies;i++)
+/*for(int i = 0; i < this->nSpecies;i++)
 {
     for(int j = 0; j < this->nSpecies-1;j++)
     {
@@ -485,7 +487,7 @@ for(int i = 0; i < this->nSpecies;i++)
 {
     std::cout<<dNdtByV[i]<<std::endl;
 }
-std::exit(0);
+std::exit(0);*/
 
 }
 

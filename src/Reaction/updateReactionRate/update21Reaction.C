@@ -9,7 +9,7 @@ OptReaction::update21Reaction
 )const noexcept
 {
     std::size_t end = reaction21index.size();
-    std::size_t remain = end%4;
+    //std::size_t remain = end%4;
     std::size_t lhsIndex = 0;
     std::size_t rhsIndex = 0;
     for(std::size_t i=0; i<end; i++)
@@ -77,11 +77,14 @@ OptReaction::update21ReversibleReaction
         double Kf0 = Kf_[i0];
 
         
-        const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-        double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
-        Kc0 = std::max(Kc0,KcLimiter);
-        Kr0 = Kf0/Kc0;         
-        
+        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
+        //Kc0 = std::max(Kc0,KcLimiter);
+        //Kr0 = Kf0/Kc0;
+        const double invKp0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])/(ExpNegGbyRT[sr0a]);
+        double invKc0 = invKp0*this->Pow_pByRT_SumVki[3];
+        invKc0 = std::min(invKc0,invKcLimiter);
+        Kr0 = Kf0*invKc0;
 
         const double CF0 = c[sl0a]*c[sl1a];
         const double CR0 = c[sr0a];
@@ -101,11 +104,14 @@ OptReaction::update21ReversibleReaction
         double Kf1 = Kf_[i1];
 
         
-        const double Kp1 = (ExpNegGbyRT[sr0b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
-        double Kc1 = Kp1*this->Pow_pByRT_SumVki[1];
-        Kc1 = std::max(Kc1,KcLimiter);
-        Kr1 = Kf1/Kc1;         
-        
+        //const double Kp1 = (ExpNegGbyRT[sr0b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
+        //double Kc1 = Kp1*this->Pow_pByRT_SumVki[1];
+        //Kc1 = std::max(Kc1,KcLimiter);
+        //Kr1 = Kf1/Kc1;         
+        const double invKp1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])/(ExpNegGbyRT[sr0b]);
+        double invKc1 = invKp1*this->Pow_pByRT_SumVki[3];
+        invKc1 = std::min(invKc1,invKcLimiter);
+        Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b]*c[sl1b];
         const double CR1 = c[sr0b];
@@ -125,10 +131,14 @@ OptReaction::update21ReversibleReaction
         double Kf2 = Kf_[i2];
 
         
-        const double Kp2 = (ExpNegGbyRT[sr0c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
-        double Kc2 = Kp2*this->Pow_pByRT_SumVki[1];
-        Kc2 = std::max(Kc2,KcLimiter);
-        Kr2 = Kf2/Kc2;
+        //const double Kp2 = (ExpNegGbyRT[sr0c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
+        //double Kc2 = Kp2*this->Pow_pByRT_SumVki[1];
+        //Kc2 = std::max(Kc2,KcLimiter);
+        //Kr2 = Kf2/Kc2;
+        const double invKp2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])/(ExpNegGbyRT[sr0c]);
+        double invKc2 = invKp2*this->Pow_pByRT_SumVki[3];
+        invKc2 = std::min(invKc2,invKcLimiter);
+        Kr2 = Kf2*invKc2;
         
 
         const double CF2 = c[sl0c]*c[sl1c];
@@ -149,11 +159,14 @@ OptReaction::update21ReversibleReaction
         double Kf3 = Kf_[i3];
 
         
-        const double Kp3 = (ExpNegGbyRT[sr0d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
-        double Kc3 = Kp3*this->Pow_pByRT_SumVki[1];
-        Kc3 = std::max(Kc3,KcLimiter);
-        Kr3 = Kf3/Kc3;
-        
+        //const double Kp3 = (ExpNegGbyRT[sr0d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
+        //double Kc3 = Kp3*this->Pow_pByRT_SumVki[1];
+        //Kc3 = std::max(Kc3,KcLimiter);
+        //Kr3 = Kf3/Kc3;
+        const double invKp3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])/(ExpNegGbyRT[sr0d]);
+        double invKc3 = invKp3*this->Pow_pByRT_SumVki[3];
+        invKc3 = std::min(invKc3,invKcLimiter);
+        Kr3 = Kf3*invKc3;
 
         const double CF3 = c[sl0d]*c[sl1d];
         const double CR3 = c[sr0d];
@@ -169,28 +182,31 @@ OptReaction::update21ReversibleReaction
     for(std::size_t k=end-remain; k<end; k=k+1)
     {
         const unsigned int i0 = this->reversibleReaction21index[k];
-        const unsigned int sl0a = lhsSpeciesIndex1D21RR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D21RR[lhsIndex+1];
-        const unsigned int sr0a = rhsSpeciesIndex1D21RR[rhsIndex+0];
+        const unsigned int sl0 = lhsSpeciesIndex1D21RR[lhsIndex+0];
+        const unsigned int sl1 = lhsSpeciesIndex1D21RR[lhsIndex+1];
+        const unsigned int sr0 = rhsSpeciesIndex1D21RR[rhsIndex+0];
 
 
-        double Kr0 = 0;
-        double Kf0 = Kf_[i0];
+        double Kr = 0;
+        double Kf = Kf_[i0];
 
-        {
-            const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
-            Kc0 = std::max(Kc0,KcLimiter);
-            Kr0 = Kf0/Kc0;         
-        }
+        
+        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
+        //Kc0 = std::max(Kc0,KcLimiter);
+        //Kr0 = Kf0/Kc0;         
+        const double invKp = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])/(ExpNegGbyRT[sr0]);
+        double invKc = invKp*this->Pow_pByRT_SumVki[3];
+        invKc = std::min(invKc,invKcLimiter);
+        Kr = Kf*invKc;
 
-        const double CF0 = c[sl0a]*c[sl1a];
-        const double CR0 = c[sr0a];
-        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double CF = c[sl0]*c[sl1];
+        const double CR = c[sr0];
+        const double q = (Kf*CF) - (Kr*CR);
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0; 
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0] = dNdtByV[sl0] - q; 
+        dNdtByV[sl1] = dNdtByV[sl1] - q;
+        dNdtByV[sr0] = dNdtByV[sr0] + q;
 
         lhsIndex = lhsIndex + 2;
         rhsIndex = rhsIndex + 1;

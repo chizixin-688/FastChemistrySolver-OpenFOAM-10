@@ -76,15 +76,12 @@ void OptReaction::evalTroeRateConstant()const noexcept
         else if(remainFO==2)  
         {
 
-            const unsigned int i = this->n_TroeFO-2;
+            /*const unsigned int i = this->n_TroeFO-2;
             const unsigned int j0 = this->TroeFO[i+0];
             const unsigned int j1 = this->TroeFO[i+1];
 
             const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
             const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
-
-            //const unsigned int k0 = j0 - this->Ikf[4];
-            //const unsigned int k1 = j1 - this->Ikf[4];
 
             const double Kinf0 = this->Kf_[j0+this->offset_kinf];
             const double Kinf1 = this->Kf_[j1+this->offset_kinf];
@@ -141,7 +138,50 @@ void OptReaction::evalTroeRateConstant()const noexcept
             const double N1  = 1/(1+Pr1)*F1*K01;
 
             this->Kf_[j0] = M0*N0;
-            this->Kf_[j1] = M1*N1;
+            this->Kf_[j1] = M1*N1;*/
+            const unsigned int i = this->n_TroeFO-2;
+            const unsigned int j0 = this->TroeFO[i+0];  
+            const unsigned int m0 = j0 - this->Ikf[4] + Itbr[2];
+            __m128d one128 = _mm256_castpd256_pd128(one);
+            __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
+            __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
+            __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);    
+            __m256d Pr_ = _mm256_zextpd128_pd256(_mm_div_pd(_mm_mul_pd(K0,M),Kinf));
+
+            Pr_ = _mm256_max_pd(small,Pr_);
+
+            __m128d logPr_ = _mm256_castpd256_pd128(_mm256_mul_pd(vec256_logd((Pr_)),(invLog10v)));
+            __m128d alpha = _mm_loadu_pd(&this->alpha_[i]);
+            __m128d invOnePlusPr = _mm_div_pd(one128,_mm_add_pd(one128,_mm256_castpd256_pd128(Pr_)));
+            __m128d expTTsss = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies]);
+            __m128d expTTss = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe]);
+            __m128d expTTs = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*2]);
+
+            __m128d Fcent  = _mm_mul_pd(_mm_sub_pd(one128,alpha), expTTsss);
+            Fcent = _mm_fmadd_pd(alpha, expTTs,Fcent);
+            Fcent = _mm_add_pd(expTTss,Fcent);
+
+            __m128d logFcent = _mm_mul_pd
+            (
+                _mm256_castpd256_pd128(vec256_logd
+                (
+                    _mm256_max_pd(_mm256_zextpd128_pd256(Fcent),small)
+                )),
+                _mm256_castpd256_pd128(invLog10v)
+            );
+            __m128d cc = _mm_fmadd_pd(logFcent,_mm256_castpd256_pd128(n0),_mm256_castpd256_pd128(n1));
+            __m128d n = _mm_fmadd_pd(logFcent,_mm256_castpd256_pd128(n2),_mm256_castpd256_pd128(n3));
+            __m128d x1 = _mm_fmadd_pd(_mm_sub_pd(cc,logPr_),_mm256_castpd256_pd128(n4),n);
+            __m128d x2 = _mm_div_pd(_mm_sub_pd(logPr_,cc),x1);
+            __m128d x3 = _mm_fmadd_pd(x2,x2,one128);
+            __m128d x4 = _mm_div_pd(logFcent,x3);
+
+            __m256d F_ = vec256_powd(n5,_mm256_zextpd128_pd256(x4));
+            
+            __m128d N = _mm_mul_pd(_mm_mul_pd(K0,_mm256_castpd256_pd128(F_)),invOnePlusPr);
+
+            __m128d Kf = _mm_mul_pd(M,N);
+            _mm_storeu_pd(&this->Kf_[j0],Kf);
         }
         else if(remainFO==3)  
         {

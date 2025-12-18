@@ -96,7 +96,7 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
                     << Foam::abort(FatalError);
     }
     reaction.readInfo(chemistryProperties,thermoDict);
-    FastThermo::createIdealGasFromFoamDict(thermoDict,gas);
+    FastChemistry::createIdealGasFromFoamDict(thermoDict,gas);
     // Create the fields for the chemistry sources
     forAll(RR_, fieldi)
     {

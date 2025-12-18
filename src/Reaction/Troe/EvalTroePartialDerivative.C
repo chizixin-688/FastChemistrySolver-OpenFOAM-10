@@ -228,15 +228,22 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         dFdT = logTens*F*dFdT + dFdPr*dPrdT;
 
         const double dKdT   = Pr*dKinfdT;
-        const double K      = Kinf      ;
-        const double MM     = M         ;
         const double invOneplusPr = 1.0/(1+Pr);
-        const double KK     = K0*invKinf;
-        const double N1     = -F*invOneplusPr;
-        const double N2     = dFdPr;
+        const double N1     = F*invOneplusPr;
+        const double N2     = dFdPr*Pr;
         const double N  = invOneplusPr*F*K0;
-        this->dKfdT_[j] = F*invOneplusPr*dKdT + F*invOneplusPr*invOneplusPr*dPrdT*K + K0*invOneplusPr*dFdT*MM;
-        this->dKfdC_[m] =  K0*invOneplusPr*KK*(N1 + N2); 
+        this->dKfdT_[j] = F*invOneplusPr*dKdT + F*invOneplusPr*invOneplusPr*dPrdT*Kinf + K0*invOneplusPr*dFdT*M;
+
+
+    //ddc =
+    //  + kInf*dPrdc/sqr(1 + Pr)*F
+    //  + kInf*(Pr/(1 + Pr))*dFdPr*dPrdc;
+    //ddc = dPrdc*Kinf*(F/(1+Pr)/(1+Pr)+dFdPr*Pr/(1+Pr))
+    //ddc = dPrdc*Kinf/(1+Pr)*(F/(1+Pr)+dFdPr*Pr)
+    //ddc = k0/kinf*dMdC/(1+Pr)*(F/(1+Pr)+dFdPr*Pr)
+
+        this->dKfdC_[m] =  K0*invOneplusPr*(N1 + N2); 
+
         this->Kf_[j] = M*N;   
     
     }
@@ -1203,10 +1210,10 @@ void OptReaction::evalTroePartialDerivative()const noexcept
             dFdPr = _mm256_mul_pd(F,dFdPr);
         }
 
-        const double kinfj0 = this->Kf_[j0+0+this->offset_kinf];
-        const double kinfj1 = this->Kf_[j0+1+this->offset_kinf];
-        const double kinfj2 = this->Kf_[j0+2+this->offset_kinf];
-        __m256d Kinf = _mm256_setr_pd(kinfj0,kinfj1,kinfj2,1);
+        //const double kinfj0 = this->Kf_[j0+0+this->offset_kinf];
+        //const double kinfj1 = this->Kf_[j0+1+this->offset_kinf];
+        //const double kinfj2 = this->Kf_[j0+2+this->offset_kinf];
+        //__m256d Kinf = _mm256_setr_pd(kinfj0,kinfj1,kinfj2,1);
 
         const double dKinfdTj0 = this->dKfdT_[j0+0+this->offset_kinf];
         const double dKinfdTj1 = this->dKfdT_[j0+1+this->offset_kinf];

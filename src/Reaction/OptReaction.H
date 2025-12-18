@@ -639,6 +639,7 @@ public:
 
             void evalLindemannRateConstant() const noexcept;
 
+            void evalSRIPartialDerivative(double T) const noexcept;
 
             void evalSRIRateConstant(double T) const noexcept;
 
@@ -922,7 +923,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
 
-            void inline JF11
+            /*void inline JF11
             (
                 unsigned int i,
                 double Kf,
@@ -932,7 +933,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;
+            )const noexcept;*/
 
             // for one-two reactions. e.g. A<=>B+B, A<=>B+C.
             void updateJacobian12
@@ -944,7 +945,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
 
-            void inline JF12
+            /*void inline JF12
             (
                 unsigned int i,
                 double Kf,
@@ -954,10 +955,10 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;
+            )const noexcept;*/
 
             // for one-three reactions. e.g. A<=>B+B+C, A<=>B+C+D.
-            void inline JF13
+            /*void inline JF13
             (
                 unsigned int i,
                 double Kf,
@@ -967,7 +968,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;
+            )const noexcept;*/
             void updateJacobian13
             (
                 const double* __restrict__ C,
@@ -977,7 +978,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for two-one reactions. e.g. A+A<=>B, A+B<=>C.
-            void inline JF21
+            /*void inline JF21
             (
                 unsigned int i,
                 double Kf,
@@ -987,7 +988,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;         
+            )const noexcept;  */       
             void updateJacobian21
             (
                 const double* __restrict__ C,
@@ -997,7 +998,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for two-two reactions. e.g. A+A<=>B+C, A+B<=>C+D.
-            void inline JF22
+            /*void inline JF22
             (
                 unsigned int i,
                 double Kf,
@@ -1007,7 +1008,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;   
+            )const noexcept;   */
             void updateJacobian22
             (
                 const double* __restrict__ C,
@@ -1041,7 +1042,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for two-three reactions. e.g. A+A<=>B+C+D, A+B<=>C+D+D.
-            void inline JF23
+            /*void inline JF23
             (
                 unsigned int i,
                 double Kf,
@@ -1051,7 +1052,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept; 
+            )const noexcept;*/ 
             void updateJacobian23
             (
                 const double* __restrict__ C,
@@ -1061,7 +1062,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for three-one reactions. e.g. A+A+A<=>B, A+B+C<=>D.
-            void inline JF31
+            /*void inline JF31
             (
                 unsigned int i,
                 double Kf,
@@ -1071,7 +1072,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;  
+            )const noexcept;*/  
             void updateJacobian31
             (
                 const double* __restrict__ C,
@@ -1081,7 +1082,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for three-two reactions. e.g. A+A+A<=>B+C, A+B+C<=>D+E.
-            void inline JF32
+            /*void inline JF32
             (
                 unsigned int i,
                 double Kf,
@@ -1091,7 +1092,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;  
+            )const noexcept; */ 
             void updateJacobian32
             (
                 const double* __restrict__ C,
@@ -1101,7 +1102,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for three-three reactions. e.g. A+A+A<=>B+C+D, A+B+C<=>D+E+F.
-            void inline JF33
+            /*void inline JF33
             (
                 unsigned int i,
                 double Kf,
@@ -1111,7 +1112,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;  
+            )const noexcept;*/  
             void updateJacobian33
             (
                 const double* __restrict__ C,
@@ -1121,7 +1122,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for general reactions with integer number. e.g. A+A+A+A<=>B+C+D, A+B+C<=>D+E+F.
-            void inline JFGI
+            /*void inline JFGI
             (
                 unsigned int i,
                 double Kf,
@@ -1131,7 +1132,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;  
+            )const noexcept;*/  
             void updateJacobianGlobalIntegerReaction
             (
                 const double* __restrict__ C,
@@ -1141,7 +1142,7 @@ public:
                 const double* __restrict__ dBdT
             )const noexcept;
             // for general reactions with non-integer number. e.g. 3.5A<=>B+C+D.
-            void inline JFGNI
+            /*void inline JFGNI
             (
                 unsigned int i,
                 double Kf,
@@ -1151,7 +1152,7 @@ public:
                 double* __restrict__ ddNdtByVdcTp,
                 const double* __restrict__ ExpNegGbyRT,
                 const double* __restrict__ dBdT
-            )const noexcept;  
+            )const noexcept;*/  
             void updateJacobianGlobalNonIntegerReaction
             (
                 const double* __restrict__ C,
@@ -1195,7 +1196,7 @@ public:
             ) const noexcept;
 
             // for one-one reactions. e.g. A<=>B.
-            void inline RF11
+            /*void inline RF11
             (
                 unsigned int i,
                 double Kf,
@@ -1283,30 +1284,30 @@ public:
                 const double* __restrict__ C,
                 double*  __restrict__ dNdtByV,
                 const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
+            )const noexcept;*/
 
 
              // for reactions with reactants' or products' number larger than 4 
              // e.g. A+A+A+B<=>B+C+D, A+B+C<=>D+D+E+F.
-            void inline RFGI
+            /*void inline RFGI
             (
                 unsigned int i,
                 double Kf,
                 const double* __restrict__ C,
                 double*  __restrict__ dNdtByV,
                 const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
+            )const noexcept;*/
 
              // for reactions with non-integer number
              // e.g. 1.5A <=> 1B+0.5C.
-            void inline RFGNI
+            /*void inline RFGNI
             (
                 unsigned int i,
                 double Kf,
                 const double* __restrict__ C,
                 double*  __restrict__ dNdtByV,
                 const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
+            )const noexcept;*/
 
             void updateGlobalNonIntegerReaction
             (
@@ -1524,6 +1525,7 @@ public:
 
     #include "EvalTroePartialDerivative.C"
     #include "EvalTroeRateConstant.C"
+    #include "EvalSRIPartialDerivative.C"
     #include "EvalSRIRateConstant.C"
     #include "EvalLindemannPartialDerivative.C"
     #include "EvalLindemannRateConstant.C"

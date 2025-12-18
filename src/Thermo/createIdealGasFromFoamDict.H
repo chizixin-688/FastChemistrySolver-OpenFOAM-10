@@ -3,7 +3,7 @@
 #include "fvCFD.H"
 #include "idealGas.H"
 #include <memory>
-namespace FastThermo
+namespace FastChemistry
 {
 
     void createIdealGasFromFoamDict

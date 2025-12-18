@@ -15,7 +15,7 @@
 
 
 
-namespace FastThermo
+namespace FastChemistry
 {
 
 

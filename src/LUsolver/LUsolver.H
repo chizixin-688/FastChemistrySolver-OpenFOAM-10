@@ -6,6 +6,12 @@
 #include "Macro.H"
 #include <vector>
 #include <immintrin.h>
+#include <string>
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+namespace FastChemistry
+{
 class LUsolver
 {
     // Private data
@@ -150,7 +156,7 @@ public:
         //void LUDecompose_s();
 
         // Read square matrix from text.
-        void ReadTxt(std::string fileName);
+        //void ReadTxt(std::string fileName);
 
         // Reassign a square matrix
         void ReAssign(double* externalData);
@@ -206,9 +212,13 @@ public:
 
 #include "LUsolverI.H"
 
-#ifdef NoRepository
-    #include "LUsolver.C" 
-#endif
+
+} // End namespace Foam
+
+
+//#ifdef NoRepository
+//    #include "LUsolver.C" 
+//#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

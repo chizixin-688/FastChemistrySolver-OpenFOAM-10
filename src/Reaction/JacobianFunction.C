@@ -1,4 +1,4 @@
-#include "OptReaction.H"
+/*#include "OptReaction.H"
 #include <immintrin.h>  
 
 void inline OptReaction::JF11
@@ -1573,4 +1573,4 @@ void inline OptReaction::JFGNI
             }
         } 
     }   
-}
+}*/

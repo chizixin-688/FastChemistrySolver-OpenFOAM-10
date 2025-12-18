@@ -149,7 +149,7 @@ class OptRodas34
 
     // Rodas34
 
-        mutable LUsolver LU;
+        mutable FastChemistry::LUsolver LU;
 
 public:
 

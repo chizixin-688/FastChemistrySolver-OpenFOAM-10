@@ -735,8 +735,8 @@ void  OptReaction::updateJacobian22IrreversibleReaction
             __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
             __m256d CF_ = _mm256_set1_pd(CF);            
             __m256d CR_ = _mm256_set1_pd(CR);  
-            double dKrdC = 0;
-            dKrdC = (0);
+            //double dKrdC = 0;
+            //dKrdC = (0);
             __m256d dKrdC_ = _mm256_set1_pd(0);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)

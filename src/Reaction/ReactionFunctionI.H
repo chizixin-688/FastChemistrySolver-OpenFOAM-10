@@ -1,4 +1,4 @@
-void inline OptReaction::RF11
+/*void inline OptReaction::RF11
 (
     unsigned int i,
     double Kf,
@@ -365,10 +365,10 @@ void inline OptReaction::RF33
     dNdtByV[sr0] = dNdtByV[sr0] + q;
     dNdtByV[sr1] = dNdtByV[sr1] + q;
     dNdtByV[sr2] = dNdtByV[sr2] + q;        
-}        
+}        */
 
 
-void inline OptReaction::RFGI
+/*void inline OptReaction::RFGI
 (
     unsigned int i,
     double Kf,
@@ -451,9 +451,9 @@ void inline OptReaction::RFGI
         dNdtByV[si] = dNdtByV[si] + q;
     }
 
-}
+}*/
 
-void inline OptReaction::RFGNI
+/*void inline OptReaction::RFGNI
 (
     unsigned int i,
     double Kf,
@@ -545,5 +545,5 @@ void inline OptReaction::RFGNI
         const double sl = rhsStoichCoeff[i][j];        
         dNdtByV[si] = dNdtByV[si] + sl*q;
     }
-}             
+}*/
 

@@ -34,7 +34,7 @@ void OptReaction::evalLindemannRateConstant()const noexcept
     {
         const unsigned int i = this->n_LindemannFO-2;
         const unsigned int j0 = this->LindemannFO[i+0]+0;
-        const unsigned int j1 = this->LindemannFO[i+0]+1;
+        //const unsigned int j1 = this->LindemannFO[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
         //const unsigned int k0 = j0 - this->Ikf[4];
         //const unsigned int k1 = j1 - this->Ikf[4];

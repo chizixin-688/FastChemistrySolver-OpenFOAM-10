@@ -9,13 +9,11 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
     __m256d Tv = _mm256_set1_pd(T);
     __m256d logTv = _mm256_set1_pd(this->logT);
 
-    __m256d condition = _mm256_set1_pd(double(this->n_Fall_Off_Reaction));
-    __m256d inc = _mm256_setr_pd(0.0,1.0,2.0,3.0);
     for (unsigned int i = 0; i<this->n_SRI-remain; i=i+4)
     {
         const unsigned int j = this->SRIFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-        const unsigned int k = j - this->Ikf[4];
+
 
         // Compute psi
         __m256d psiv = _mm256_setzero_pd();
@@ -133,16 +131,15 @@ void OptReaction::evalSRIRateConstant(double T)const noexcept
         //const double N2 = 1/(1+Pr2)*F2*K0_2;
         //const double N3 = 1/(1+Pr3)*F3*K0_3;
 
-        __m256d kv = _mm256_set1_pd(k);
-        kv = _mm256_add_pd(kv,inc);
-        __m256d cmp = _mm256_cmp_pd(kv,condition,_CMP_LT_OQ);
-        __m256d Kf = _mm256_blendv_pd(Nv,_mm256_mul_pd(M03v,Nv),cmp);
+        __m256d Kf = _mm256_mul_pd(M03v,Nv);
 
         _mm256_storeu_pd(&this->Kf_[j],Kf);
         //this->Kf_[j+0] = k+0<this->n_Fall_Off_Reaction ? M0*N0:N0;
         //this->Kf_[j+1] = k+1<this->n_Fall_Off_Reaction ? M1*N1:N1;
         //this->Kf_[j+2] = k+2<this->n_Fall_Off_Reaction ? M2*N2:N2;
         //this->Kf_[j+3] = k+3<this->n_Fall_Off_Reaction ? M3*N3:N3;
+        std::cout<<this->Kf_[j+0]<<" "<<this->Kf_[j+1]<<" "<<this->Kf_[j+2]<<" "<<this->Kf_[j+3]<<std::endl;
+        std::exit(0);
     }
     if(remain==1)
     {

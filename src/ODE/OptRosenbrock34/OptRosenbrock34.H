@@ -158,7 +158,7 @@ class OptRosenbrock34
         
     // Rosenbrock
 
-        mutable LUsolver LU;
+        mutable FastChemistry::LUsolver LU;
 
 
 public:

@@ -3,7 +3,7 @@
 #include "fvCFD.H"
 #include "hashedWordList.H"
 
-namespace FastThermo
+namespace FastChemistry
 {
 
 void createIdealGasFromFoamDict
