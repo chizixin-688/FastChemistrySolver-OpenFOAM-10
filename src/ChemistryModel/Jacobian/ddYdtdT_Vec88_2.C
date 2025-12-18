@@ -1,8 +1,8 @@
 #include "FastChemistryModel.H"
 #include <immintrin.h>  
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::ddYdtdT_Vec88_2
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_2
 (
     const double* __restrict__ ddNdtByVdcT,
     const double* __restrict__ WiByrhoM,

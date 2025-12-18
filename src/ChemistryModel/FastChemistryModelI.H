@@ -25,51 +25,51 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline label
-Foam::FastChemistryModel<ThermoType>::nSpecie() const
+Foam::FastChemistryModel<UnusedThermo>::nSpecie() const
 {
     return nSpecie_;
 }
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline Foam::PtrList<Foam::volScalarField>&
-Foam::FastChemistryModel<ThermoType>::RR()
+Foam::FastChemistryModel<UnusedThermo>::RR()
 {
     return RR_;
 }
 
-template<class ThermoType>
-inline Foam::label Foam::FastChemistryModel<ThermoType>::nReaction() const
+template<class UnusedThermo>
+inline Foam::label Foam::FastChemistryModel<UnusedThermo>::nReaction() const
 {
     return reaction.n_Reactions;
 }
 
-template<class ThermoType>
-inline OptReaction& Foam::FastChemistryModel<ThermoType>::getReaction() const
+template<class UnusedThermo>
+inline OptReaction& Foam::FastChemistryModel<UnusedThermo>::getReaction() const
 {
     return reaction;
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::FastChemistryModel<ThermoType>::RR(const label i) const
+Foam::FastChemistryModel<UnusedThermo>::RR(const label i) const
 {
     return RR_[i].internalField();
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::FastChemistryModel<ThermoType>::RR(const label i)
+Foam::FastChemistryModel<UnusedThermo>::RR(const label i)
 {
     return RR_[i].ref();
 }
 
 
-template<class ThermoType>
-double Foam::FastChemistryModel<ThermoType>::hsum4(__m256d v) const
+template<class UnusedThermo>
+double Foam::FastChemistryModel<UnusedThermo>::hsum4(__m256d v) const
 {
     __m128d lo = _mm256_castpd256_pd128(v);
     __m128d hi = _mm256_extractf128_pd(v,1);
@@ -79,8 +79,8 @@ double Foam::FastChemistryModel<ThermoType>::hsum4(__m256d v) const
     return _mm_cvtsd_f64(s);
 }
 
-template<class ThermoType>
-__m256d Foam::FastChemistryModel<ThermoType>::hsum4x4
+template<class UnusedThermo>
+__m256d Foam::FastChemistryModel<UnusedThermo>::hsum4x4
 (
     __m256d sum0,
     __m256d sum1,
@@ -97,8 +97,8 @@ __m256d Foam::FastChemistryModel<ThermoType>::hsum4x4
     return t5;
 }
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::transpose4x4_pd
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::transpose4x4_pd
 (
     __m256d& v0,
     __m256d& v1,
@@ -117,25 +117,25 @@ void Foam::FastChemistryModel<ThermoType>::transpose4x4_pd
     v3 = _mm256_permute2f128_pd(t1, t3, 0x31); // [a3 b3 c3 d3]
 }
 
-template<class ThermoType>
-double Foam::FastChemistryModel<ThermoType>::get_elem0(__m256d vec) const
+template<class UnusedThermo>
+double Foam::FastChemistryModel<UnusedThermo>::get_elem0(__m256d vec) const
 {
     return _mm256_cvtsd_f64(vec); 
 }
-template<class ThermoType>
-double Foam::FastChemistryModel<ThermoType>::get_elem1(__m256d vec) const
+template<class UnusedThermo>
+double Foam::FastChemistryModel<UnusedThermo>::get_elem1(__m256d vec) const
 {
     __m128d low = _mm256_castpd256_pd128(vec); 
     return _mm_cvtsd_f64(_mm_unpackhi_pd(low, low));
 }
-template<class ThermoType>
-double Foam::FastChemistryModel<ThermoType>::get_elem2(__m256d vec) const
+template<class UnusedThermo>
+double Foam::FastChemistryModel<UnusedThermo>::get_elem2(__m256d vec) const
 {
     __m128d high = _mm256_extractf128_pd(vec, 1); 
     return _mm_cvtsd_f64(high);
 }
-template<class ThermoType>
-double Foam::FastChemistryModel<ThermoType>::get_elem3(__m256d vec) const
+template<class UnusedThermo>
+double Foam::FastChemistryModel<UnusedThermo>::get_elem3(__m256d vec) const
 {
     __m128d high = _mm256_extractf128_pd(vec, 1); 
     return _mm_cvtsd_f64(_mm_unpackhi_pd(high, high));

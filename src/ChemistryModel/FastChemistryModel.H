@@ -52,7 +52,7 @@ namespace Foam
                      Class FastChemistryModel Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ThermoType>
+template<class UnusedThermo>
 class FastChemistryModel
 :
     public basicChemistryModel
@@ -77,7 +77,7 @@ class FastChemistryModel
         //- List of reaction rate per specie [kg/m^3/s]
         PtrList<volScalarField> RR_;
 
-        using ddYdtdYPtrType = void(FastChemistryModel<ThermoType>::*)
+        using ddYdtdYPtrType = void(FastChemistryModel<UnusedThermo>::*)
         (
             const double* __restrict__ ,
             const double* __restrict__ ,
@@ -91,7 +91,7 @@ class FastChemistryModel
         ) const noexcept;
         ddYdtdYPtrType  ddYdtdYPtr = nullptr;
 
-        using ddYdtdTPtrType = void(FastChemistryModel<ThermoType>::*)
+        using ddYdtdTPtrType = void(FastChemistryModel<UnusedThermo>::*)
         (
             const double* __restrict__ ddNdtByVdcT,
             const double* __restrict__ WiByrhoM,
@@ -103,7 +103,7 @@ class FastChemistryModel
         ddYdtdTPtrType  ddYdtdTPtr = nullptr;
 
 
-        using ddTdtdYTPtrType = void(FastChemistryModel<ThermoType>::*)
+        using ddTdtdYTPtrType = void(FastChemistryModel<UnusedThermo>::*)
         (
             const double* __restrict__ Cp,
             const double* __restrict__ dCpdT,

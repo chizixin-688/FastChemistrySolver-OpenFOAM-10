@@ -30,8 +30,8 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ThermoType>
-Foam::FastChemistryModel<ThermoType>::FastChemistryModel
+template<class UnusedThermo>
+Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
 (
     const fluidReactionThermo& thermo
 )
@@ -160,59 +160,59 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
 
         if(remain==0)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_0;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_0;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_0;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_0;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_0;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_0;
         }
         else if(remain==1)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_1;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_1;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_1;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_1;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_1;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_1;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_1;
         }
         else if(remain==2)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_2;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_2;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_2;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_2;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_2;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_2;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_2;
         }
         else if(remain==3)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_3;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_3;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_3;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_3;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_3;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_3;
         }
         else if(remain==4)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_4;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_0;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_4;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_4;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_4;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_4;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_4;
         }
         else if(remain==5)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_5;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_1;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_5;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_5;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_5;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_5;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_5;
         }
         else if(remain==6)
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_6;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_2;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_6;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_6;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_6;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_6;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6;
         }
         else
         {
-            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::ddYdtdY_Vec844_7;}
-            else{this->ddYdtdYPtr = &FastChemistryModel<ThermoType>::FastddYdtdY_Vec44_3;}
-            this->ddYdtdTPtr = &FastChemistryModel<ThermoType>::ddYdtdT_Vec88_7;
-            this->ddTdtdYTPtr = &FastChemistryModel<ThermoType>::ddTdtdYT_Vec88_7;
+            if(jacobianType_==jacobianType::exact){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_7;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_7;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7;
         }
     }
 
@@ -221,8 +221,8 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ThermoType>
-Foam::FastChemistryModel<ThermoType>::~FastChemistryModel()
+template<class UnusedThermo>
+Foam::FastChemistryModel<UnusedThermo>::~FastChemistryModel()
 {
     free(this->buffer);
 
@@ -238,8 +238,8 @@ Foam::FastChemistryModel<ThermoType>::~FastChemistryModel()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::derivatives
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::derivatives
 (
     const scalar t,
     const label li,
@@ -363,8 +363,8 @@ void Foam::FastChemistryModel<ThermoType>::derivatives
 
 }
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::jacobian
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::jacobian
 (
     const scalar t,
     const label li,
@@ -639,9 +639,9 @@ std::exit(0);*/
 
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::volScalarField>
-Foam::FastChemistryModel<ThermoType>::tc() const
+Foam::FastChemistryModel<UnusedThermo>::tc() const
 {
     tmp<volScalarField> ttc
     (
@@ -732,9 +732,9 @@ Foam::FastChemistryModel<ThermoType>::tc() const
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::volScalarField>
-Foam::FastChemistryModel<ThermoType>::Qdot() const
+Foam::FastChemistryModel<UnusedThermo>::Qdot() const
 {
     tmp<volScalarField> tQdot
     (
@@ -766,9 +766,9 @@ Foam::FastChemistryModel<ThermoType>::Qdot() const
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>
-Foam::FastChemistryModel<ThermoType>::calculateRR
+Foam::FastChemistryModel<UnusedThermo>::calculateRR
 (
     const label ri,
     const label si
@@ -792,8 +792,8 @@ Foam::FastChemistryModel<ThermoType>::calculateRR
 }
 
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::calculate()
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::calculate()
 {
 
     if (!this->chemistry_)
@@ -858,8 +858,8 @@ void Foam::FastChemistryModel<ThermoType>::calculate()
 
 #include "FastChemistryModel_transientSolve.H"
 #include "FastChemistryModel_localEulerSolve.H"
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::exchange
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::exchange
 (
     const UList<DynamicList<char>>& sendBufs,
     const List<std::streamsize>& recvSizes,
