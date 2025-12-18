@@ -352,7 +352,8 @@ OptReaction::dNdtByV
 
     if(this->n_SRI)
     {
-        for (unsigned int i = 0;i<this->n_SRI;i++)
+        this->evalSRIRateConstant(T);
+        /*for (unsigned int i = 0;i<this->n_SRI;i++)
         {
             const unsigned int j = this->SRIFO[i];
 
@@ -365,7 +366,7 @@ OptReaction::dNdtByV
             const double F  = this->SRI_F(Temperature,Pr,i);
             const double N  = 1/(1+Pr)*F*K0;
             this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }
+        }*/
     }
 
 

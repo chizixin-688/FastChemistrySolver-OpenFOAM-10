@@ -102,6 +102,7 @@ add_library(
     dataBlock/simpleDataBlock/simpleDataBlock.C
     Thermo/createIdealGasFromFoamDict.C
     Thermo/idealGas/idealGas.C
+    LUsolver/LUsolver.C
 )
 
 target_link_libraries(${PROJECT_NAME} 
