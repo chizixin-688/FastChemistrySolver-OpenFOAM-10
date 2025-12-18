@@ -413,7 +413,7 @@ OptReaction::ddNdtByVdcTp
         }
     }
 
-    /*this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian12(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian13(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian21(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
@@ -425,12 +425,12 @@ OptReaction::ddNdtByVdcTp
     this->updateJacobian32(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobian33(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     this->updateJacobianGlobalNonIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);*/
+    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
 
 
 
 
-    for(unsigned int z = 0; z < this->Ikf[7];z++)
+    /*for(unsigned int z = 0; z < this->Ikf[7];z++)
     {
 
         if(this->isGlobal[z]==1)
@@ -469,9 +469,9 @@ OptReaction::ddNdtByVdcTp
         }
         if(j>3 || k>3){this->JFGI(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
         //std::cout<<j<<" "<<k<<std::endl;
-    }
+    }*/
 
-/*for(int i = 0; i < this->nSpecies;i++)
+for(int i = 0; i < this->nSpecies;i++)
 {
     for(int j = 0; j < this->nSpecies-1;j++)
     {
@@ -485,7 +485,7 @@ for(int i = 0; i < this->nSpecies;i++)
 {
     std::cout<<dNdtByV[i]<<std::endl;
 }
-std::exit(0);*/
+std::exit(0);
 
 }
 
