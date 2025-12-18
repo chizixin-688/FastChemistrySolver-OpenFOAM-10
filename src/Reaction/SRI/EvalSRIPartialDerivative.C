@@ -18,15 +18,20 @@ void OptReaction::evalSRIPartialDerivative(double T)const noexcept
         const double expTc = this->tmp_Exp[i+this->nSpecies+this->TroeFO.size()*3+this->SRIFO.size()];
         const double logPr = std::log10(max(Pr, small));
         const double X = 1/(1 + (logPr*logPr));
-        const double psi = this->a_[i]*expbT + expTc;
+        const double a = this->a_[i];
+        const double psi = a*expbT + expTc;
 
         const double d = this->d_[i];
         const double e = this->e_[i];
 
         F = d*std::pow(psi, X)*std::pow(T, e);
+        const double b = this->b_[i];
 
-        const double dpsidT = this->a_[i]*this->b_[i]/(T*T)*expbT - 1/this->c_[i]*expTc;
-        dFdT = F*(X/psi*dpsidT + e/T);
+        const double invc = this->invc_[i];
+        const double invT = this->invT;
+
+        const double dpsidT = a*b*invT*invT*expbT - 1*invc*expTc;
+        dFdT = F*(X/psi*dpsidT + e*invT);
         static const double logTen = std::log(10);
         const double dlogPrdPr = Pr >= small ? 1/(logTen*Pr) : 0;
         const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
