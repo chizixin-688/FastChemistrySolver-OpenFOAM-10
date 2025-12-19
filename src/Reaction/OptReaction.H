@@ -644,26 +644,17 @@ public:
             void evalSRIRateConstant(double T) const noexcept;
 
             // Compute the F using SRI form.
-            inline double SRI_F
+            /*inline double SRI_F
             (
                 const double T,
                 const double Pr,
                 const unsigned i
-            ) const;
-
-            // Compute the F using SRI form, vectorized version.
-            inline void SRI_F
-            (
-                const double T, 
-                const double* __restrict__ Pr, 
-                double* __restrict__ F,
-                const unsigned int i
-            ) const;
+            ) const;*/
 
             // Compute the F, the derivative of F w.r.t temperature
             // and the derivative of F w.r.t Pr.
             // Pr: reduced pressure.
-            inline void SRI_F_dFdT_dFdPr
+            /*inline void SRI_F_dFdT_dFdPr
             (
                 const double T,
                 const double Pr,
@@ -671,10 +662,10 @@ public:
                 double& __restrict__ F,
                 double& __restrict__ dFdT,
                 double& __restrict__ dFdPr
-            ) const;
+            ) const;*/
 
             // Vectorized
-            inline void SRI_F_dFdT_dFdPr
+            /*inline void SRI_F_dFdT_dFdPr
             (
                 const double T,
                 __m256d& __restrict__ Pr,
@@ -682,27 +673,27 @@ public:
                 __m256d& __restrict__ dFdT,
                 __m256d& __restrict__ dFdPr,
                 const unsigned int i
-            ) const;
+            ) const;*/
 
             void evalTroeRateConstant() const noexcept;
 
             void evalTroePartialDerivative() const noexcept;
 
-            void Troe_F_1() const noexcept;
+            //void Troe_F_1() const noexcept;
 
-            void Troe_F_2() const noexcept;         
+            //void Troe_F_2() const noexcept;         
             
-            void Troe_F_3() const noexcept;   
+            //void Troe_F_3() const noexcept;   
 
             // Compute the F, the derivative of F w.r.t temperature
             // and the derivative of F w.r.t Pr.
             // Pr: reduced pressure.
 
-            void Troe_Jac_1() const noexcept;
+            //void Troe_Jac_1() const noexcept;
 
-            void Troe_Jac_2() const noexcept;
+            //void Troe_Jac_2() const noexcept;
 
-            void Troe_Jac_3() const noexcept;
+            //void Troe_Jac_3() const noexcept;
 
 
         // Jacobian matrix function

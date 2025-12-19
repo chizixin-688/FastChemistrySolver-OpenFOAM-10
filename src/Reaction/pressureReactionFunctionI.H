@@ -1,5 +1,5 @@
 
-inline double OptReaction::SRI_F
+/*inline double OptReaction::SRI_F
 (
     const double T_,
     const double Pr,
@@ -13,39 +13,10 @@ inline double OptReaction::SRI_F
     const double psi = this->a_[i]*std::exp(-this->b_[i]/T_) + std::exp(-T_/this->c_[i]);
 
     return this->d_[i]*std::pow(psi, X)*std::pow(T_, this->e_[i]);
-}
+}*/
 
-inline void OptReaction::SRI_F
-(
-    const double T_, 
-    const double* __restrict__ Pr, 
-    double* __restrict__ F,
-    const unsigned int i
-) const
-{
-    __m256d small = _mm256_set1_pd(2.2e-16);
-    __m256d Pr_ = _mm256_loadu_pd(Pr);
-    Pr_ = _mm256_max_pd(small,Pr_);
-    const double invLog10 = 1.0/std::log(10);
-    __m256d logPr_ = _mm256_mul_pd(vec256_logd(Pr_),_mm256_set1_pd(invLog10));
-    __m256d X = _mm256_div_pd(_mm256_set1_pd(1.0),_mm256_fmadd_pd(logPr_,logPr_,_mm256_set1_pd(1.0)));
-    __m256d A_ = _mm256_loadu_pd(&this->a_[i]);
-    __m256d B_ = _mm256_loadu_pd(&this->b_[i]);
-    __m256d C_ = _mm256_loadu_pd(&this->c_[i]);
-    __m256d D_ = _mm256_loadu_pd(&this->d_[i]);
-    __m256d E_ = _mm256_loadu_pd(&this->e_[i]);
-    __m256d R1 = _mm256_mul_pd(B_,_mm256_set1_pd(-this->invT));
-    __m256d R2 = _mm256_div_pd(_mm256_set1_pd(-T_),C_);
-    __m256d expbT = vec256_expd(R1);
-    __m256d expTc = vec256_expd(R2); 
-    __m256d psi = _mm256_fmadd_pd(A_,expbT,expTc); 
-    __m256d powpX = vec256_powd(psi,X);
-    __m256d powTe = vec256_powd(_mm256_set1_pd(T_),E_);
-    __m256d F_ = _mm256_mul_pd(_mm256_mul_pd(D_,powpX),powTe);
-    _mm256_storeu_pd(&F[0],F_);
-}
 
-inline void OptReaction::SRI_F_dFdT_dFdPr
+/*inline void OptReaction::SRI_F_dFdT_dFdPr
 (
     const double T_,
     const double Pr,
@@ -67,10 +38,10 @@ inline void OptReaction::SRI_F_dFdT_dFdPr
     const double dlogPrdPr = Pr >= small ? 1/(logTen*Pr) : 0;
     const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
     dFdPr = F*std::log(psi)*dXdPr;
-}
+}*/
 
 
-inline void OptReaction::SRI_F_dFdT_dFdPr
+/*inline void OptReaction::SRI_F_dFdT_dFdPr
 (
     const double T_,
     __m256d& __restrict__ Pr,
@@ -114,13 +85,13 @@ inline void OptReaction::SRI_F_dFdT_dFdPr
     dXdPr = _mm256_mul_pd(dXdPr,dlogPrdPr);
     dFdPr = _mm256_mul_pd(_mm256_mul_pd(F,dXdPr),logpsi);
 }
+*/
 
 
 
 
 
-
-void OptReaction::Troe_F_3() const noexcept
+/*void OptReaction::Troe_F_3() const noexcept
 {
     const size_t i = this->TroeFO.size()-3;
 
@@ -309,8 +280,10 @@ void OptReaction::Troe_F_1() const noexcept
     const double N0  = 1/(1+Pr0)*F0*K00;
     this->Kf_[j0] = k0<this->n_Fall_Off_Reaction ? M0*N0 : N0;   
 
-}
-void OptReaction::Troe_Jac_1() const noexcept
+}*/
+
+
+/*void OptReaction::Troe_Jac_1() const noexcept
 {
     size_t i = this->TroeFO.size()-1;
     const unsigned int j = this->TroeFO[i];
@@ -557,4 +530,4 @@ void OptReaction::Troe_Jac_3() const noexcept
     this->Kf_[j0] = get_elem0(KF);
     this->Kf_[j1] = get_elem1(KF);
     this->Kf_[j2] = get_elem2(KF);
-}
+}*/

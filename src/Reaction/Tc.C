@@ -342,8 +342,10 @@ OptReaction::Tc
         } 
     }
 
+    if(this->n_Lindemann>0)
     {
-        unsigned int remain = this->n_LindemannFO%4;
+        this->evalLindemannRateConstant();
+        /*unsigned int remain = this->n_LindemannFO%4;
         for (unsigned int i = 0;i<this->n_LindemannFO-remain;i=i+4)
         {
             const unsigned int j0 = this->LindemannFO[i+0]+0;
@@ -429,14 +431,14 @@ OptReaction::Tc
             this->Kf_[j0] = get_elem0(Kf);
             this->Kf_[j1] = get_elem1(Kf);
             this->Kf_[j2] = get_elem2(Kf);
-
-        }
+        }*/
 
     }
 
-
+    if(this->n_Troe>0)
     {
-        unsigned int remain = this->n_Troe%4;
+        this->evalTroeRateConstant();
+        /*unsigned int remain = this->n_Troe%4;
         for(unsigned int i = 0; i < this->n_Troe-remain;i=i+4)
         {
             const unsigned int j0 = this->TroeFO[i+0];
@@ -480,11 +482,12 @@ OptReaction::Tc
         }        
         if(remain==1)       {this->Troe_F_1();}
         else if(remain==2)  {this->Troe_F_2();}
-        else if(remain==3)  {this->Troe_F_3();}
-    
+        else if(remain==3)  {this->Troe_F_3();}*/
     }
+    if(this->n_SRI>0)
     {
-        for (unsigned int i = 0;i<this->n_SRI;i++)
+        this->evalSRIRateConstant(T);
+        /*for (unsigned int i = 0;i<this->n_SRI;i++)
         {
             const unsigned int j = this->SRIFO[i];
 
@@ -497,7 +500,7 @@ OptReaction::Tc
             const double F  = this->SRI_F(Temperature,Pr,i);
             const double N  = 1/(1+Pr)*F*K0;
             this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }
+        }*/
     }
 
 
