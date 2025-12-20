@@ -260,49 +260,24 @@ void Foam::FastChemistryModel<UnusedThermo>::derivatives
     T = T>Thighmax?Thighmax:T;
 
     // Computing temperature and pressure, required by thermo and chemistry
-    __m256d TP = _mm256_setr_pd(T,p,1,1);
-    TP = vec256_logd(TP);
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = vec256_logd(TPRuT);
     const double invT = 1.0/T;
-    const double logT = get_elem0(TP);
-    const double logP = get_elem1(TP);
+    const double logT = get_elem0(TPRuT);
+    const double logP = get_elem1(TPRuT);
+    const double logRuT = get_elem2(TPRuT);
     gas->invT = invT;
     gas->logT = logT;
+    reaction.T = T;
     reaction.invT = invT;
     reaction.logT = logT;
     reaction.logP = logP;
+    reaction.logRuT = logRuT;
 
     // set to zero
     std::memset(dPhidt, 0, alignN*sizeof(double));
     
-    
-
-    /*for (int i=0; i<this->nSpecie(); i++)
-    {
-        Phi[i] = std::max(Phi[i], 0.0);
-    }
-    
-    double rhoM = 0;
-    double RuTByP = reaction.Ru*T/p;
-    __m256d RuTByPv = _mm256_set1_pd(RuTByP);
-    __m256d rhoMv = _mm256_setzero_pd();
-    for (int i=0; i<nSpecie_-remain; i=i+4)
-    {
-        __m256d YTpv = load256d(&Phi[i+0]);
-        __m256d invWv = load256d(&reaction.invW[i+0]);
-        rhoMv = _mm256_fmadd_pd(_mm256_mul_pd(YTpv,invWv),RuTByPv,rhoMv);
-    }
-    for(int i = nSpecie_-remain; i<nSpecie_;i++)
-    {
-        rhoM += Phi[i]*reaction.invW[i]*RuTByP;            
-    }
-    rhoM += reaction.hsum4(rhoMv);
-    double invrhoM = rhoM;
-    rhoM = 1/rhoM;
-
-    for (label i=0; i<nSpecie_; i ++)
-    {
-        c[i] = rhoM*reaction.invW[i]*Phi[i];
-    }*/
 
 
     // Compute the thermodynamic parameters required by chemical reaction rate
@@ -388,16 +363,19 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
     T = T>Thighmax?Thighmax:T;
 
     // Computing temperature and pressure, required by thermo and chemistry
-    __m256d TP = _mm256_setr_pd(T,p,1,1);
-    TP = vec256_logd(TP);
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = vec256_logd(TPRuT);
     const double invT = 1.0/T;
-    const double logT = get_elem0(TP);
-    const double logP = get_elem1(TP);
+    const double logT = get_elem0(TPRuT);
+    const double logP = get_elem1(TPRuT);
+    const double logRuT = get_elem2(TPRuT);
     gas->invT = invT;
     gas->logT = logT;
     reaction.invT = invT;
     reaction.logT = logT;
     reaction.logP = logP;
+    reaction.logRuT = logRuT;
 
 
     

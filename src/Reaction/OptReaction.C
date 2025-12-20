@@ -1674,14 +1674,15 @@ void OptReaction::readInfo
 
 
 
-    APlog.resize(this->n_PlogReaction);
-    logAPlog.resize(this->n_PlogReaction);
-    betaPlog.resize(this->n_PlogReaction);
-    TaPlog.resize(this->n_PlogReaction);
-    Prange.resize(this->n_PlogReaction);
-    rDeltaP_.resize(this->n_PlogReaction);
-    logPi.resize(this->n_PlogReaction);
-    Pindex.resize(this->n_PlogReaction);
+    this->APlog.resize(this->n_PlogReaction);
+    this->logAPlog.resize(this->n_PlogReaction);
+    this->betaPlog.resize(this->n_PlogReaction);
+    this->TaPlog.resize(this->n_PlogReaction);
+    this->Prange.resize(this->n_PlogReaction);
+    this->rDeltaP_.resize(this->n_PlogReaction);
+    this->logPi.resize(this->n_PlogReaction);
+    this->Pindex.resize(this->n_PlogReaction);
+    this->ActivePlogReactionIndex.resize(this->n_PlogReaction);
 
     unsigned int a = 0;
     forAllConstIter(dictionary, reactions, iter)
@@ -1718,6 +1719,12 @@ void OptReaction::readInfo
             {
                 Prange[a][i] = PlogData[i][0];  
                 APlog[a][i] = PlogData[i][1];
+                if(PlogData[i][1]<=0)
+                {
+                    std::cout<<"Pre-factor A should be larger "<<
+                    "than zero for Plog reaction"<<std::endl;
+                    std::exit(0);
+                }
                 logAPlog[a][i] = std::log(APlog[a][i]);
                 betaPlog[a][i] = PlogData[i][2];
                 TaPlog[a][i] = PlogData[i][3];
@@ -1951,7 +1958,7 @@ void OptReaction::readInfo
 
         if(this->isGlobal[i]==1)
         {
-            this->reactionGNIindex.push_back(i);
+            this->reactionGNIindex.push_back(static_cast<unsigned int>(i));
             continue;
         }
 
@@ -1962,7 +1969,7 @@ void OptReaction::readInfo
 
             this->rhsSpeciesIndex1D11.push_back(this->rhsSpeciesIndex[i][0]);
 
-            this->reaction11index.push_back(i);
+            this->reaction11index.push_back(static_cast<unsigned int>(i));
         }
         else if(lhsNumber==1 && rhsNumber==2)
         {
@@ -1971,7 +1978,7 @@ void OptReaction::readInfo
             this->rhsSpeciesIndex1D12.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D12.push_back(this->rhsSpeciesIndex[i][1]);
 
-            this->reaction12index.push_back(i);
+            this->reaction12index.push_back(static_cast<unsigned int>(i));
         }
         else if(lhsNumber==1 && rhsNumber==3)
         {
@@ -1981,31 +1988,31 @@ void OptReaction::readInfo
             this->rhsSpeciesIndex1D13.push_back(this->rhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D13.push_back(this->rhsSpeciesIndex[i][2]);
 
-            this->reaction13index.push_back(i);
+            this->reaction13index.push_back(static_cast<unsigned int>(i));
         }
         else if(lhsNumber==2 && rhsNumber==1)
         {
             this->lhsSpeciesIndex1D21.push_back(this->lhsSpeciesIndex[i][0]);
             this->lhsSpeciesIndex1D21.push_back(this->lhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D21.push_back(this->rhsSpeciesIndex[i][0]);
-            this->reaction21index.push_back(i);
+            this->reaction21index.push_back(static_cast<unsigned int>(i));
             if(this->isIrreversible[i]==0)
             {
-                this->reversibleReaction21index.push_back(i);
+                this->reversibleReaction21index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D21RR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D21RR.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D21RR.push_back(this->rhsSpeciesIndex[i][0]);
             }
             else if(this->isIrreversible[i]==1)
             {
-                this->irreversibleReaction21index.push_back(i);
+                this->irreversibleReaction21index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D21IR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D21IR.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D21IR.push_back(this->rhsSpeciesIndex[i][0]);
             }
             else if(this->isIrreversible[i]==2)
             {
-                this->nonEquilibriumReaction21index.push_back(i);
+                this->nonEquilibriumReaction21index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D21NER.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D21NER.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D21NER.push_back(this->rhsSpeciesIndex[i][0]);
@@ -2017,10 +2024,10 @@ void OptReaction::readInfo
             this->lhsSpeciesIndex1D22.push_back(this->lhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D22.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D22.push_back(this->rhsSpeciesIndex[i][1]);
-            this->reaction22index.push_back(i);
+            this->reaction22index.push_back(static_cast<unsigned int>(i));
             if(this->isIrreversible[i]==0)
             {
-                this->reversibleReaction22index.push_back(i);
+                this->reversibleReaction22index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D22RR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D22RR.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D22RR.push_back(this->rhsSpeciesIndex[i][0]);
@@ -2028,7 +2035,7 @@ void OptReaction::readInfo
             }
             else if(this->isIrreversible[i]==1)
             {
-                this->irreversibleReaction22index.push_back(i);
+                this->irreversibleReaction22index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D22IR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D22IR.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D22IR.push_back(this->rhsSpeciesIndex[i][0]);
@@ -2036,7 +2043,7 @@ void OptReaction::readInfo
             }
             else if(this->isIrreversible[i]==2)
             {
-                this->nonEquilibriumReaction22index.push_back(i);
+                this->nonEquilibriumReaction22index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D22NER.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D22NER.push_back(this->lhsSpeciesIndex[i][1]);
                 this->rhsSpeciesIndex1D22NER.push_back(this->rhsSpeciesIndex[i][0]);
@@ -2050,10 +2057,10 @@ void OptReaction::readInfo
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D23.push_back(this->rhsSpeciesIndex[i][2]);
-            this->reaction23index.push_back(i);
+            this->reaction23index.push_back(static_cast<unsigned int>(i));
             if(this->isIrreversible[i]==0)
             {
-                this->reversibleReaction23index.push_back(i);
+                this->reversibleReaction23index.push_back(static_cast<unsigned int>(i));
 
                 this->lhsSpeciesIndex1D23RR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D23RR.push_back(this->lhsSpeciesIndex[i][1]);
@@ -2064,7 +2071,7 @@ void OptReaction::readInfo
             }
             else if(this->isIrreversible[i]==1)
             {
-                this->irreversibleReaction23index.push_back(i);
+                this->irreversibleReaction23index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D23IR.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D23IR.push_back(this->lhsSpeciesIndex[i][1]);
 
@@ -2074,7 +2081,7 @@ void OptReaction::readInfo
             }
             else if(this->isIrreversible[i]==2)
             {
-                this->nonEquilibriumReaction23index.push_back(i);
+                this->nonEquilibriumReaction23index.push_back(static_cast<unsigned int>(i));
                 this->lhsSpeciesIndex1D23NER.push_back(this->lhsSpeciesIndex[i][0]);
                 this->lhsSpeciesIndex1D23NER.push_back(this->lhsSpeciesIndex[i][1]);
 
@@ -2091,7 +2098,7 @@ void OptReaction::readInfo
 
             this->rhsSpeciesIndex1D31.push_back(this->rhsSpeciesIndex[i][0]);
 
-            this->reaction31index.push_back(i);
+            this->reaction31index.push_back(static_cast<unsigned int>(i));
         }
         else if(lhsNumber==3 && rhsNumber==2)
         {
@@ -2102,7 +2109,7 @@ void OptReaction::readInfo
             this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][1]);
             
-            this->reaction32index.push_back(i);
+            this->reaction32index.push_back(static_cast<unsigned int>(i));
         }
         else if(lhsNumber==3 && rhsNumber==3)
         {
@@ -2114,11 +2121,11 @@ void OptReaction::readInfo
             this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][2]);
             
-            this->reaction33index.push_back(i);
+            this->reaction33index.push_back(static_cast<unsigned int>(i));
         }
         if(lhsNumber>3 || rhsNumber>3)
         {
-            this->reactionGIindex.push_back(i);
+            this->reactionGIindex.push_back(static_cast<unsigned int>(i));
         }
     }
 

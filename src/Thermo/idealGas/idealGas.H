@@ -210,25 +210,25 @@ public:
             //                  pressure.                               [J/kg/k]
             // Ha:              Absolute enthalpy.                      [J/kg]
             // negGstdByRT:     (-Gstd/(Ru*T)).                         [dimLess]
-            void CpHaNegGstdByRT
+            /*void CpHaNegGstdByRT
             (
                 double T,
                 double* __restrict__ Cp,
                 double* __restrict__ Ha,
                 double* __restrict__ negGstdByRT
-            )const;
+            )const;*/
 
             // Compute the thermodynamic variable required by chemistry derivatives
             // dPhidt. Phi=[Y0 Y1 Y2 ... YNs T]
             // rhoM:            Mixture density                         [kg/m^3]
             // c:               Species concentration                   [kmol/m^3]
-            void rhoMc
+            /*void rhoMc
             (
                 double T,
                 const double p,
                 double* __restrict__ Phi,
                 double* __restrict__ c
-            )const;
+            )const;*/
 
             // Compute the thermodynamic variable required by chemistry time scale
             // Tc

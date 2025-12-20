@@ -14,11 +14,6 @@ OptReaction::ddNdtByVdcTp
     double* __restrict__ ddNdtByVdcT
 ) const noexcept
 {
-
-    this->T = Temperature;
-
-
-
     this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);
 
@@ -80,8 +75,8 @@ OptReaction::ddNdtByVdcTp
 
     if(this->n_PlogReaction>0)
     {
-        this->logP = std::log(p);
-        for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        this->findPlogPressureRange(p);
+        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
         {
             const size_t length = this->Prange[i].size();
             if(p<=this->Prange[i][0])
@@ -137,14 +132,15 @@ OptReaction::ddNdtByVdcTp
                 Ta[i+this->Ikf[6]] = Ta0;
                 Ta[i+this->Ikf[11]] = Ta1;
             }
-        }
+        }*/
     }
 
     {
         __m256d LogTv = _mm256_set1_pd(logT);
-        __m256d InvTv = _mm256_set1_pd(invT);        
-        unsigned int remain = (this->Ikf[12]-this->n_Temperature_Independent_Reaction)%4;
-        unsigned int times = (this->Ikf[12]-this->n_Temperature_Independent_Reaction)/4;
+        __m256d InvTv = _mm256_set1_pd(invT);  
+        const unsigned int end =       this->Ikf[11];
+        unsigned int remain = (end-this->n_Temperature_Independent_Reaction)%4;
+        unsigned int times = (end-this->n_Temperature_Independent_Reaction)/4;
         for(unsigned int z = 0; z <times;z=z+1)
         {
             unsigned int i = z*4 + this->n_Temperature_Independent_Reaction;
@@ -163,14 +159,14 @@ OptReaction::ddNdtByVdcTp
         }
         if(remain==1)
         {
-            unsigned int i = this->Ikf[12]-1;
+            unsigned int i = end-1;
             this->Kf_[i] = this->A[i]*std::exp(this->beta[i+0]*logT-this->Ta[i+0]*invT);   
             this->dKfdT_[i+0] = this->Kf_[i+0]*(this->beta[i+0]+this->Ta[i+0]*invT)*invT;  
         }
         else if(remain==2)
         {
-            unsigned int i0 = this->Ikf[12]-2;
-            unsigned int i1 = this->Ikf[12]-1;    
+            unsigned int i0 = end-2;
+            unsigned int i1 = end-1;    
             __m256d betav = _mm256_setr_pd(beta[i0],beta[i1],0,0);
             __m256d Av = _mm256_setr_pd(A[i0],A[i1],0,0);
             __m256d Tav = _mm256_setr_pd(Ta[i0],Ta[i1],0,0);
@@ -186,9 +182,9 @@ OptReaction::ddNdtByVdcTp
         }
         else if(remain==3)
         {
-            unsigned int i0 = this->Ikf[12]-3;
-            unsigned int i1 = this->Ikf[12]-2;
-            unsigned int i2 = this->Ikf[12]-1;    
+            unsigned int i0 = end-3;
+            unsigned int i1 = end-2;
+            unsigned int i2 = end-1;    
             __m256d betav = _mm256_setr_pd(beta[i0],beta[i1],beta[i2],0);
             __m256d Av = _mm256_setr_pd(A[i0],A[i1],A[i2],0);
             __m256d Tav = _mm256_setr_pd(Ta[i0],Ta[i1],Ta[i2],0);
@@ -210,7 +206,8 @@ OptReaction::ddNdtByVdcTp
 
     if(this->n_PlogReaction>0)
     {
-        for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        this->evalPlogPartialDerivative();
+        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
         {
             const size_t length = this->Prange[i].size();
             if(this->Pindex[i] == 0 || this->Pindex[i] == length-1)
@@ -235,7 +232,13 @@ OptReaction::ddNdtByVdcTp
                 double dKfdT = Kf*invt*(beta0 + Ta0*invt + (beta1-beta0+(Ta1-Ta0)*invt)*weight);
                 this->dKfdT_[i+this->Ikf[6]] = dKfdT;
             }
-        }
+        }*/
+
+        //for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        //{
+        //    std::cout<<this->Kf_[i+this->Ikf[6]]<<" "<<this->dKfdT_[i+this->Ikf[6]]<<std::endl;
+        //}
+        //std::exit(0);
     }
     {
         
@@ -381,7 +384,7 @@ OptReaction::ddNdtByVdcTp
 
     if(this->n_SRI>0)
     {
-        this->evalSRIPartialDerivative(T);
+        this->evalSRIPartialDerivative();
         /*for (unsigned int i = 0;i<this->n_SRI;i++)
         {
             const unsigned int j = this->SRIFO[i];

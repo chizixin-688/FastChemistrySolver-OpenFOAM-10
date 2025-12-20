@@ -337,6 +337,7 @@ void FastChemistry::idealGas::JacobianThermoYT
     __m256d MWvv = _mm256_set1_pd(MW);
     __m256d invrhoMv = _mm256_set1_pd(invRhoM);
     __m256d rhoMvv = _mm256_set1_pd(this->rhoM);
+    __m256d zerov = _mm256_setzero_pd();
     for(unsigned int i = 0; i < this->nSpecies-remain;i=i+4)
     {
         __m256d invW_ = load256d(&this->invW[i]);
@@ -348,6 +349,7 @@ void FastChemistry::idealGas::JacobianThermoYT
         __m256d Phi03v = load256d(&Phi[i]);
 
         __m256d Cv = _mm256_mul_pd(_mm256_mul_pd(rhoMvv,Phi03v),invW_);
+        Cv = _mm256_max_pd(Cv,zerov);
         store256d(&concentration[i],Cv);
 
         __m256d Cp_ = load256d(&Cp[i]);
@@ -364,7 +366,7 @@ void FastChemistry::idealGas::JacobianThermoYT
         unsigned int i = this->nSpecies-1;
         rhoMvj[i] = MW*this->invW[i];
         WiByrhoM[i] = this->W[i]*invRhoM;
-        concentration[i] = this->rhoM*this->invW[i]*Phi[i];
+        concentration[i] = std::max(this->rhoM*this->invW[i]*Phi[i],0.0);
         CpM += Phi[i]*Cp[i];
         dCpMdT += Phi[i]*dCpdT[i];
     }
@@ -382,6 +384,7 @@ void FastChemistry::idealGas::JacobianThermoYT
 
         __m128d Phi01v = load128d(&Phi[i]);
         __m128d Cv = _mm_mul_pd(_mm_mul_pd(_mm256_castpd256_pd128(rhoMvv),Phi01v),invW_);
+        Cv = _mm_max_pd(Cv,_mm256_castpd256_pd128(zerov));
         store128d(&concentration[i],Cv);
 
         __m128d Cp_ = load128d(&Cp[i]);
@@ -406,6 +409,7 @@ void FastChemistry::idealGas::JacobianThermoYT
         __m256d Phi03v = _mm256_blend_pd(load256d(&Phi[i]),zerov,0b1000);
 
         __m256d Cv = _mm256_mul_pd(_mm256_mul_pd(rhoMvv,Phi03v),invW_);
+        Cv = _mm256_max_pd(Cv,(zerov));
         store256d(&concentration[i],Cv);
 
         __m256d Cp_ = _mm256_blend_pd(load256d(&Cp[i]),zerov,0b1000);
@@ -418,7 +422,7 @@ void FastChemistry::idealGas::JacobianThermoYT
     dCpdT[this->nSpecies] = dCpMdT + hsum4(ArrdCpMdT_);  
 }
 
-void FastChemistry::idealGas::CpHaNegGstdByRT
+/*void FastChemistry::idealGas::CpHaNegGstdByRT
 (
     double T,
     double* __restrict__ Cp,
@@ -568,9 +572,9 @@ void FastChemistry::idealGas::CpHaNegGstdByRT
         vHa = _mm256_mul_pd(RuInvW,vHa);
         store256d(&Ha[i+0],vHa);
     }
-}
+}*/
 
-void FastChemistry::idealGas::rhoMc
+/*void FastChemistry::idealGas::rhoMc
 (
     double T,
     const double p,
@@ -657,7 +661,7 @@ void FastChemistry::idealGas::rhoMc
         store256d(&c[i],cv);
     }
 
-}
+}*/
 
 void FastChemistry::idealGas::DerivativeThermoYT
 (
@@ -735,7 +739,7 @@ void FastChemistry::idealGas::DerivativeThermoYT
     if(remain==1)
     {
         int i = this->nSpecies-1;
-        concentration[i] = rhoM*this->invW[i]*Phi[i];
+        concentration[i] = std::max(rhoM*this->invW[i]*Phi[i],0.0);
     }
     else if(remain==2)
     {
@@ -743,6 +747,7 @@ void FastChemistry::idealGas::DerivativeThermoYT
         __m128d invWv = load128d(&this->invW[i]);
         __m128d Phiv = load128d(&Phi[i]);
         __m128d cv = _mm_mul_pd(_mm256_castpd256_pd128(rhoMvv),_mm_mul_pd(Phiv,invWv));
+        cv = _mm_max_pd(cv,_mm256_castpd256_pd128(zerov));
         store128d(&concentration[i],cv);
     }
     else if(remain==3)
@@ -752,6 +757,7 @@ void FastChemistry::idealGas::DerivativeThermoYT
         __m256d invWv = _mm256_blend_pd(load256d(&this->invW[i]),zerov,0b1000);
         __m256d Phiv = _mm256_blend_pd(load256d(&Phi[i]),zerov,0b1000);
         __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
+        cv = _mm256_max_pd(cv,zerov);
         store256d(&concentration[i],cv);
     }
 

@@ -476,8 +476,13 @@ public:
 
             mutable std::vector<std::vector<double>> logPi;
 
-
             mutable std::vector<unsigned int> Pindex;
+
+            // Index of reaction that requires linear interpolation
+            mutable std::vector<unsigned int> ActivePlogReactionIndex;
+
+            // Number of reaction that requires linear interpolation
+            mutable unsigned int ActivePlogReactionNumber = 0;
 
         // Data to store the parameters of Janf polynomial Fits.
 
@@ -541,6 +546,7 @@ public:
         // Chemical equilibrium calculation
 
             // Table to save the temporary result for chemical equilibrium calculation.
+            // For global reaction(stoichiometric number is an integer)
             mutable std::unordered_map<int,double> Pow_pByRT_SumVki_I;
 
             // Table to save the temporary result for chemical equilibrium calculation.
@@ -558,67 +564,16 @@ public:
             // 1/T.
             mutable double invT;
 
-
-
-            // mixture density
-            mutable double rhoM;
-
+            // log(P)
             mutable double logP;
+
+            // log(Ru*T)
+            mutable double logRuT;
       
         // Array
             mutable double* buffer; 
 
     // Member function
-
-        // Thermodynamic function
-
-            // Pointing the janaf coefficient using the given temperature.
-            //inline void setPtrCoeffs (const double T) const noexcept;
-
-            // Compute the thermodynamic variable for Jacobian matrix
-                // YTp:             Array for species mass fraction, temperature and pressure.
-                // c_:              Species concentration.                  [kmol/m^3]
-                // dNdtByV:         Instantaneous reaction rate.            [kmol/m^3/s]
-                // ExpNegGstdByRT:  exp(-Gstd/(Ru*T)).                      [dimLess]
-                // Gstd:            Standard Gibbs free energy.             [J/kmol]
-                // dBdT:            ddT(-Gstd)/Ru, Partial derivative Gstd 
-                //                  w.r.t temperature divided by Ru.        [dimLess]
-                // dCpdT:           Partial derivative of Specific heat 
-                //                  capacity w.r.t temperature.             [dimLess]
-                // Cp:              Specific heat capacity at constant 
-                //                  pressure.                               [J/kg/k]
-                // Ha:              Absolute enthalpy.                      [J/kg]
-                // rhoMByRhoi:      Mixture density multiplied by specific  
-                //                  volume (divided by density of i th species)
-                //                                                          [dimLess].
-                // WiByrhoM:        Molecular weight of i-th species divided
-                //                  by mixture density                      [m^3/kmol].
-            /*inline void JacobianThermo
-            (
-                double p,
-                double T,
-                double* __restrict__ YTp,
-                double* __restrict__ c_,
-                double* __restrict__ ExpNegGstdByRT,
-                double* __restrict__ dBdT,
-                double* __restrict__ dCpdT,
-                double* __restrict__ Cp,
-                double* __restrict__ Ha,
-                double* __restrict__ rhoMByRhoi,
-                double* __restrict__ WiByrhoM
-            ) const noexcept;*/
-
-            // Compute the thermodynamic variable for reaction rate.
-            /*inline void CpHaExpNegGstdByRT
-            (
-                const double T,
-                double* __restrict__ Cp,
-                double* __restrict__ Ha,
-                double* __restrict__ ExpNegGstdByRT
-            )const noexcept;*/
-
-            // Compute the exp(-Gstd/(Ru*T)).           
-            //inline void ExpNegGstdByRT (const double T, double* ExpNegGstdByRT) const;
 
         // Chemical equilibrium function
 
@@ -639,9 +594,19 @@ public:
 
             void evalLindemannRateConstant() const noexcept;
 
-            void evalSRIPartialDerivative(double T) const noexcept;
+            void evalSRIPartialDerivative() const noexcept;
 
-            void evalSRIRateConstant(double T) const noexcept;
+            void evalSRIRateConstant() const noexcept;
+
+            void evalTroeRateConstant() const noexcept;
+
+            void evalTroePartialDerivative() const noexcept;
+
+            void findPlogPressureRange(double p) const noexcept;
+
+            void evalPlogRateConstant() const noexcept;
+
+            void evalPlogPartialDerivative() const noexcept;
 
             // Compute the F using SRI form.
             /*inline double SRI_F
@@ -674,10 +639,6 @@ public:
                 __m256d& __restrict__ dFdPr,
                 const unsigned int i
             ) const;*/
-
-            void evalTroeRateConstant() const noexcept;
-
-            void evalTroePartialDerivative() const noexcept;
 
             //void Troe_F_1() const noexcept;
 
@@ -1327,6 +1288,9 @@ public:
     #include "EvalSRIRateConstant.C"
     #include "EvalLindemannPartialDerivative.C"
     #include "EvalLindemannRateConstant.C"
+    #include "FindPlogPressureRange.C"
+    #include "EvalPlogPartialDerivative.C"
+    #include "EvalPlogRateConstant.C"
     #include "JacobianFunction.C"
     #include "OptReaction.C"
     #include "Jacobian.C"

@@ -71,64 +71,7 @@ OptReaction::dNdtByV
     }
     if(this->n_PlogReaction>0)
     {
-        this->logP = std::log(p);
-        for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
-        {
-            const size_t length = this->Prange[i].size();
-            if(p<=this->Prange[i][0])
-            {
-                double A0 = this->APlog[i][0];
-                double beta0 = this->betaPlog[i][0];
-                double Ta0 = this->TaPlog[i][0];
-
-                this->A[i+this->Ikf[6]] = A0;
-                this->A[i+this->Ikf[11]] = A0;
-                this->beta[i+this->Ikf[6]] = beta0;
-                this->beta[i+this->Ikf[11]] = beta0;
-                this->Ta[i+this->Ikf[6]] = Ta0;
-                this->Ta[i+this->Ikf[11]] = Ta0;
-                this->Pindex[i] = 0;
-            }
-            else if(p>=this->Prange[i][length-1])
-            {
-                double A1 = this->APlog[i][length-1];
-                double beta1 = this->betaPlog[i][length-1];
-                double Ta1 = this->TaPlog[i][length-1];
-                
-                this->A[i+this->Ikf[6]] = A1;
-                this->A[i+this->Ikf[11]] = A1;
-                this->beta[i+this->Ikf[6]] = beta1;
-                this->beta[i+this->Ikf[11]] = beta1;
-                this->Ta[i+this->Ikf[6]] = Ta1;
-                this->Ta[i+this->Ikf[11]] = Ta1;
-                this->Pindex[i] = static_cast<unsigned int>(length-1);
-            }
-            else
-            {
-                unsigned int index = 0;
-                for(unsigned int j = 0; j < length-1;j++)
-                {
-                    if(this->Prange[i][j]<=p && p<this->Prange[i][j+1])
-                    {
-                        index = j;
-                        break;
-                    }
-                }
-                this->Pindex[i] = index;
-                double A0 = this->APlog[i][index+0];
-                double A1 = this->APlog[i][index+1];
-                double beta0 = this->betaPlog[i][index+0];
-                double beta1 = this->betaPlog[i][index+1];
-                double Ta0 = this->TaPlog[i][index+0];
-                double Ta1 = this->TaPlog[i][index+1];
-                this->A[i+this->Ikf[6]] = A0;
-                this->A[i+this->Ikf[11]] = A1;
-                this->beta[i+this->Ikf[6]] = beta0;
-                this->beta[i+this->Ikf[11]] = beta1;
-                this->Ta[i+this->Ikf[6]] = Ta0;
-                this->Ta[i+this->Ikf[11]] = Ta1;
-            }
-        }
+        this->findPlogPressureRange(p);
     }
 
 
@@ -136,8 +79,9 @@ OptReaction::dNdtByV
     
         __m256d LogT = _mm256_set1_pd(logT);
         __m256d InvT = _mm256_set1_pd(-invT);
-        unsigned int remain = (this->Ikf[12]-this->n_Temperature_Independent_Reaction)%4;
-        unsigned int times = (this->Ikf[12]-this->n_Temperature_Independent_Reaction)/4;
+        const unsigned int end = this->Ikf[11];
+        unsigned int remain = (end-this->n_Temperature_Independent_Reaction)%4;
+        unsigned int times = (end-this->n_Temperature_Independent_Reaction)/4;
         for(unsigned int z = 0; z <times;z=z+1)
         {
             unsigned int i = z*4 + this->n_Temperature_Independent_Reaction;
@@ -152,13 +96,13 @@ OptReaction::dNdtByV
         }
         if(remain==1)
         {
-            unsigned int i = this->Ikf[12]-1;
+            unsigned int i = end-1;
             this->Kf_[i] = this->A[i]*std::exp(this->beta[i+0]*logT-this->Ta[i+0]*invT);   
         }
         else if(remain==2)
         {
-            unsigned int i0 = this->Ikf[12]-2;
-            unsigned int i1 = this->Ikf[12]-1;
+            unsigned int i0 = end-2;
+            unsigned int i1 = end-1;
             __m256d A_ = _mm256_setr_pd(this->A[i0],this->A[i1],0,0);
             __m256d beta_ = _mm256_setr_pd(this->beta[i0],this->beta[i1],0,0);
             __m256d Ta_ = _mm256_setr_pd(this->Ta[i0],this->Ta[i1],0,0);
@@ -171,9 +115,9 @@ OptReaction::dNdtByV
         }
         else if(remain==3)
         {
-            unsigned int i0 = this->Ikf[12]-3;
-            unsigned int i1 = this->Ikf[12]-2;
-            unsigned int i2 = this->Ikf[12]-1;
+            unsigned int i0 = end-3;
+            unsigned int i1 = end-2;
+            unsigned int i2 = end-1;
             __m256d A_ = _mm256_setr_pd(this->A[i0],this->A[i1],this->A[i2],0);
             __m256d beta_ = _mm256_setr_pd(this->beta[i0],this->beta[i1],this->beta[i2],0);
             __m256d Ta_ = _mm256_setr_pd(this->Ta[i0],this->Ta[i1],this->Ta[i2],0);
@@ -300,10 +244,10 @@ OptReaction::dNdtByV
         }
     }
 
-
     if(this->n_PlogReaction>0)
     {
-        for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        this->evalPlogRateConstant();
+        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
         {
             const size_t length = this->Prange[i].size();
             if(this->Pindex[i] == 0 || this->Pindex[i] == length-1)
@@ -318,9 +262,37 @@ OptReaction::dNdtByV
                 double Kf1 = this->Kf_[i+this->Ikf[11]];
                 this->Kf_[i+this->Ikf[6]] = Kf0*std::pow(Kf1/Kf0,weight);
             }
-        }
-    }
+        }*/
 
+            /*double logT = this->logT;
+            double invT = this->invT;
+
+            for(unsigned int i=0; i<this->ActivePlogReactionNumber; i=i+1)
+            {
+                unsigned j = ActivePlogReactionIndex[i];
+
+                unsigned index = this->Pindex[j];
+                double weight = (this->logP - this->logPi[j][index])*this->rDeltaP_[j][index];
+                double Kf0 = this->Kf_[j+this->Ikf[6]];
+                double Kf1 = this->Kf_[j+this->Ikf[11]];
+
+                double logA1A0 = this->logAPlog[j][index+1] - this->logAPlog[j][index];
+                double beta1beta0 = this->betaPlog[j][index+1] - this->betaPlog[j][index];
+                double Ta0Ta1 = this->TaPlog[j][index] - this->TaPlog[j][index+1];
+                double logk1k0 = logA1A0 + beta1beta0*logT + Ta0Ta1*invT;
+                double k = Kf0*std::exp(weight*logk1k0);
+                //this->Kf_[j+this->Ikf[6]] = k;
+                this->Kf_[0] = k;
+            }*/
+
+        //std::setprecision(20);
+        //for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        //{
+        //    std::cout<<std::setprecision(20)<<this->Kf_[i+this->Ikf[6]]<<std::endl;
+        //}
+        //std::cout<<"debug"<<std::endl;
+    }
+    //std::exit(0);
 
     {
         for(unsigned int i = 0; i < this->n_ThirdBodyReaction; i++)
@@ -352,21 +324,7 @@ OptReaction::dNdtByV
 
     if(this->n_SRI)
     {
-        this->evalSRIRateConstant(T);
-        /*for (unsigned int i = 0;i<this->n_SRI;i++)
-        {
-            const unsigned int j = this->SRIFO[i];
-
-            const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k = j - this->Ikf[4];
-            const double Kinf = this->Kf_[j+this->offset_kinf];
-            double M = this->tmp_M[m]; 
-            const double K0 = this->Kf_[j];
-            const double Pr = K0*M/Kinf;   
-            const double F  = this->SRI_F(Temperature,Pr,i);
-            const double N  = 1/(1+Pr)*F*K0;
-            this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }*/
+        this->evalSRIRateConstant();
     }
 
 
@@ -381,6 +339,8 @@ OptReaction::dNdtByV
     this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
     this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
     //this->update22Reaction(c,dNdtByV,tmp_Exp);
+
+    
     this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
     this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
     this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);

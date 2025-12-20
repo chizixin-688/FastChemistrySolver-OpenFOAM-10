@@ -41,8 +41,16 @@ OptReaction::updateGlobalNonIntegerReaction
                 sumVki = sumVki + sr;
                 CR = CR * (c[si] >= small || er >= 1 ? std::pow(c[si], er) : 0.0);            
             }
-            Kp = std::exp(Kp);
-            Kc_ = Kp*std::pow(this->Pstd/(this->Ru*this->T),sumVki);
+            __m256d KpPow = _mm256_setr_pd(Kp,sumVki*(this->logP-this->logRuT),1,1);
+            KpPow = vec256_expd(KpPow);
+
+            //Kp = std::exp(Kp);
+            //double r = std::pow(this->Pstd/(this->Ru*this->T),sumVki);
+            //Kc_ = Kp*r;
+            Kp = this->get_elem0(KpPow);
+            double r = this->get_elem1(KpPow);
+            Kc_ = Kp*r;
+            
             Kc_ = std::max(Kc_,KcLimiter);
             Kr = Kf/Kc_;
         }

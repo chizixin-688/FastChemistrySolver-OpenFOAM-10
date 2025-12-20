@@ -73,6 +73,7 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/Reaction/SRI
         ${CMAKE_SOURCE_DIR}/Reaction/Troe
         ${CMAKE_SOURCE_DIR}/Reaction/Lindemann
+        ${CMAKE_SOURCE_DIR}/Reaction/PLOG
         ${CMAKE_SOURCE_DIR}/Thermo/idealGas 
         ${CMAKE_SOURCE_DIR}/Thermo
         ) #change here

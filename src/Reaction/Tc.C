@@ -486,7 +486,7 @@ OptReaction::Tc
     }
     if(this->n_SRI>0)
     {
-        this->evalSRIRateConstant(T);
+        this->evalSRIRateConstant();
         /*for (unsigned int i = 0;i<this->n_SRI;i++)
         {
             const unsigned int j = this->SRIFO[i];

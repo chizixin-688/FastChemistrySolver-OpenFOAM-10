@@ -37,7 +37,7 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
                 Kp += sl*this->negGstdByRT[si];
                 sumVdBdT = sumVdBdT - sl*dBdT[si];
                 sumVki = sumVki - sl;
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);
+                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);
             }
 
             for(unsigned int j = 0; j < this->rhsSpeciesIndex[iii].size();j++)
@@ -48,7 +48,7 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
                 Kp -= sr*this->negGstdByRT[si];
                 sumVdBdT = sumVdBdT + sr*dBdT[si];
                 sumVki = sumVki + sr;
-                CR = CR * (C[si] >= small || er >= 1.0 ? std::pow(std::max(C[si], 0.0), er) : 0.0);    
+                CR = CR * (C[si] >= small || er >= 1.0 ? std::pow((C[si]), er) : 0.0);    
             }
             Kp = std::exp(Kp);        
             double Kc = Kp*std::pow(this->Pstd/(this->Ru*this->T),sumVki);
@@ -69,13 +69,13 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
             {
                 const unsigned int si = this->rhsSpeciesIndex[iii][j];
                 const double er = lhsReactionOrder[iii][j];
-                CR = CR * (C[si] >= small || er >= 1 ? std::pow(std::max(C[si], 0.0), er) : 0.0);   
+                CR = CR * (C[si] >= small || er >= 1 ? std::pow((C[si]), er) : 0.0);   
             }
             for(unsigned int j = 0; j < lhsSpeciesIndex[iii].size();j++)
             {
                 const unsigned int si = lhsSpeciesIndex[iii][j];
                 const double el = lhsReactionOrder[iii][j];
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);            
+                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);            
             }
         }
         else
@@ -84,13 +84,13 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
             {
                 const unsigned int si = this->rhsSpeciesIndex[iii][j];
                 const double er = lhsReactionOrder[iii][j];
-                CR = CR * (C[si] >= small || er >= 1 ? std::pow(std::max(C[si], 0.0), er) : 0.0);   
+                CR = CR * (C[si] >= small || er >= 1 ? std::pow((C[si]), er) : 0.0);   
             }
             for(unsigned int j = 0; j < lhsSpeciesIndex[iii].size();j++)
             {
                 const unsigned int si = lhsSpeciesIndex[iii][j];
                 const double el = lhsReactionOrder[iii][j];
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);            
+                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);            
             }        
         }
 
@@ -128,14 +128,14 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
                 {
                     dCfdCj *=
                     C[si] >= small || el >= 1
-                        ? el*std::pow(std::max(C[si], 0.0), el - 1.0)
+                        ? el*std::pow((C[si]), el - 1.0)
                         : 0;
                 }
                 else
                 {
                     dCfdCj *=
                         C[si] >= small || el >= 1
-                        ? std::pow(std::max(C[si], 0.0), el)
+                        ? std::pow((C[si]), el)
                         : 0;
                 }            
             }
@@ -175,14 +175,14 @@ void  OptReaction::updateJacobianGlobalNonIntegerReaction
                     {
                         dCrdCj *=
                             C[si] >= small || er >= 1.0
-                        ? er*std::pow(std::max(C[si], 0.0), er - 1.0)
+                        ? er*std::pow((C[si]), er - 1.0)
                         : 0;
                     }
                     else
                     {
                         dCrdCj *=
                             C[si] >= small || er >= 1.0
-                        ? std::pow(std::max(C[si], 0.0), er)
+                        ? std::pow((C[si]), er)
                         : 0;
                     }
                 }
