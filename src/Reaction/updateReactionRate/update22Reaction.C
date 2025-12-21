@@ -188,7 +188,7 @@ OptReaction::update22Reaction
 
 
 void 
-OptReaction::update22ReversibleReaction
+OptReaction::RF22RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -206,10 +206,7 @@ OptReaction::update22ReversibleReaction
         const unsigned int i1 = this->reversibleReaction22index[k+1];
         const unsigned int i2 = this->reversibleReaction22index[k+2];
         const unsigned int i3 = this->reversibleReaction22index[k+3];
-        //const unsigned int i4 = this->reversibleReaction22index[k+4];
-        //const unsigned int i5 = this->reversibleReaction22index[k+5];
-        //const unsigned int i6 = this->reversibleReaction22index[k+6];
-        //const unsigned int i7 = this->reversibleReaction22index[k+7];
+
         
 
             const unsigned int sl0a = lhsSpeciesIndex1D22RR[rhsIndex+0];
@@ -225,7 +222,8 @@ OptReaction::update22ReversibleReaction
             //Kc0 = std::max(Kc0,KcLimiter);
             //Kr0 = Kf0/Kc0; 
 
-            double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])/(ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a]);
+            //double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])/(ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a]);
+            double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])*(invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a]);
             invKc0 = std::min(invKc0,invKcLimiter);
             Kr0 = Kf0*invKc0; 
 
@@ -252,7 +250,8 @@ OptReaction::update22ReversibleReaction
             //double Kc1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
             //Kc1 = std::max(Kc1,KcLimiter);
             //Kr1 = Kf1/Kc1;
-            double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])/(ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b]);
+            //double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])/(ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b]);
+            double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])*(invNegGstdByRT[sr0b]*invNegGstdByRT[sr1b]);
             invKc1 = std::min(invKc1,invKcLimiter);
             Kr1 = Kf1*invKc1; 
             
@@ -280,7 +279,8 @@ OptReaction::update22ReversibleReaction
             //Kc2 = std::max(Kc2,KcLimiter);
             //Kr2 = Kf2/Kc2;
 
-            double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])/(ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c]);
+            //double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])/(ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c]);
+            double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])*(invNegGstdByRT[sr0c]*invNegGstdByRT[sr1c]);
             invKc2 = std::min(invKc2,invKcLimiter);
             Kr2 = Kf2*invKc2; 
             
@@ -307,7 +307,8 @@ OptReaction::update22ReversibleReaction
             //double Kc3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
             //Kc3 = std::max(Kc3,KcLimiter);
             //Kr3 = Kf3/Kc3;
-            double invKc3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])/(ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d]);
+            //double invKc3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])/(ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d]);
+            double invKc3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])*(invNegGstdByRT[sr0d]*invNegGstdByRT[sr1d]);
             invKc3 = std::min(invKc3,invKcLimiter);
             Kr3 = Kf3*invKc3; 
 
@@ -339,7 +340,8 @@ OptReaction::update22ReversibleReaction
             //Kc = std::max(Kc,KcLimiter);
             //Kr = Kf/Kc;  
 
-            double invKc = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])/(ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]);
+            //double invKc = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])/(ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]);
+            double invKc = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])*(invNegGstdByRT[sr0]*invNegGstdByRT[sr1]);
             invKc = std::min(invKc,invKcLimiter);
             Kr = Kf*invKc;      
 
@@ -358,7 +360,7 @@ OptReaction::update22ReversibleReaction
 }
 
 void 
-OptReaction::update22IrreversibleReaction
+OptReaction::RF22IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -488,7 +490,7 @@ OptReaction::update22IrreversibleReaction
 
 
 void 
-OptReaction::update22NonEquilibriumReaction
+OptReaction::RF22NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

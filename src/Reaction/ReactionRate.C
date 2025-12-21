@@ -69,6 +69,25 @@ OptReaction::dNdtByV
             this->tmp_Exp[i2] = get_elem2(tmp);
         }
     }
+    {
+        __m256d onev = _mm256_set1_pd(1);
+        unsigned int remain = this->nSpecies%4;
+        for(unsigned int i=0; i<this->nSpecies-remain; i=i+4)
+        {
+            __m256d r = load256d(&this->tmp_Exp[i]);
+            __m256d invr = _mm256_div_pd(onev,r);
+            store256d(&this->invNegGstdByRT[i],invr);
+        }
+        for(unsigned int i=this->nSpecies-remain; i<this->nSpecies; i=i+1)
+        {
+            this->invNegGstdByRT[i] = 1.0/this->tmp_Exp[i];
+        }
+    }
+    //for(int i =0;i<this->nSpecies;i++)
+    //{
+    //    std::cout<<this->tmp_Exp[i]<<" "<<this->invNegGstdByRT[i]<<std::endl;
+    //}
+    //std::exit(0);
     if(this->n_PlogReaction>0)
     {
         this->findPlogPressureRange(p);
@@ -329,25 +348,37 @@ OptReaction::dNdtByV
 
 
 
-    this->update11Reaction(c,dNdtByV,tmp_Exp);
-    this->update12Reaction(c,dNdtByV,tmp_Exp);
-    this->update13Reaction(c,dNdtByV,tmp_Exp);
+    //this->update11Reaction(c,dNdtByV,tmp_Exp);
+    this->RF11RR(c,dNdtByV,tmp_Exp);
+    this->RF11IR(c,dNdtByV,tmp_Exp);
+    this->RF11NER(c,dNdtByV,tmp_Exp);
 
+    //this->update12Reaction(c,dNdtByV,tmp_Exp);
+    this->RF12RR(c,dNdtByV,tmp_Exp);
+    this->RF12IR(c,dNdtByV,tmp_Exp);
+    this->RF12NER(c,dNdtByV,tmp_Exp);
+
+    //this->update13Reaction(c,dNdtByV,tmp_Exp);
+
+    this->RF13RR(c,dNdtByV,tmp_Exp);
+    this->RF13IR(c,dNdtByV,tmp_Exp);
+    this->RF13NER(c,dNdtByV,tmp_Exp);
+    //std::exit(0);
     //this->update21Reaction(c,dNdtByV,tmp_Exp);
 
-    this->update21ReversibleReaction(c,dNdtByV,tmp_Exp);
-    this->update21IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    this->update21NonEquilibriumReaction(c,dNdtByV,tmp_Exp);    
+    this->RF21RR(c,dNdtByV,tmp_Exp);
+    this->RF21IR(c,dNdtByV,tmp_Exp);
+    this->RF21NER(c,dNdtByV,tmp_Exp);
     //this->update22Reaction(c,dNdtByV,tmp_Exp);
 
     
-    this->update22ReversibleReaction(c,dNdtByV,tmp_Exp);
-    this->update22IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    this->update22NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
+    this->RF22RR(c,dNdtByV,tmp_Exp);
+    this->RF22IR(c,dNdtByV,tmp_Exp);    
+    this->RF22NER(c,dNdtByV,tmp_Exp);
 
-    this->update23ReversibleReaction(c,dNdtByV,tmp_Exp);
-    this->update23IrreversibleReaction(c,dNdtByV,tmp_Exp);    
-    this->update23NonEquilibriumReaction(c,dNdtByV,tmp_Exp);
+    this->RF23RR(c,dNdtByV,tmp_Exp);
+    this->RF23IR(c,dNdtByV,tmp_Exp);    
+    this->RF23NER(c,dNdtByV,tmp_Exp);
 
     //this->update23Reaction(c,dNdtByV,tmp_Exp);
 

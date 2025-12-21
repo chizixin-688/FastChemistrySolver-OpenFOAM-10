@@ -83,7 +83,7 @@ OptReaction::update23Reaction
 }
 
 void 
-OptReaction::update23ReversibleReaction
+OptReaction::RF23RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -266,7 +266,7 @@ OptReaction::update23ReversibleReaction
 }
 
 void 
-OptReaction::update23IrreversibleReaction
+OptReaction::RF23IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -402,7 +402,7 @@ OptReaction::update23IrreversibleReaction
     }
 }
 void 
-OptReaction::update23NonEquilibriumReaction
+OptReaction::RF23NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

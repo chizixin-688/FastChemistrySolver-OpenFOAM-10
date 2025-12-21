@@ -50,7 +50,7 @@ OptReaction::update21Reaction
 }
 
 void 
-OptReaction::update21ReversibleReaction
+OptReaction::RF21RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -215,7 +215,7 @@ OptReaction::update21ReversibleReaction
 
 
 void 
-OptReaction::update21IrreversibleReaction
+OptReaction::RF21IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -329,7 +329,7 @@ OptReaction::update21IrreversibleReaction
 
 
 void 
-OptReaction::update21NonEquilibriumReaction
+OptReaction::RF21NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

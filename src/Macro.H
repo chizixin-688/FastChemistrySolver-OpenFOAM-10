@@ -25,7 +25,6 @@
 
 
 #define TroeLimiter 2.220446049250313e-16
-//#define TroeLimiter 2.220446049250313e-32
 
 #define SRILimiter 2.220446049250313e-16
 
