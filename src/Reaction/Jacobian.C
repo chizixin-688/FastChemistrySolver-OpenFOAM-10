@@ -72,67 +72,23 @@ OptReaction::ddNdtByVdcTp
             this->tmp_Exp[i2] = get_elem2(tmp);
         }
     }
-
+    {
+        __m256d onev = _mm256_set1_pd(1);
+        unsigned int remain = this->nSpecies%4;
+        for(unsigned int i=0; i<this->nSpecies-remain; i=i+4)
+        {
+            __m256d r = load256d(&this->tmp_Exp[i]);
+            __m256d invr = _mm256_div_pd(onev,r);
+            store256d(&this->invNegGstdByRT[i],invr);
+        }
+        for(unsigned int i=this->nSpecies-remain; i<this->nSpecies; i=i+1)
+        {
+            this->invNegGstdByRT[i] = 1.0/this->tmp_Exp[i];
+        }
+    }
     if(this->n_PlogReaction>0)
     {
         this->findPlogPressureRange(p);
-        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
-        {
-            const size_t length = this->Prange[i].size();
-            if(p<=this->Prange[i][0])
-            {
-                double A0 = this->APlog[i][0];
-                double beta0 = this->betaPlog[i][0];
-                double Ta0 = this->TaPlog[i][0];
-
-                A[i+this->Ikf[6]] = A0;
-                A[i+this->Ikf[11]] = A0;
-                beta[i+this->Ikf[6]] = beta0;
-                beta[i+this->Ikf[11]] = beta0;
-                Ta[i+this->Ikf[6]] = Ta0;
-                Ta[i+this->Ikf[11]] = Ta0;
-                this->Pindex[i] = 0;
-            }
-            else if(p>=this->Prange[i][length-1])
-            {
-                double A1 = this->APlog[i][length-1];
-                double beta1 = this->betaPlog[i][length-1];
-                double Ta1 = this->TaPlog[i][length-1];
-                
-                A[i+this->Ikf[6]] = A1;
-                A[i+this->Ikf[11]] = A1;
-                beta[i+this->Ikf[6]] = beta1;
-                beta[i+this->Ikf[11]] = beta1;
-                Ta[i+this->Ikf[6]] = Ta1;
-                Ta[i+this->Ikf[11]] = Ta1;
-                this->Pindex[i] = static_cast<unsigned int>(length-1);
-            }
-            else
-            {
-                unsigned int index = 0;
-                for(unsigned int j = 0; j < length-1;j++)
-                {
-                    if(this->Prange[i][j]<=p && p<this->Prange[i][j+1])
-                    {
-                        index = j;
-                        break;
-                    }
-                }
-                this->Pindex[i] = index;
-                double A0 = this->APlog[i][index+0];
-                double A1 = this->APlog[i][index+1];
-                double beta0 = this->betaPlog[i][index+0];
-                double beta1 = this->betaPlog[i][index+1];
-                double Ta0 = this->TaPlog[i][index+0];
-                double Ta1 = this->TaPlog[i][index+1];
-                A[i+this->Ikf[6]] = A0;
-                A[i+this->Ikf[11]] = A1;
-                beta[i+this->Ikf[6]] = beta0;
-                beta[i+this->Ikf[11]] = beta1;
-                Ta[i+this->Ikf[6]] = Ta0;
-                Ta[i+this->Ikf[11]] = Ta1;
-            }
-        }*/
     }
 
     {
@@ -207,38 +163,6 @@ OptReaction::ddNdtByVdcTp
     if(this->n_PlogReaction>0)
     {
         this->evalPlogPartialDerivative();
-        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
-        {
-            const size_t length = this->Prange[i].size();
-            if(this->Pindex[i] == 0 || this->Pindex[i] == length-1)
-            {
-                continue;
-            }
-            else
-            {
-                unsigned int index = this->Pindex[i];
-                double weight = (this->logP - this->logPi[i][index])*this->rDeltaP_[i][index];
-                double Kf0 = this->Kf_[i+this->Ikf[6]];
-                double Kf1 = this->Kf_[i+this->Ikf[11]];
-                double Kf = Kf0*std::pow(Kf1/Kf0,weight);
-                this->Kf_[i+this->Ikf[6]] = Kf;
-
-                double beta0 = this->beta[i+this->Ikf[6]];
-                double beta1 = this->beta[i+this->Ikf[11]];
-                double Ta0 = this->Ta[i+this->Ikf[6]];
-                double Ta1 = this->Ta[i+this->Ikf[11]];
-                double invt = this->invT;
-
-                double dKfdT = Kf*invt*(beta0 + Ta0*invt + (beta1-beta0+(Ta1-Ta0)*invt)*weight);
-                this->dKfdT_[i+this->Ikf[6]] = dKfdT;
-            }
-        }*/
-
-        //for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
-        //{
-        //    std::cout<<this->Kf_[i+this->Ikf[6]]<<" "<<this->dKfdT_[i+this->Ikf[6]]<<std::endl;
-        //}
-        //std::exit(0);
     }
     {
         
@@ -417,20 +341,68 @@ OptReaction::ddNdtByVdcTp
             this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
         }*/
     }
+//auto GlobalTimeStart = std::chrono::high_resolution_clock::now();
 
-    this->updateJacobian11(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian12(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian13(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian21(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian22ReversibleReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian22IrreversibleReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian22NonEquilibriumReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian23(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian31(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian32(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobian33(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+//for(unsigned int i =0;i<10000000;i++)
+//{    
+    for(auto funcPtr : JFptr)
+    {
+        (this->*funcPtr)(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    }
+
+
+    /*this->JF11RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF11IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF11NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+    this->JF12RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF12IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF12NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+    this->JF13RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF13IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF13NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF21RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF21IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF21NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF22RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF22IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF22NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF23RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF23IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF23NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF31RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF31IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF31NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF32RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF32IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF32NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
+
+    this->JF33RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF33IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->JF33NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+
     this->updateJacobianGlobalNonIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
+    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);*/
+
+
+//}
+//auto duration = (std::chrono::duration_cast<std::chrono::microseconds>
+//(std::chrono::high_resolution_clock::now()-GlobalTimeStart));
+//    std::cout<<duration.count()<<std::endl;
+//    std::exit(0);
+
 
 
 

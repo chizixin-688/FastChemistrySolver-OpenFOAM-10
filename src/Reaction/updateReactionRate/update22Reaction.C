@@ -207,8 +207,7 @@ OptReaction::RF22RR
         const unsigned int i2 = this->reversibleReaction22index[k+2];
         const unsigned int i3 = this->reversibleReaction22index[k+3];
 
-        
-
+        {
             const unsigned int sl0a = lhsSpeciesIndex1D22RR[rhsIndex+0];
             const unsigned int sl1a = lhsSpeciesIndex1D22RR[rhsIndex+1];
             
@@ -235,9 +234,11 @@ OptReaction::RF22RR
             dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
             dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
             dNdtByV[sr1a] = dNdtByV[sr1a] + q0;
+        }
 
-            //rhsIndex = rhsIndex+2;
 
+
+        {
             const unsigned int sl0b = lhsSpeciesIndex1D22RR[rhsIndex+2];
             const unsigned int sl1b = lhsSpeciesIndex1D22RR[rhsIndex+3];
             
@@ -264,8 +265,8 @@ OptReaction::RF22RR
             dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
             dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
             dNdtByV[sr1b] = dNdtByV[sr1b] + q1;
-
-
+        }
+        {
             const unsigned int sl0c = lhsSpeciesIndex1D22RR[rhsIndex+4];
             const unsigned int sl1c = lhsSpeciesIndex1D22RR[rhsIndex+5];
             
@@ -293,8 +294,8 @@ OptReaction::RF22RR
             dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
             dNdtByV[sr1c] = dNdtByV[sr1c] + q2;
 
-
-
+        }
+        {
             const unsigned int sl0d = lhsSpeciesIndex1D22RR[rhsIndex+6];
             const unsigned int sl1d = lhsSpeciesIndex1D22RR[rhsIndex+7];
             
@@ -320,6 +321,8 @@ OptReaction::RF22RR
             dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
             dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
             dNdtByV[sr1d] = dNdtByV[sr1d] + q3;
+        }
+
 
             rhsIndex = rhsIndex+8;
     }

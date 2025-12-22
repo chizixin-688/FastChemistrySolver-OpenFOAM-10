@@ -143,7 +143,7 @@ void  OptReaction::updateJacobian22
 }   
 
 
-void  OptReaction::updateJacobian22ReversibleReaction
+void  OptReaction::JF22RR
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -179,17 +179,23 @@ void  OptReaction::updateJacobian22ReversibleReaction
         double dKfdT0 = this->dKfdT_[i0];
         double Kr0 = 0;
         double dKrdT0 = 0;
-        double invKc0 = 0;
+        //double invKc0 = 0;
 
         
-            const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            double Kc0 = Kp0;  
-            Kc0 = Kc0 > KcLimiter?Kc0:KcLimiter;
+            //const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+            //double Kc0 = std::max(Kp0,KcLimiter);
+            //const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
+            //const double dKcdTByKc0 = sumVdBdT0;    
+            //invKc0 = 1.0/Kc0;    
+            //Kr0 = Kf0*invKc0;
+            //dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));
+
+            const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a])*(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+            double invKc0 = std::min(invKp0,invKcLimiter);
             const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
             const double dKcdTByKc0 = sumVdBdT0;    
-            invKc0 = 1.0/Kc0;    
             Kr0 = Kf0*invKc0;
-            dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));     
+            dKrdT0 = (dKfdT0*invKc0 - (invKc0 < invKcLimiter ? Kr0*dKcdTByKc0 : 0));
 
             const double dCrdC0a = C[sr1a];
             const double dCrdC1a = C[sr0a];
@@ -279,14 +285,21 @@ void  OptReaction::updateJacobian22ReversibleReaction
         double invKc1 = 0;
 
         
-            const double Kp1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
-            double Kc1 = Kp1;  
-            Kc1 = Kc1 > KcLimiter?Kc1:KcLimiter;
+            //const double Kp1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
+            //double Kc1 = Kp1;  
+            //Kc1 = Kc1 > KcLimiter?Kc1:KcLimiter;
+            //const double sumVdBdT1 = (dBdT[sr0b] + dBdT[sr1b]) - (dBdT[sl0b] + dBdT[sl1b]);
+            //const double dKcdTByKc1 = sumVdBdT1;    
+            //invKc1 = 1.0/Kc1;    
+            //Kr1 = Kf1*invKc1;
+            //dKrdT1 = (dKfdT1*invKc1 - (Kc1 > KcLimiter ? Kr1*dKcdTByKc1 : 0));    
+
+            const double invKp1 = (invNegGstdByRT[sr0b]*invNegGstdByRT[sr1b])*(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
+            invKc1 = std::min(invKp1,invKcLimiter);
             const double sumVdBdT1 = (dBdT[sr0b] + dBdT[sr1b]) - (dBdT[sl0b] + dBdT[sl1b]);
             const double dKcdTByKc1 = sumVdBdT1;    
-            invKc1 = 1.0/Kc1;    
             Kr1 = Kf1*invKc1;
-            dKrdT1 = (dKfdT1*invKc1 - (Kc1 > KcLimiter ? Kr1*dKcdTByKc1 : 0));     
+            dKrdT1 = (dKfdT1*invKc1 - (invKc1 < invKcLimiter ? Kr1*dKcdTByKc1 : 0));
 
             const double dCrdC0b = C[sr1b];
             const double dCrdC1b = C[sr0b];
@@ -377,14 +390,21 @@ void  OptReaction::updateJacobian22ReversibleReaction
         double invKc2 = 0;
 
         
-            const double Kp2 = (ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
-            double Kc2 = Kp2;  
-            Kc2 = Kc2 > KcLimiter?Kc2:KcLimiter;
+            //const double Kp2 = (ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
+            //double Kc2 = Kp2;  
+            //Kc2 = Kc2 > KcLimiter?Kc2:KcLimiter;
+            //const double sumVdBdT2 = (dBdT[sr0c] + dBdT[sr1c]) - (dBdT[sl0c] + dBdT[sl1c]);
+            //const double dKcdTByKc2 = sumVdBdT2;    
+            //invKc2 = 1.0/Kc2;    
+            //Kr2 = Kf2*invKc2;
+            //dKrdT2 = (dKfdT2*invKc2 - (Kc2 > KcLimiter ? Kr2*dKcdTByKc2 : 0));  
+
+            const double invKp2 = (invNegGstdByRT[sr0c]*invNegGstdByRT[sr1c])*(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
+            invKc2 = std::min(invKp2,invKcLimiter);
             const double sumVdBdT2 = (dBdT[sr0c] + dBdT[sr1c]) - (dBdT[sl0c] + dBdT[sl1c]);
             const double dKcdTByKc2 = sumVdBdT2;    
-            invKc2 = 1.0/Kc2;    
             Kr2 = Kf2*invKc2;
-            dKrdT2 = (dKfdT2*invKc2 - (Kc2 > KcLimiter ? Kr2*dKcdTByKc2 : 0));     
+            dKrdT2 = (dKfdT2*invKc2 - (invKc2 < invKcLimiter ? Kr2*dKcdTByKc2 : 0));
 
             const double dCrdC0c = C[sr1c];
             const double dCrdC1c = C[sr0c];
@@ -475,14 +495,21 @@ void  OptReaction::updateJacobian22ReversibleReaction
         double invKc3 = 0;
 
         
-            const double Kp3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
-            double Kc3 = Kp3;  
-            Kc3 = Kc3 > KcLimiter?Kc3:KcLimiter;
+            //const double Kp3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
+            //double Kc3 = Kp3;  
+            //Kc3 = Kc3 > KcLimiter?Kc3:KcLimiter;
+            //const double sumVdBdT3 = (dBdT[sr0d] + dBdT[sr1d]) - (dBdT[sl0d] + dBdT[sl1d]);
+            //const double dKcdTByKc3 = sumVdBdT3;    
+            //invKc3 = 1.0/Kc3;    
+            //Kr3 = Kf3*invKc3;
+            //dKrdT3 = (dKfdT3*invKc3 - (Kc3 > KcLimiter ? Kr3*dKcdTByKc3 : 0));    
+
+            const double invKp3 = (invNegGstdByRT[sr0d]*invNegGstdByRT[sr1d])*(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
+            invKc3 = std::min(invKp3,invKcLimiter);
             const double sumVdBdT3 = (dBdT[sr0d] + dBdT[sr1d]) - (dBdT[sl0d] + dBdT[sl1d]);
             const double dKcdTByKc3 = sumVdBdT3;    
-            invKc3 = 1.0/Kc3;    
             Kr3 = Kf3*invKc3;
-            dKrdT3 = (dKfdT3*invKc3 - (Kc3 > KcLimiter ? Kr3*dKcdTByKc3 : 0));     
+            dKrdT3 = (dKfdT3*invKc3 - (invKc3 < invKcLimiter ? Kr3*dKcdTByKc3 : 0));
 
             const double dCrdC0d = C[sr1d];
             const double dCrdC1d = C[sr0d];
@@ -580,14 +607,21 @@ void  OptReaction::updateJacobian22ReversibleReaction
         double invKc0 = 0;
 
         
-            const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            double Kc0 = Kp0;  
-            Kc0 = Kc0 > KcLimiter?Kc0:KcLimiter;
+            //const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+            //double Kc0 = Kp0;  
+            //Kc0 = Kc0 > KcLimiter?Kc0:KcLimiter;
+            //const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
+            //const double dKcdTByKc0 = sumVdBdT0;    
+            //invKc0 = 1.0/Kc0;    
+            //Kr0 = Kf0*invKc0;
+            //dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));   
+
+            const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a])*(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+            invKc0 = std::min(invKp0,invKcLimiter);
             const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
             const double dKcdTByKc0 = sumVdBdT0;    
-            invKc0 = 1.0/Kc0;    
             Kr0 = Kf0*invKc0;
-            dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));     
+            dKrdT0 = (dKfdT0*invKc0 - (invKc0 < invKcLimiter ? Kr0*dKcdTByKc0 : 0));
 
             const double dCrdC0a = C[sr1a];
             const double dCrdC1a = C[sr0a];
@@ -668,7 +702,7 @@ void  OptReaction::updateJacobian22ReversibleReaction
     }
 }   
 
-void  OptReaction::updateJacobian22IrreversibleReaction
+void  OptReaction::JF22IR
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -735,8 +769,7 @@ void  OptReaction::updateJacobian22IrreversibleReaction
             __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
             __m256d CF_ = _mm256_set1_pd(CF);            
             __m256d CR_ = _mm256_set1_pd(CR);  
-            //double dKrdC = 0;
-            //dKrdC = (0);
+
             __m256d dKrdC_ = _mm256_set1_pd(0);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
@@ -769,7 +802,7 @@ void  OptReaction::updateJacobian22IrreversibleReaction
     }
 }   
 
-void  OptReaction::updateJacobian22NonEquilibriumReaction
+void  OptReaction::JF22NER
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,

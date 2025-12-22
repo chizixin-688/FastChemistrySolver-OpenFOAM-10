@@ -1786,12 +1786,25 @@ void OptReaction::readInfo
         }  
     } 
 
-    this->Pow_pByRT_SumVki_I.insert({sumVki[0],0.0});
-    for(int i = 1; i < sumVki.size();i++)
+    //this->Pow_pByRT_SumVki_I.insert({sumVki[0],0.0});
+    for(int i = 0; i < sumVki.size();i++)
     {
         auto it = this->Pow_pByRT_SumVki_I.find(sumVki[i]);
         if(it==this->Pow_pByRT_SumVki_I.end())
-        {this->Pow_pByRT_SumVki_I.insert({sumVki[i],0.0});}
+        {
+            if
+            (
+                sumVki[i] !=0 && 
+                sumVki[i] !=1 && 
+                sumVki[i] !=2 && 
+                sumVki[i] !=-1 && 
+                sumVki[i] !=-2 
+            )
+            {
+                this->Pow_pByRT_SumVki_I.insert({sumVki[i],0.0});
+            }
+
+        }
     }
 
     int alignNKf = ((this->Ikf[12]+3)/4)*4;
@@ -1937,7 +1950,7 @@ void OptReaction::readInfo
 
     // find reaction index and information for reactions with different reactant and product number
     /*********************************************************************************************/
-    this->lhsSpeciesIndex1D11.reserve(lhsSpeciesIndex1D.size());
+    /*this->lhsSpeciesIndex1D11.reserve(lhsSpeciesIndex1D.size());
     this->rhsSpeciesIndex1D11.reserve(lhsSpeciesIndex1D.size());
     this->lhsSpeciesIndex1D12.reserve(lhsSpeciesIndex1D.size());
     this->rhsSpeciesIndex1D12.reserve(lhsSpeciesIndex1D.size());
@@ -1956,7 +1969,7 @@ void OptReaction::readInfo
     this->lhsSpeciesIndex1D32.reserve(lhsSpeciesIndex1D.size());
     this->rhsSpeciesIndex1D32.reserve(lhsSpeciesIndex1D.size());
     this->lhsSpeciesIndex1D33.reserve(lhsSpeciesIndex1D.size());
-    this->rhsSpeciesIndex1D33.reserve(lhsSpeciesIndex1D.size());
+    this->rhsSpeciesIndex1D33.reserve(lhsSpeciesIndex1D.size());*/
 
     for(std::size_t i = 0; i < this->lhsSpeciesIndex.size();i++)
     {
@@ -1966,6 +1979,7 @@ void OptReaction::readInfo
         if(this->isGlobal[i]==1)
         {
             this->reactionGNIindex.push_back(static_cast<unsigned int>(i));
+
             continue;
         }
 
@@ -2156,39 +2170,279 @@ void OptReaction::readInfo
             this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][0]);
             this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][1]);
             this->lhsSpeciesIndex1D31.push_back(this->lhsSpeciesIndex[i][2]);
-
             this->rhsSpeciesIndex1D31.push_back(this->rhsSpeciesIndex[i][0]);
-
             this->reaction31index.push_back(static_cast<unsigned int>(i));
+            if(this->isIrreversible[i]==0)
+            {
+                this->reversibleReaction31index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D31RR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D31RR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D31RR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D31RR.push_back(this->rhsSpeciesIndex[i][0]);
+            }
+            else if(this->isIrreversible[i]==1)
+            {
+                this->irreversibleReaction31index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D31IR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D31IR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D31IR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D31IR.push_back(this->rhsSpeciesIndex[i][0]);
+            }
+            else if(this->isIrreversible[i]==2)
+            {
+                this->nonEquilibriumReaction31index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D31NER.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D31NER.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D31NER.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D31NER.push_back(this->rhsSpeciesIndex[i][0]);
+            }
+            //std::exit(0);
         }
         else if(lhsNumber==3 && rhsNumber==2)
         {
             this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][0]);
             this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][1]);
             this->lhsSpeciesIndex1D32.push_back(this->lhsSpeciesIndex[i][2]);
-
             this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D32.push_back(this->rhsSpeciesIndex[i][1]);
-            
             this->reaction32index.push_back(static_cast<unsigned int>(i));
+            if(this->isIrreversible[i]==0)
+            {
+                this->reversibleReaction32index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D32RR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D32RR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D32RR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D32RR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D32RR.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+            else if(this->isIrreversible[i]==1)
+            {
+                this->irreversibleReaction32index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D32IR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D32IR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D32IR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D32IR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D32IR.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+            else if(this->isIrreversible[i]==2)
+            {
+                this->nonEquilibriumReaction32index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D32NER.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D32NER.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D32NER.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D32NER.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D32NER.push_back(this->rhsSpeciesIndex[i][1]);
+            }
+
         }
         else if(lhsNumber==3 && rhsNumber==3)
         {
             this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][0]);
             this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][1]);
             this->lhsSpeciesIndex1D33.push_back(this->lhsSpeciesIndex[i][2]);
-
             this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][0]);
             this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][1]);
             this->rhsSpeciesIndex1D33.push_back(this->rhsSpeciesIndex[i][2]);
-            
             this->reaction33index.push_back(static_cast<unsigned int>(i));
+            if(this->isIrreversible[i]==0)
+            {
+                this->reversibleReaction33index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D33RR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D33RR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D33RR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D33RR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D33RR.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D33RR.push_back(this->rhsSpeciesIndex[i][2]);
+            }
+            else if(this->isIrreversible[i]==1)
+            {
+                this->irreversibleReaction33index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D33IR.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D33IR.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D33IR.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D33IR.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D33IR.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D33IR.push_back(this->rhsSpeciesIndex[i][2]);
+            }
+            else if(this->isIrreversible[i]==2)
+            {
+                this->nonEquilibriumReaction33index.push_back(static_cast<unsigned int>(i));
+                this->lhsSpeciesIndex1D33NER.push_back(this->lhsSpeciesIndex[i][0]);
+                this->lhsSpeciesIndex1D33NER.push_back(this->lhsSpeciesIndex[i][1]);
+                this->lhsSpeciesIndex1D33NER.push_back(this->lhsSpeciesIndex[i][2]);
+                this->rhsSpeciesIndex1D33NER.push_back(this->rhsSpeciesIndex[i][0]);
+                this->rhsSpeciesIndex1D33NER.push_back(this->rhsSpeciesIndex[i][1]);
+                this->rhsSpeciesIndex1D33NER.push_back(this->rhsSpeciesIndex[i][2]);
+            }
         }
         if(lhsNumber>3 || rhsNumber>3)
         {
             this->reactionGIindex.push_back(static_cast<unsigned int>(i));
         }
     }
+
+    {
+        if(this->reactionGNIindex.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::updateGlobalNonIntegerReaction);
+            this->JFptr.push_back(&OptReaction::updateJacobianGlobalNonIntegerReaction);
+        }
+        if(this->reactionGIindex.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::updateGlobalIntegerReaction);
+            this->JFptr.push_back(&OptReaction::updateJacobianGlobalIntegerReaction);
+        }
+
+        if(this->reversibleReaction11index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF11RR);
+            this->JFptr.push_back(&OptReaction::JF11RR);
+        }
+        if(this->irreversibleReaction11index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF11IR);
+            this->JFptr.push_back(&OptReaction::JF11IR);
+        }
+        if(this->nonEquilibriumReaction11index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF11NER);
+            this->JFptr.push_back(&OptReaction::JF11NER);
+        }
+
+        if(this->reversibleReaction12index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF12RR);
+            this->JFptr.push_back(&OptReaction::JF12RR);
+        }
+        if(this->irreversibleReaction12index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF12IR);
+            this->JFptr.push_back(&OptReaction::JF12IR);
+        }
+        if(this->nonEquilibriumReaction12index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF12NER);
+            this->JFptr.push_back(&OptReaction::JF12NER);
+        }
+
+        if(this->reversibleReaction13index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF13RR);
+            this->JFptr.push_back(&OptReaction::JF13RR);
+        }
+        if(this->irreversibleReaction13index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF13IR);
+            this->JFptr.push_back(&OptReaction::JF13IR);
+        }
+        if(this->nonEquilibriumReaction13index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF13NER);
+            this->JFptr.push_back(&OptReaction::JF13NER);
+        }
+
+
+        if(this->reversibleReaction21index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF21RR);
+            this->JFptr.push_back(&OptReaction::JF21RR);
+        }
+        if(this->irreversibleReaction21index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF21IR);
+            this->JFptr.push_back(&OptReaction::JF21IR);
+        }
+        if(this->nonEquilibriumReaction21index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF21NER);
+            this->JFptr.push_back(&OptReaction::JF21NER);
+        }
+
+
+        if(this->reversibleReaction22index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF22RR);
+            this->JFptr.push_back(&OptReaction::JF22RR);
+        }
+        if(this->irreversibleReaction22index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF22IR);
+            this->JFptr.push_back(&OptReaction::JF22IR);
+        }
+        if(this->nonEquilibriumReaction22index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF22NER);
+            this->JFptr.push_back(&OptReaction::JF22NER);
+        }
+
+
+        if(this->reversibleReaction23index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF23RR);
+            this->JFptr.push_back(&OptReaction::JF23RR);
+        }
+        if(this->irreversibleReaction23index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF23IR);
+            this->JFptr.push_back(&OptReaction::JF23IR);
+        }
+        if(this->nonEquilibriumReaction23index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF23NER);
+            this->JFptr.push_back(&OptReaction::JF23NER);
+        }
+
+        if(this->reversibleReaction31index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF31RR);
+            this->JFptr.push_back(&OptReaction::JF31RR);
+        }
+        if(this->irreversibleReaction31index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF31IR);
+            this->JFptr.push_back(&OptReaction::JF31IR);
+        }
+        if(this->nonEquilibriumReaction31index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF31NER);
+            this->JFptr.push_back(&OptReaction::JF31NER);
+        }
+
+        if(this->reversibleReaction32index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF32RR);
+            this->JFptr.push_back(&OptReaction::JF32RR);
+        }
+        if(this->irreversibleReaction32index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF32IR);
+            this->JFptr.push_back(&OptReaction::JF32IR);
+        }
+        if(this->nonEquilibriumReaction32index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF32NER);
+            this->JFptr.push_back(&OptReaction::JF32NER);
+        }
+
+        if(this->reversibleReaction33index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF33RR);
+            this->JFptr.push_back(&OptReaction::JF33RR);
+        }
+        if(this->irreversibleReaction33index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF33IR);
+            this->JFptr.push_back(&OptReaction::JF33IR);
+        }
+        if(this->nonEquilibriumReaction33index.size()>0)
+        {
+            this->RFptr.push_back(&OptReaction::RF33NER);
+            this->JFptr.push_back(&OptReaction::JF33NER);
+        }
+    }
+
+
+
 
     //for(int i = 0;i<this->n_Reactions;i++)
     //{

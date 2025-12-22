@@ -346,10 +346,17 @@ OptReaction::dNdtByV
         this->evalSRIRateConstant();
     }
 
+//auto GlobalTimeStart = std::chrono::high_resolution_clock::now();
 
-
+//for(unsigned int i =0;i<10000000;i++)
+//{
+    for(auto funcPtr : RFptr)
+    {
+        (this->*funcPtr)(c,dNdtByV,tmp_Exp);
+    }
+    
     //this->update11Reaction(c,dNdtByV,tmp_Exp);
-    this->RF11RR(c,dNdtByV,tmp_Exp);
+    /*this->RF11RR(c,dNdtByV,tmp_Exp);
     this->RF11IR(c,dNdtByV,tmp_Exp);
     this->RF11NER(c,dNdtByV,tmp_Exp);
 
@@ -382,11 +389,30 @@ OptReaction::dNdtByV
 
     //this->update23Reaction(c,dNdtByV,tmp_Exp);
 
-    this->update31Reaction(c,dNdtByV,tmp_Exp);
-    this->update32Reaction(c,dNdtByV,tmp_Exp);
-    this->update33Reaction(c,dNdtByV,tmp_Exp);
+    //this->update31Reaction(c,dNdtByV,tmp_Exp);
+    this->RF31RR(c,dNdtByV,tmp_Exp);
+    this->RF31IR(c,dNdtByV,tmp_Exp);    
+    this->RF31NER(c,dNdtByV,tmp_Exp);
+
+    //this->update32Reaction(c,dNdtByV,tmp_Exp);
+    this->RF32RR(c,dNdtByV,tmp_Exp);
+    this->RF32IR(c,dNdtByV,tmp_Exp);    
+    this->RF32NER(c,dNdtByV,tmp_Exp);
+
+
+    //this->update33Reaction(c,dNdtByV,tmp_Exp);
+    this->RF33RR(c,dNdtByV,tmp_Exp);
+    this->RF33IR(c,dNdtByV,tmp_Exp);    
+    this->RF33NER(c,dNdtByV,tmp_Exp);
     this->updateGlobalIntegerReaction(c,dNdtByV,tmp_Exp);
-    this->updateGlobalNonIntegerReaction(c,dNdtByV,tmp_Exp);
+    this->updateGlobalNonIntegerReaction(c,dNdtByV,tmp_Exp);*/
+    
+//}
+//auto duration = (std::chrono::duration_cast<std::chrono::microseconds>
+//(std::chrono::high_resolution_clock::now()-GlobalTimeStart));
+//    std::cout<<duration.count()<<std::endl;
+//    std::exit(0);
+
 
 
 

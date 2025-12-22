@@ -81,7 +81,7 @@ OptReaction::RF21RR
         //double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
         //Kc0 = std::max(Kc0,KcLimiter);
         //Kr0 = Kf0/Kc0;
-        const double invKp0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])/(ExpNegGbyRT[sr0a]);
+        const double invKp0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a])*(invNegGstdByRT[sr0a]);
         double invKc0 = invKp0*this->Pow_pByRT_SumVki[3];
         invKc0 = std::min(invKc0,invKcLimiter);
         Kr0 = Kf0*invKc0;
@@ -108,7 +108,7 @@ OptReaction::RF21RR
         //double Kc1 = Kp1*this->Pow_pByRT_SumVki[1];
         //Kc1 = std::max(Kc1,KcLimiter);
         //Kr1 = Kf1/Kc1;         
-        const double invKp1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])/(ExpNegGbyRT[sr0b]);
+        const double invKp1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b])*(invNegGstdByRT[sr0b]);
         double invKc1 = invKp1*this->Pow_pByRT_SumVki[3];
         invKc1 = std::min(invKc1,invKcLimiter);
         Kr1 = Kf1*invKc1;
@@ -135,7 +135,7 @@ OptReaction::RF21RR
         //double Kc2 = Kp2*this->Pow_pByRT_SumVki[1];
         //Kc2 = std::max(Kc2,KcLimiter);
         //Kr2 = Kf2/Kc2;
-        const double invKp2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])/(ExpNegGbyRT[sr0c]);
+        const double invKp2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c])*(invNegGstdByRT[sr0c]);
         double invKc2 = invKp2*this->Pow_pByRT_SumVki[3];
         invKc2 = std::min(invKc2,invKcLimiter);
         Kr2 = Kf2*invKc2;
@@ -163,7 +163,7 @@ OptReaction::RF21RR
         //double Kc3 = Kp3*this->Pow_pByRT_SumVki[1];
         //Kc3 = std::max(Kc3,KcLimiter);
         //Kr3 = Kf3/Kc3;
-        const double invKp3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])/(ExpNegGbyRT[sr0d]);
+        const double invKp3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d])*(invNegGstdByRT[sr0d]);
         double invKc3 = invKp3*this->Pow_pByRT_SumVki[3];
         invKc3 = std::min(invKc3,invKcLimiter);
         Kr3 = Kf3*invKc3;
@@ -195,7 +195,7 @@ OptReaction::RF21RR
         //double Kc0 = Kp0*this->Pow_pByRT_SumVki[1];
         //Kc0 = std::max(Kc0,KcLimiter);
         //Kr0 = Kf0/Kc0;         
-        const double invKp = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])/(ExpNegGbyRT[sr0]);
+        const double invKp = (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1])*(invNegGstdByRT[sr0]);
         double invKc = invKp*this->Pow_pByRT_SumVki[3];
         invKc = std::min(invKc,invKcLimiter);
         Kr = Kf*invKc;

@@ -112,10 +112,17 @@ OptReaction::RF23RR
         double Kf0 = Kf_[i0];
 
         
-            const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a]*ExpNegGbyRT[sr2a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            double Kc0 = Kp0*this->Pow_pByRT_SumVki[3];
-            Kc0 = std::max(Kc0,KcLimiter);
-            Kr0 = Kf0/Kc0;         
+            //const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a]*ExpNegGbyRT[sr2a])*
+            //    (invNegGstdByRT[sl0a]*invNegGstdByRT[sl1a]);
+            //double Kc0 = Kp0*this->Pow_pByRT_SumVki[3];
+            //Kc0 = std::max(Kc0,KcLimiter);
+            //Kr0 = Kf0/Kc0;
+
+            const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a]*invNegGstdByRT[sr2a])*
+                (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
+            double invKc0 = invKp0*this->Pow_pByRT_SumVki[1];
+            invKc0 = std::min(invKc0, invKcLimiter);
+            Kr0 = Kf0*invKc0;
         
 
         const double CF0 = c[sl0a]*c[sl1a];
@@ -144,11 +151,16 @@ OptReaction::RF23RR
         double Kf1 = Kf_[i1];
 
         
-            const double Kp1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b]*ExpNegGbyRT[sr2b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
-            double Kc1 = Kp1*this->Pow_pByRT_SumVki[3];
-            Kc1 = std::max(Kc1,KcLimiter);
-            Kr1 = Kf1/Kc1;         
-        
+            //const double Kp1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b]*ExpNegGbyRT[sr2b])*
+            //    (invNegGstdByRT[sl0b]*invNegGstdByRT[sl1b]);
+            //double Kc1 = Kp1*this->Pow_pByRT_SumVki[3];
+            //Kc1 = std::max(Kc1,KcLimiter);
+            //Kr1 = Kf1/Kc1;
+            const double invKp1 = (invNegGstdByRT[sr0b]*invNegGstdByRT[sr1b]*invNegGstdByRT[sr2b])*
+                (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
+            double invKc1 = invKp1*this->Pow_pByRT_SumVki[1];
+            invKc1 = std::min(invKc1,invKcLimiter);
+            Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b]*c[sl1b];
         const double CR1 = c[sr0b]*c[sr1b]*c[sr2b];
@@ -173,10 +185,16 @@ OptReaction::RF23RR
         double Kf2 = Kf_[i2];
 
         
-            const double Kp2 = (ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c]*ExpNegGbyRT[sr2c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
-            double Kc2 = Kp2*this->Pow_pByRT_SumVki[3];
-            Kc2 = std::max(Kc2,KcLimiter);
-            Kr2 = Kf2/Kc2;
+            //const double Kp2 = (ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c]*ExpNegGbyRT[sr2c])*
+            //    (invNegGstdByRT[sl0c]*invNegGstdByRT[sl1c]);
+            //double Kc2 = Kp2*this->Pow_pByRT_SumVki[3];
+            //Kc2 = std::max(Kc2,KcLimiter);
+            //Kr2 = Kf2/Kc2;
+            const double invKp2 = (invNegGstdByRT[sr0c]*invNegGstdByRT[sr1c]*invNegGstdByRT[sr2c])*
+                (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
+            double invKc2 = invKp2*this->Pow_pByRT_SumVki[1];
+            invKc2 = std::min(invKc2,invKcLimiter);
+            Kr2 = Kf2*invKc2;
         
 
         const double CF2 = c[sl0c]*c[sl1c];
@@ -203,10 +221,16 @@ OptReaction::RF23RR
         double Kf3 = Kf_[i3];
 
         
-            const double Kp3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d]*ExpNegGbyRT[sr2d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
-            double Kc3 = Kp3*this->Pow_pByRT_SumVki[3];
-            Kc3 = std::max(Kc3,KcLimiter);
-            Kr3 = Kf3/Kc3;
+            //const double Kp3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d]*ExpNegGbyRT[sr2d])*
+            //    (invNegGstdByRT[sl0d]*invNegGstdByRT[sl1d]);
+            //double Kc3 = Kp3*this->Pow_pByRT_SumVki[3];
+            //Kc3 = std::max(Kc3,KcLimiter);
+            //Kr3 = Kf3/Kc3;
+            const double invKp3 = (invNegGstdByRT[sr0d]*invNegGstdByRT[sr1d]*invNegGstdByRT[sr2d])*
+                (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
+            double invKc3 = invKp3*this->Pow_pByRT_SumVki[1];
+            invKc3 = std::min(invKc3,invKcLimiter);
+            Kr3 = Kf3*invKc3;
         
 
         const double CF3 = c[sl0d]*c[sl1d];
@@ -242,12 +266,17 @@ OptReaction::RF23RR
         double Kr = 0;
         double Kf = Kf_[i];
 
-        {
-            const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
-            double Kc = Kp*this->Pow_pByRT_SumVki[3];
-            Kc = std::max(Kc,KcLimiter);
-            Kr = Kf/Kc;         
-        }
+        
+            //const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])*
+            //    (invNegGstdByRT[sl0]*invNegGstdByRT[sl1]);
+            //double Kc = Kp*this->Pow_pByRT_SumVki[3];
+            //Kc = std::max(Kc,KcLimiter);
+            //Kr = Kf/Kc;         
+            const double invKp = (invNegGstdByRT[sr0]*invNegGstdByRT[sr1]*invNegGstdByRT[sr2])*
+                (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
+            double invKc = invKp*this->Pow_pByRT_SumVki[1];
+            invKc = std::min(invKc,invKcLimiter);
+            Kr = Kf*invKc;    
 
         const double CF = c[sl0]*c[sl1];
         const double CR = c[sr0]*c[sr1]*c[sr2];
