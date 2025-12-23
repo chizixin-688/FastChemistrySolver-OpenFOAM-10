@@ -1,6 +1,5 @@
 #include "idealGas.H"
-#include <cstdlib>
-
+#include <cstring>
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -35,7 +34,7 @@ FastChemistry::idealGas::idealGas(const int n)
     {
         throw std::bad_alloc();
     }
-    std::memset(this->buffer, 0, alignSpecies*3*sizeof(double));
+    memset(this->buffer, 0, alignSpecies*3*sizeof(double));
     this->W = &this->buffer[0];
     this->invW = &this->buffer[alignSpecies*1];
     this->Hf = &this->buffer[alignSpecies*2];

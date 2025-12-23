@@ -210,15 +210,12 @@ public:
         inline void transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3);
 };
 
+
+} // End namespace FastChemistry
+
 #include "LUsolverI.H"
 
 
-} // End namespace Foam
-
-
-//#ifdef NoRepository
-//    #include "LUsolver.C" 
-//#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

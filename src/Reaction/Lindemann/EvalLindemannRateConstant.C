@@ -1,5 +1,5 @@
 #include "OptReaction.H"
-void OptReaction::evalLindemannRateConstant()const noexcept
+void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
 {
     __m256d one = _mm256_set1_pd(1.0);
 

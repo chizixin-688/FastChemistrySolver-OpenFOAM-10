@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 
-void 
-OptReaction::update22Reaction
+/*void 
+FastChemistry::OptReaction::update22Reaction
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -184,11 +184,11 @@ OptReaction::update22Reaction
             rhsIndex = rhsIndex+2;
         }
     }
-}
+}*/
 
 
 void 
-OptReaction::RF22RR
+FastChemistry::OptReaction::RF22RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -363,7 +363,7 @@ OptReaction::RF22RR
 }
 
 void 
-OptReaction::RF22IR
+FastChemistry::OptReaction::RF22IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -493,7 +493,7 @@ OptReaction::RF22IR
 
 
 void 
-OptReaction::RF22NER
+FastChemistry::OptReaction::RF22NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

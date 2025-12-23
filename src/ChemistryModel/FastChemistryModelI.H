@@ -46,7 +46,7 @@ inline Foam::label Foam::FastChemistryModel<UnusedThermo>::nReaction() const
 }
 
 template<class UnusedThermo>
-inline OptReaction& Foam::FastChemistryModel<UnusedThermo>::getReaction() const
+inline FastChemistry::OptReaction& Foam::FastChemistryModel<UnusedThermo>::getReaction() const
 {
     return reaction;
 }

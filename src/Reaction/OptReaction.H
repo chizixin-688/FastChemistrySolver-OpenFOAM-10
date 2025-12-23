@@ -55,6 +55,8 @@ SourceFiles
 #include "vec_math_avx2.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+namespace FastChemistry
+{
 /*---------------------------------------------------------------------------*\
                         Class Reaction Declaration
 \*---------------------------------------------------------------------------*/
@@ -304,13 +306,11 @@ public:
 
 
             mutable std::vector<unsigned int> reaction22index;
-
             mutable std::vector<unsigned int> reversibleReaction22index;
             mutable std::vector<unsigned int> irreversibleReaction22index;
             mutable std::vector<unsigned int> nonEquilibriumReaction22index;
 
             mutable std::vector<unsigned int> reaction23index;
-
             mutable std::vector<unsigned int> reversibleReaction23index;
             mutable std::vector<unsigned int> irreversibleReaction23index;
             mutable std::vector<unsigned int> nonEquilibriumReaction23index;
@@ -350,8 +350,8 @@ public:
 
 
             // 1D Data to save the index of reactants for specific reactions.
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D11;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D11;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D11;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D11;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D11RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D11RR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D11IR;
@@ -359,8 +359,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D11NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D11NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D12;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D12;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D12;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D12;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D12RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D12RR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D12IR;
@@ -368,8 +368,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D12NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D12NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D13;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D13;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D13;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D13;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D13RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D13RR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D13IR;
@@ -377,8 +377,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D13NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D13NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D21;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D21;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D21;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D21;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D21RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21RR;
@@ -390,8 +390,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21NER;
 
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D22;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D22;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D22;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D22;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22RR;
@@ -403,8 +403,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22NER;
 
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D23;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D23;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D23;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D23;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23RR;
@@ -415,8 +415,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D31;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D31;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D31;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D31;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31RR;
@@ -427,8 +427,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D32;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D32;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D32;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D32;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D32RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D32RR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D32IR;
@@ -436,8 +436,8 @@ public:
             mutable std::vector<unsigned int> lhsSpeciesIndex1D32NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D32NER;
 
-            mutable std::vector<unsigned int> lhsSpeciesIndex1D33;
-            mutable std::vector<unsigned int> rhsSpeciesIndex1D33;
+            //mutable std::vector<unsigned int> lhsSpeciesIndex1D33;
+            //mutable std::vector<unsigned int> rhsSpeciesIndex1D33;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D33RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D33RR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D33IR;
@@ -545,56 +545,13 @@ public:
             // Number of reaction that requires linear interpolation
             mutable unsigned int ActivePlogReactionNumber = 0;
 
-        // Data to store the parameters of Janf polynomial Fits.
-
-            // Store the parameters of polynomial Fits at high temperature range
-            // for all species.
-            mutable std::vector<std::array<double,7>> HCoeffs;
-
-            // Store the parameters of polynomial Fits at low temperature range
-            // for all species.            
-            mutable std::vector<std::array<double,7>> LCoeffs;
-
-            // Store the low temperature limits of all species.
-            mutable std::vector<double> Tlow;
-
-            // Store the high temperature limits of all species.
-            mutable std::vector<double> Thigh;
-
-            // Store the common temperature limits of all species.           
-            mutable std::vector<double> Tcommon;
-
-            // Store the minimum value of Tcommon of all species.
-            mutable double TcommonMin;
-
-            // Store the maximum value of Tcommon of all species.
-            mutable double TcommonMax;
-
-            // Store the minimum value of Tlow of all species.
-            mutable double TlowMin;
-
-            // Store the maximum value of Tlow of all species.
-            mutable double ThighMax;
-
-            // Pointer to point the coefficients of all species.
-            mutable std::vector<std::array<double,7>*> PtrCoeffs;
-
         // Thermodynamic parameter
-
-            // Moleweight of species. [kg/kmol]
-            mutable double* W;
-
-            // The reciprocal of moleweight of species.
-            mutable double* invW;
 
             // The standard Gibbs energy divided by RT
             mutable double* negGstdByRT;
 
             // The standard Gibbs energy divided by RT
             mutable double* invNegGstdByRT;
-
-            // The standard enthalpy of formation
-            mutable double* Hf;
 
             // Universal gas constant. [J/(kmol·K)]
             const static constexpr double Ru = 8314.470066505449722171761095523834228515625; 
@@ -635,7 +592,7 @@ public:
             mutable double logRuT;
       
         // Array
-            mutable double* buffer; 
+            //mutable double* buffer; 
 
 
         // Pointer for reaction function
@@ -695,55 +652,6 @@ public:
 
             void evalPlogPartialDerivative() const noexcept;
 
-            // Compute the F using SRI form.
-            /*inline double SRI_F
-            (
-                const double T,
-                const double Pr,
-                const unsigned i
-            ) const;*/
-
-            // Compute the F, the derivative of F w.r.t temperature
-            // and the derivative of F w.r.t Pr.
-            // Pr: reduced pressure.
-            /*inline void SRI_F_dFdT_dFdPr
-            (
-                const double T,
-                const double Pr,
-                const unsigned int i,
-                double& __restrict__ F,
-                double& __restrict__ dFdT,
-                double& __restrict__ dFdPr
-            ) const;*/
-
-            // Vectorized
-            /*inline void SRI_F_dFdT_dFdPr
-            (
-                const double T,
-                __m256d& __restrict__ Pr,
-                __m256d& __restrict__ F,
-                __m256d& __restrict__ dFdT,
-                __m256d& __restrict__ dFdPr,
-                const unsigned int i
-            ) const;*/
-
-            //void Troe_F_1() const noexcept;
-
-            //void Troe_F_2() const noexcept;         
-            
-            //void Troe_F_3() const noexcept;   
-
-            // Compute the F, the derivative of F w.r.t temperature
-            // and the derivative of F w.r.t Pr.
-            // Pr: reduced pressure.
-
-            //void Troe_Jac_1() const noexcept;
-
-            //void Troe_Jac_2() const noexcept;
-
-            //void Troe_Jac_3() const noexcept;
-
-
         // Jacobian matrix function
 
             // Compute the Jacobian matrix and reaction rate
@@ -758,453 +666,8 @@ public:
                 double* __restrict__ ddNdtByVdcT  
             ) const noexcept;
 
+            #include "JcFuncDeclaration.H"
 
-            // for one-one reactions. e.g. A<=>B.
-            void updateJacobian11
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF11RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF11IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF11NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            /*void inline JF11
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/
-
-            // for one-two reactions. e.g. A<=>B+B, A<=>B+C.
-            void updateJacobian12
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF12RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF12IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF12NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            /*void inline JF12
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/
-
-            // for one-three reactions. e.g. A<=>B+B+C, A<=>B+C+D.
-            /*void inline JF13
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/
-            void updateJacobian13
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF13RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF13IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF13NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for two-one reactions. e.g. A+A<=>B, A+B<=>C.
-            /*void inline JF21
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;  */       
-            void updateJacobian21
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF21RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF21IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF21NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for two-two reactions. e.g. A+A<=>B+C, A+B<=>C+D.
-            /*void inline JF22
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;   */
-            void updateJacobian22
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF22RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF22IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF22NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for two-three reactions. e.g. A+A<=>B+C+D, A+B<=>C+D+D.
-            /*void inline JF23
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/ 
-            void updateJacobian23
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF23RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF23IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF23NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for three-one reactions. e.g. A+A+A<=>B, A+B+C<=>D.
-            /*void inline JF31
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/  
-            void updateJacobian31
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            void JF31RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF31IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF31NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for three-two reactions. e.g. A+A+A<=>B+C, A+B+C<=>D+E.
-            /*void inline JF32
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept; */ 
-            void updateJacobian32
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF32RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF32IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF32NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for three-three reactions. e.g. A+A+A<=>B+C+D, A+B+C<=>D+E+F.
-            /*void inline JF33
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/  
-            void updateJacobian33
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF33RR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF33IR
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            void JF33NER
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-
-            // for general reactions with integer number. e.g. A+A+A+A<=>B+C+D, A+B+C<=>D+E+F.
-            /*void inline JFGI
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/  
-            void updateJacobianGlobalIntegerReaction
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
-            // for general reactions with non-integer number. e.g. 3.5A<=>B+C+D.
-            /*void inline JFGNI
-            (
-                unsigned int i,
-                double Kf,
-                double dKfdT,
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;*/  
-            void updateJacobianGlobalNonIntegerReaction
-            (
-                const double* __restrict__ C,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ ddNdtByVdcTp,
-                const double* __restrict__ ExpNegGbyRT,
-                const double* __restrict__ dBdT
-            )const noexcept;
         // Reaction rate function
 
             // Chemistry time scale(OpenFOAM-10)
@@ -1218,18 +681,6 @@ public:
                 double& sumWRateByCTot
             ) const noexcept;
 
-
-            // Compute the reaction rate
-            /*void dNdtByV
-            (
-                double p,
-                double T,
-                double* __restrict__ c,
-                double* __restrict__ dNdtByV,
-                double* __restrict__ Cp,
-                double* __restrict__ Ha
-            ) const noexcept;*/
-
             // Compute the reaction rate
             void dNdtByV
             (
@@ -1239,372 +690,7 @@ public:
                 double* __restrict__ dNdtByV
             ) const noexcept;
 
-            // for one-one reactions. e.g. A<=>B.
-            /*void inline RF11
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for one-two reactions. e.g. A<=>B+B, A<=>B+C.
-            void inline RF12
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-         
-
-            // for one-three reactions. e.g. A<=>B+B+C, A<=>B+C+D.
-            void inline RF13
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for two-one reactions. e.g. A+A<=>B, A+B<=>C.
-            void inline RF21
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for two-two reactions. e.g. A+A<=>B+C, A+B<=>C+D.
-            void inline RF22
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for two-three reactions. e.g. A+A<=>B+C+D, A+B<=>C+D+D.
-            void inline RF23
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for three-one reactions. e.g. A+A+A<=>B, A+B+C<=>D.
-            void inline RF31
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for three-two reactions. e.g. A+A+A<=>B+C, A+B+C<=>D+E.
-            void inline RF32
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            // for three-three reactions. e.g. A+A+A<=>B+C+D, A+B+C<=>D+E+F.
-            void inline RF33
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;*/
-
-
-             // for reactions with reactants' or products' number larger than 4 
-             // e.g. A+A+A+B<=>B+C+D, A+B+C<=>D+D+E+F.
-            /*void inline RFGI
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;*/
-
-             // for reactions with non-integer number
-             // e.g. 1.5A <=> 1B+0.5C.
-            /*void inline RFGNI
-            (
-                unsigned int i,
-                double Kf,
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;*/
-
-            void updateGlobalNonIntegerReaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void updateGlobalIntegerReaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update11Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF11RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF11IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF11NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update12Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF12RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF12IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF12NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-
-            void update13Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF13RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF13IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF13NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update21Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF21RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF21IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF21NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update22Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF22RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF22IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF22NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update23Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF23RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF23IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF23NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update31Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF31RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF31IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF31NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update32Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF32RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF32IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF32NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void update33Reaction
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-
-            void RF33RR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF33IR
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
-            void RF33NER
-            (
-                const double* __restrict__ C,
-                double*  __restrict__ dNdtByV,
-                const double*  __restrict__ ExpNegGbyRT
-            )const noexcept;
+            #include "ReactionFuncDeclaration.H"
 
         // Math function
 
@@ -1670,16 +756,13 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
- // End namespace Foam
+}// End namespace FastChemistry
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//#include "ThermoFunctionI.H"
+
 #include "ChemicalEquilibriumFunctionI.H"
 #include "thirdBodyReactionI.H"
-#include "pressureReactionFunctionI.H"
-
-#include "ReactionFunctionI.H"
 
 #ifdef NoRepository
 
@@ -1692,7 +775,6 @@ public:
     #include "FindPlogPressureRange.C"
     #include "EvalPlogPartialDerivative.C"
     #include "EvalPlogRateConstant.C"
-    #include "JacobianFunction.C"
     #include "OptReaction.C"
     #include "Jacobian.C"
     #include "ReactionRate.C"

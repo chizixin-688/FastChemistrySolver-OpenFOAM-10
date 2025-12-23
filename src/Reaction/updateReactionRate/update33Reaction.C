@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 
-void 
-OptReaction::update33Reaction
+/*void 
+FastChemistry::OptReaction::update33Reaction
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -54,11 +54,11 @@ OptReaction::update33Reaction
         rhsIndex = rhsIndex + 3;
         lhsIndex = lhsIndex + 3;
     }
-}
+}*/
 
 
 void 
-OptReaction::RF33RR
+FastChemistry::OptReaction::RF33RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -388,7 +388,7 @@ OptReaction::RF33RR
 
 
 void 
-OptReaction::RF33IR
+FastChemistry::OptReaction::RF33IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -684,14 +684,14 @@ OptReaction::RF33IR
 
 
 void 
-OptReaction::RF33NER
+FastChemistry::OptReaction::RF33NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
     const double*  __restrict__ ExpNegGbyRT
 )const noexcept
 {
-    std::size_t end = reaction33index.size();
+    std::size_t end = nonEquilibriumReaction33index.size();
     std::size_t remain = end%4;
     std::size_t rhsIndex = 0;
     std::size_t lhsIndex = 0;
@@ -699,47 +699,15 @@ OptReaction::RF33NER
     {
 
         {
-        const unsigned int i0 = this->reaction33index[k+0];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+0];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+0];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+1];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+2];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+0];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+1];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+2];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+0];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+1];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+2];
-
-        double Kr = 0;
-        double Kf = Kf_[i0];
-
-
-        
-        unsigned int l = i0 - this->Ikf[1] + this->Ikf[9];
-        Kr = this->Kf_[l];
-        
-
-        const double CF = c[sl0]*c[sl1]*c[sl2];
-        const double CR = c[sr0]*c[sr1]*c[sr2];
-        const double q = (Kf*CF) - (Kr*CR);
-
-        dNdtByV[sl0] = dNdtByV[sl0] - q;
-        dNdtByV[sl1] = dNdtByV[sl1] - q;
-        dNdtByV[sl2] = dNdtByV[sl2] - q;
-
-        dNdtByV[sr0] = dNdtByV[sr0] + q;
-        dNdtByV[sr1] = dNdtByV[sr1] + q;
-        dNdtByV[sr2] = dNdtByV[sr2] + q;
-        }
-        {
-        const unsigned int i0 = this->reaction33index[k+1];
-
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+3];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+4];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+5];
-
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+3];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+4];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+5];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+0];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+1];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+2];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -763,15 +731,15 @@ OptReaction::RF33NER
         dNdtByV[sr2] = dNdtByV[sr2] + q;
         }
         {
-        const unsigned int i0 = this->reaction33index[k+2];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+1];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+6];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+7];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+8];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+3];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+4];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+5];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+6];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+7];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+8];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+3];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+4];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+5];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -795,15 +763,47 @@ OptReaction::RF33NER
         dNdtByV[sr2] = dNdtByV[sr2] + q;
         }
         {
-        const unsigned int i0 = this->reaction33index[k+3];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+2];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+9];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+10];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+11];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+6];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+7];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+8];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+9];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+10];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+11];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+6];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+7];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+8];
+
+        double Kr = 0;
+        double Kf = Kf_[i0];
+
+
+        
+        unsigned int l = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr = this->Kf_[l];
+        
+
+        const double CF = c[sl0]*c[sl1]*c[sl2];
+        const double CR = c[sr0]*c[sr1]*c[sr2];
+        const double q = (Kf*CF) - (Kr*CR);
+
+        dNdtByV[sl0] = dNdtByV[sl0] - q;
+        dNdtByV[sl1] = dNdtByV[sl1] - q;
+        dNdtByV[sl2] = dNdtByV[sl2] - q;
+
+        dNdtByV[sr0] = dNdtByV[sr0] + q;
+        dNdtByV[sr1] = dNdtByV[sr1] + q;
+        dNdtByV[sr2] = dNdtByV[sr2] + q;
+        }
+        {
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+3];
+
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+9];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+10];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+11];
+
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+9];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+10];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+11];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -834,15 +834,15 @@ OptReaction::RF33NER
     {
         std::size_t k = end-1;
         {
-        const unsigned int i0 = this->reaction33index[k+0];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+0];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+0];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+1];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+2];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+0];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+1];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+2];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+0];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+1];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+2];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+0];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+1];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+2];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -872,15 +872,15 @@ OptReaction::RF33NER
     {
         std::size_t k = end-2;
         {
-        const unsigned int i0 = this->reaction33index[k+0];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+0];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+0];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+1];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+2];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+0];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+1];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+2];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+0];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+1];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+2];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+0];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+1];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+2];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -904,15 +904,15 @@ OptReaction::RF33NER
         dNdtByV[sr2] = dNdtByV[sr2] + q;
         }
         {
-        const unsigned int i0 = this->reaction33index[k+1];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+1];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+3];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+4];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+5];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+3];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+4];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+5];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+3];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+4];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+5];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+3];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+4];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+5];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -942,47 +942,15 @@ OptReaction::RF33NER
     {
         std::size_t k = end-3;
         {
-        const unsigned int i0 = this->reaction33index[k+0];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+0];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+0];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+1];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+2];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+0];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+1];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+2];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+0];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+1];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+2];
-
-        double Kr = 0;
-        double Kf = Kf_[i0];
-
-
-        
-        unsigned int l = i0 - this->Ikf[1] + this->Ikf[9];
-        Kr = this->Kf_[l];
-        
-
-        const double CF = c[sl0]*c[sl1]*c[sl2];
-        const double CR = c[sr0]*c[sr1]*c[sr2];
-        const double q = (Kf*CF) - (Kr*CR);
-
-        dNdtByV[sl0] = dNdtByV[sl0] - q;
-        dNdtByV[sl1] = dNdtByV[sl1] - q;
-        dNdtByV[sl2] = dNdtByV[sl2] - q;
-
-        dNdtByV[sr0] = dNdtByV[sr0] + q;
-        dNdtByV[sr1] = dNdtByV[sr1] + q;
-        dNdtByV[sr2] = dNdtByV[sr2] + q;
-        }
-        {
-        const unsigned int i0 = this->reaction33index[k+1];
-
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+3];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+4];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+5];
-
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+3];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+4];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+5];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+0];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+1];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+2];
 
         double Kr = 0;
         double Kf = Kf_[i0];
@@ -1006,15 +974,47 @@ OptReaction::RF33NER
         dNdtByV[sr2] = dNdtByV[sr2] + q;
         }
         {
-        const unsigned int i0 = this->reaction33index[k+2];
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+1];
 
-        const unsigned int sl0 = lhsSpeciesIndex1D33[rhsIndex+6];
-        const unsigned int sl1 = lhsSpeciesIndex1D33[rhsIndex+7];
-        const unsigned int sl2 = lhsSpeciesIndex1D33[rhsIndex+8];
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+3];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+4];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+5];
 
-        const unsigned int sr0 = rhsSpeciesIndex1D33[lhsIndex+6];
-        const unsigned int sr1 = rhsSpeciesIndex1D33[lhsIndex+7];
-        const unsigned int sr2 = rhsSpeciesIndex1D33[lhsIndex+8];
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+3];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+4];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+5];
+
+        double Kr = 0;
+        double Kf = Kf_[i0];
+
+
+        
+        unsigned int l = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr = this->Kf_[l];
+        
+
+        const double CF = c[sl0]*c[sl1]*c[sl2];
+        const double CR = c[sr0]*c[sr1]*c[sr2];
+        const double q = (Kf*CF) - (Kr*CR);
+
+        dNdtByV[sl0] = dNdtByV[sl0] - q;
+        dNdtByV[sl1] = dNdtByV[sl1] - q;
+        dNdtByV[sl2] = dNdtByV[sl2] - q;
+
+        dNdtByV[sr0] = dNdtByV[sr0] + q;
+        dNdtByV[sr1] = dNdtByV[sr1] + q;
+        dNdtByV[sr2] = dNdtByV[sr2] + q;
+        }
+        {
+        const unsigned int i0 = this->nonEquilibriumReaction33index[k+2];
+
+        const unsigned int sl0 = lhsSpeciesIndex1D33NER[rhsIndex+6];
+        const unsigned int sl1 = lhsSpeciesIndex1D33NER[rhsIndex+7];
+        const unsigned int sl2 = lhsSpeciesIndex1D33NER[rhsIndex+8];
+
+        const unsigned int sr0 = rhsSpeciesIndex1D33NER[lhsIndex+6];
+        const unsigned int sr1 = rhsSpeciesIndex1D33NER[lhsIndex+7];
+        const unsigned int sr2 = rhsSpeciesIndex1D33NER[lhsIndex+8];
 
         double Kr = 0;
         double Kf = Kf_[i0];

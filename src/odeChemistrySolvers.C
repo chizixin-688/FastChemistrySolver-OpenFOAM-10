@@ -29,52 +29,18 @@ License
 #include "FastChemistryModel.H"
 #include "basicChemistryModel.H"
 #include "forGases.H"
-#include "forLiquids.H"
 #include "makeChemistrySolver.H"
-#include "forThermo.H"
-#include "chemistryModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-#define defineMyChemistrySolver(Transport,Energy,Thermo,Equation,Specie,solver)  \
-                                                                               \
-    typedefThermo(Transport,Energy,Thermo,Equation,Specie);                    \
-                                                                               \
-                                                                               \
-    defineChemistrySolver                                                      \
-    (                                                                          \
-        FastChemistryModel,                                                      \
-        Transport##Energy##Thermo##Equation##Specie                            \
-    );                                                                         \
-    makeChemistrySolver                                                        \
-    (                                                                          \
-        solver,                                                                 \
-        FastChemistryModel,                                                      \
-        Transport##Energy##Thermo##Equation##Specie                            \
-    );                                                                         \
-                                                                               \
-
-
-//template instantiation
-
-
-typedefThermo(sutherlandTransport,   sensibleEnthalpy,   janafThermo,    perfectGas, specie);
-defineChemistrySolver (FastChemistryModel,  sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie)
-makeChemistrySolver(OptRosenbrock34,FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
-makeChemistrySolver(OptRodas34,     FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
-makeChemistrySolver(OptSeulex,     FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
-
-
-
-
-
-
-//typedefThermo(sutherlandTransport,   sensibleEnthalpy,   janafThermo,    perfectGas, specie);
-//defineChemistrySolver(chemistryModel, sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
-//makeChemistrySolver(OptRosenbrock34,chemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
+    typedefThermo(sutherlandTransport,   sensibleEnthalpy,   janafThermo,    perfectGas, specie);
+    defineChemistrySolver (FastChemistryModel,  sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie)
+    makeChemistrySolver(OptRosenbrock34,FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
+    makeChemistrySolver(OptRodas34,     FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
+    makeChemistrySolver(OptSeulex,     FastChemistryModel,sutherlandTransportsensibleEnthalpyjanafThermoperfectGasspecie);
+    
 }
 
 

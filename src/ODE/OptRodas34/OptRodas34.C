@@ -308,15 +308,15 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         unsigned int remain = NN%16;
         for(unsigned int i = 0 ; i<NN-remain;i=i+16)
         {
-            __m256d Av0 = _mm256_loadu_pd(&Jac[i+0]);
-            __m256d Av1 = _mm256_loadu_pd(&Jac[i+4]);
-            __m256d Av2 = _mm256_loadu_pd(&Jac[i+8]);
-            __m256d Av3 = _mm256_loadu_pd(&Jac[i+12]);
+            __m256d Av0 = load256d(&Jac[i+0]);
+            __m256d Av1 = load256d(&Jac[i+4]);
+            __m256d Av2 = load256d(&Jac[i+8]);
+            __m256d Av3 = load256d(&Jac[i+12]);
 
-            _mm256_storeu_pd(&Jac[i+0],-Av0);
-            _mm256_storeu_pd(&Jac[i+4],-Av1);
-            _mm256_storeu_pd(&Jac[i+8],-Av2);
-            _mm256_storeu_pd(&Jac[i+12],-Av3);
+            store256d(&Jac[i+0],-Av0);
+            store256d(&Jac[i+4],-Av1);
+            store256d(&Jac[i+8],-Av2);
+            store256d(&Jac[i+12],-Av3);
         }
         for(unsigned int i = NN-remain; i < NN;i++)
         {
@@ -336,9 +336,9 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d dxd1v = _mm256_set1_pd(dxd1);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dfdxv = _mm256_loadu_pd(&dfdx[i+0]);
+            __m256d dfdxv = load256d(&dfdx[i+0]);
             __m256d k1v = _mm256_mul_pd(dxd1v,dfdxv);
-            _mm256_storeu_pd(&k1[i+0],k1v);
+            store256d(&k1[i+0],k1v);
         
         }
     }
@@ -349,10 +349,10 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d a21v = _mm256_set1_pd(a21);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d k1v = load256d(&k1[i]);
             __m256d yTempv = _mm256_fmadd_pd(a21v,k1v,y0v);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);
+            store256d(&PhiTemp[i],yTempv);
         }
     }
 
@@ -365,12 +365,12 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d c21invdxv = _mm256_set1_pd(c21invdx);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dydxv = _mm256_loadu_pd(&dydx[i]);
-            __m256d dfdxv = _mm256_loadu_pd(&dfdx[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
+            __m256d dydxv = load256d(&dydx[i]);
+            __m256d dfdxv = load256d(&dfdx[i]);
+            __m256d k1v = load256d(&k1[i]);
             __m256d k2v = _mm256_fmadd_pd(dxd2v,dfdxv,dydxv);
             k2v = _mm256_fmadd_pd(c21invdxv,k1v,k2v);
-            _mm256_storeu_pd(&k2[i],k2v);
+            store256d(&k2[i],k2v);
         }
     }
 
@@ -381,12 +381,12 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d a32v = _mm256_set1_pd(a32);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d y0v = load256d(&Phi0[i]);
             __m256d yTempv = _mm256_fmadd_pd(a31v,k1v,y0v);
             yTempv = _mm256_fmadd_pd(a32v,k2v,yTempv);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);
+            store256d(&PhiTemp[i],yTempv);
         }
     }
 
@@ -401,14 +401,14 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d c32invdxv = _mm256_set1_pd(c32invdx);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dydxv = _mm256_loadu_pd(&dydx[i]);
-            __m256d dfdxv = _mm256_loadu_pd(&dfdx[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
+            __m256d dydxv = load256d(&dydx[i]);
+            __m256d dfdxv = load256d(&dfdx[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
             __m256d k3v = _mm256_fmadd_pd(dxd3v,dfdxv,dydxv);
             k3v = _mm256_fmadd_pd(c31invdxv,k1v,k3v);
             k3v = _mm256_fmadd_pd(c32invdxv,k2v,k3v);
-            _mm256_storeu_pd(&k3[i],k3v);
+            store256d(&k3[i],k3v);
         }
     }
 
@@ -420,14 +420,14 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d a43v = _mm256_set1_pd(a43);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d k3v = _mm256_loadu_pd(&k3[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d k3v = load256d(&k3[i]);
             __m256d yTempv = _mm256_fmadd_pd(a41v,k1v,y0v);
             yTempv = _mm256_fmadd_pd(a42v,k2v,yTempv);
             yTempv = _mm256_fmadd_pd(a43v,k3v,yTempv);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);
+            store256d(&PhiTemp[i],yTempv);
         }
     }
 
@@ -444,17 +444,17 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d c43invdxv = _mm256_set1_pd(c43invdx);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dydxv = _mm256_loadu_pd(&dydx[i]);
-            __m256d dfdxv = _mm256_loadu_pd(&dfdx[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d k3v = _mm256_loadu_pd(&k3[i]);
+            __m256d dydxv = load256d(&dydx[i]);
+            __m256d dfdxv = load256d(&dfdx[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d k3v = load256d(&k3[i]);
 
             __m256d k4v = _mm256_fmadd_pd(dxd4v,dfdxv,dydxv);
             k4v = _mm256_fmadd_pd(c41invdxv,k1v,k4v);
             k4v = _mm256_fmadd_pd(c42invdxv,k2v,k4v);
             k4v = _mm256_fmadd_pd(c43invdxv,k3v,k4v);
-            _mm256_storeu_pd(&k4[i],k4v);
+            store256d(&k4[i],k4v);
         }
     }
 
@@ -468,19 +468,19 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d a54v = _mm256_set1_pd(a54);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d k3v = _mm256_loadu_pd(&k3[i]);
-            __m256d k4v = _mm256_loadu_pd(&k4[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d k3v = load256d(&k3[i]);
+            __m256d k4v = load256d(&k4[i]);
 
             __m256d dyv = _mm256_mul_pd(a51v,k1v);
             dyv = _mm256_fmadd_pd(a52v,k2v,dyv);
             dyv = _mm256_fmadd_pd(a53v,k3v,dyv);
             dyv = _mm256_fmadd_pd(a54v,k4v,dyv);
-            _mm256_storeu_pd(&dy[i],dyv);
+            store256d(&dy[i],dyv);
             __m256d yTempv = _mm256_add_pd(y0v,dyv);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);
+            store256d(&PhiTemp[i],yTempv);
         }
     }
 
@@ -498,17 +498,17 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d c54invdxv = _mm256_set1_pd(c54invdx);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dydxv = _mm256_loadu_pd(&dydx[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d k3v = _mm256_loadu_pd(&k3[i]);
-            __m256d k4v = _mm256_loadu_pd(&k4[i]);
+            __m256d dydxv = load256d(&dydx[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d k3v = load256d(&k3[i]);
+            __m256d k4v = load256d(&k4[i]);
 
             __m256d k5v = _mm256_fmadd_pd(c51invdxv,k1v,dydxv);
             k5v = _mm256_fmadd_pd(c52invdxv,k2v,k5v);
             k5v = _mm256_fmadd_pd(c53invdxv,k3v,k5v);
             k5v = _mm256_fmadd_pd(c54invdxv,k4v,k5v);
-            _mm256_storeu_pd(&k5[i],k5v);
+            store256d(&k5[i],k5v);
         }
     }
 
@@ -517,15 +517,15 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
     {
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dyv = _mm256_loadu_pd(&dy[i]);
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d k5v = _mm256_loadu_pd(&k5[i]);
+            __m256d dyv = load256d(&dy[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d k5v = load256d(&k5[i]);
 
             dyv = _mm256_add_pd(k5v,dyv);
             __m256d yTempv = _mm256_add_pd(y0v,dyv);
 
-            _mm256_storeu_pd(&dy[i],dyv);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);            
+            store256d(&dy[i],dyv);
+            store256d(&PhiTemp[i],yTempv);            
         }
     }
 
@@ -545,19 +545,19 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d c65invdxv = _mm256_set1_pd(c65invdx);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d dydxv = _mm256_loadu_pd(&dydx[i]);
-            __m256d k1v = _mm256_loadu_pd(&k1[i]);
-            __m256d k2v = _mm256_loadu_pd(&k2[i]);
-            __m256d k3v = _mm256_loadu_pd(&k3[i]);
-            __m256d k4v = _mm256_loadu_pd(&k4[i]);
-            __m256d k5v = _mm256_loadu_pd(&k5[i]);
+            __m256d dydxv = load256d(&dydx[i]);
+            __m256d k1v = load256d(&k1[i]);
+            __m256d k2v = load256d(&k2[i]);
+            __m256d k3v = load256d(&k3[i]);
+            __m256d k4v = load256d(&k4[i]);
+            __m256d k5v = load256d(&k5[i]);
 
             __m256d errv = _mm256_fmadd_pd(c61invdxv,k1v,dydxv);
             errv = _mm256_fmadd_pd(c62invdxv,k2v,errv);
             errv = _mm256_fmadd_pd(c63invdxv,k3v,errv);
             errv = _mm256_fmadd_pd(c64invdxv,k4v,errv);
             errv = _mm256_fmadd_pd(c65invdxv,k5v,errv);
-            _mm256_storeu_pd(&err[i],errv);
+            store256d(&err[i],errv);
         }
     }
 
@@ -566,12 +566,12 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
     {
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d dyv = _mm256_loadu_pd(&dy[i]);
-            __m256d errv = _mm256_loadu_pd(&err[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d dyv = load256d(&dy[i]);
+            __m256d errv = load256d(&err[i]);
 
             __m256d yTempv = _mm256_add_pd(_mm256_add_pd(y0v,dyv),errv);
-            _mm256_storeu_pd(&PhiTemp[i],yTempv);
+            store256d(&PhiTemp[i],yTempv);
         }
     }
 
@@ -582,9 +582,9 @@ Foam::scalar Foam::OptRodas34<ChemistryModel>::Rodas34Solve
         __m256d relTolv = _mm256_set1_pd(relTol_);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
-            __m256d y0v = _mm256_loadu_pd(&Phi0[i]);
-            __m256d yTempv = _mm256_loadu_pd(&PhiTemp[i]);
-            __m256d errv = _mm256_loadu_pd(&err[i]);
+            __m256d y0v = load256d(&Phi0[i]);
+            __m256d yTempv = load256d(&PhiTemp[i]);
+            __m256d errv = load256d(&err[i]);
             __m256d signMask = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
             __m256d abserrv = _mm256_andnot_pd(signMask, errv);
             __m256d absy0v = _mm256_andnot_pd(signMask, y0v);

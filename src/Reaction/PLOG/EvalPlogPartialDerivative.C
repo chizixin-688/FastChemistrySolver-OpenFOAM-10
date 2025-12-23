@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::evalPlogPartialDerivative()const noexcept
+void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
 {
     const double logT_ = this->logT;
     const double invT_ = this->invT;

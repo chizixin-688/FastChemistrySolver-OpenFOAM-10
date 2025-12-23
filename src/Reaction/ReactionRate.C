@@ -2,7 +2,7 @@
 #include "OptReaction.H"
 
 void 
-OptReaction::dNdtByV
+FastChemistry::OptReaction::dNdtByV
 (
     double p,
     double Temperature,

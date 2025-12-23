@@ -1,5 +1,5 @@
 
-inline double& LUsolver::operator()
+inline double& FastChemistry::LUsolver::operator()
 (
     const unsigned int i,
     const unsigned int j
@@ -9,7 +9,7 @@ inline double& LUsolver::operator()
 }
 
 
-inline double LUsolver::operator() 
+inline double FastChemistry::LUsolver::operator() 
 (
     const unsigned int i,
     const unsigned int j
@@ -18,7 +18,7 @@ inline double LUsolver::operator()
     return v_[i*N + j];
 }
 
-inline unsigned int& LUsolver::pivotIndice
+inline unsigned int& FastChemistry::LUsolver::pivotIndice
 (
     const unsigned int i
 )
@@ -26,7 +26,7 @@ inline unsigned int& LUsolver::pivotIndice
     return this->pivotIndice_[i];
 }
 
-inline unsigned int LUsolver::pivotIndice
+inline unsigned int FastChemistry::LUsolver::pivotIndice
 (
     const unsigned int i
 ) const
@@ -34,7 +34,7 @@ inline unsigned int LUsolver::pivotIndice
     return this->pivotIndice_[i];
 }
 
-inline double LUsolver::hsum4(__m256d v)
+inline double FastChemistry::LUsolver::hsum4(__m256d v)
 {
     __m128d lo = _mm256_castpd256_pd128(v);
     __m128d hi = _mm256_extractf128_pd(v,1);
@@ -44,7 +44,7 @@ inline double LUsolver::hsum4(__m256d v)
     return _mm_cvtsd_f64(s);
 }
 
-inline void LUsolver::transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)
+inline void FastChemistry::LUsolver::transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)
 {
     __m256d t0 = _mm256_unpacklo_pd(v0, v1); // a0 b0 a1 b1
     __m256d t1 = _mm256_unpackhi_pd(v0, v1); // a2 b2 a3 b3

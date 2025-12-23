@@ -1,4 +1,4 @@
-inline void OptReaction::update_Pow_pByRT_SumVki
+inline void FastChemistry::OptReaction::update_Pow_pByRT_SumVki
 (
     const double T_
 ) const
@@ -28,7 +28,7 @@ inline void OptReaction::update_Pow_pByRT_SumVki
     }
 }
 
-inline void OptReaction::update_Pow_pByRT_SumVki2
+inline void FastChemistry::OptReaction::update_Pow_pByRT_SumVki2
 (
     const double T_
 ) const

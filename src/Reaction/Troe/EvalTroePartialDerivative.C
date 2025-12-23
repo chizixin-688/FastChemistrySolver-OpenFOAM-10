@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::evalTroePartialDerivative()const noexcept
+void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 {
     unsigned int remainFO = (this->n_TroeFO)%4;
     const double invLog10 = 4.3429448190325200e-01;
@@ -659,7 +659,7 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invKinf = _mm256_setzero_pd();
         __m256d tmplogPr = _mm256_setzero_pd();
         {
-            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
+            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0-Ikf[5]+Ikf[8]]);
             invKinf = _mm256_div_pd(one,Kinf);
             __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);           
             __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
@@ -768,7 +768,7 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         }
 
         //__m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-        __m256d dKinfdT = _mm256_loadu_pd(&this->dKfdT_[j0+this->offset_kinf]);
+        __m256d dKinfdT = _mm256_loadu_pd(&this->dKfdT_[j0-Ikf[4]+Ikf[7]]);
         __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);           
         __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
         __m256d dK0dT = _mm256_loadu_pd(&this->dKfdT_[j0]);   
@@ -807,8 +807,8 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         const unsigned int j = this->TroeCA[i];
 
         const unsigned int m = j - this->Ikf[5] + this->Itbr[3];
-        const double Kinf = this->Kf_[j+this->offset_kinf];
-        const double dKinfdT = this->dKfdT_[j+this->offset_kinf];
+        const double Kinf = this->Kf_[j-Ikf[4]+Ikf[7]];
+        const double dKinfdT = this->dKfdT_[j-Ikf[4]+Ikf[7]];
         const double K0 = this->Kf_[j];
         const double M = this->tmp_M[m];
         const double Pr = K0*M/Kinf; 
@@ -894,7 +894,7 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         __m128d tmplogPr = _mm_setzero_pd();
         {
 
-            __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
+            __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0-Ikf[4]+Ikf[7]]);
             invKinf = _mm_div_pd(one128,Kinf);
             __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);           
             __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
@@ -1018,7 +1018,7 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         }
 
         //__m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-        __m128d dKinfdT = _mm_loadu_pd(&this->dKfdT_[j0+this->offset_kinf]);
+        __m128d dKinfdT = _mm_loadu_pd(&this->dKfdT_[j0-Ikf[4]+Ikf[7]]);
         __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);           
         __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
         __m128d dK0dT = _mm_loadu_pd(&this->dKfdT_[j0]);   
@@ -1061,9 +1061,9 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invKinf = _mm256_setzero_pd();
         __m256d tmplogPr = _mm256_setzero_pd();
         {
-            const double Kinf0 = this->Kf_[j0+0+this->offset_kinf];
-            const double Kinf1 = this->Kf_[j0+1+this->offset_kinf];
-            const double Kinf2 = this->Kf_[j0+2+this->offset_kinf];
+            const double Kinf0 = this->Kf_[j0+0-Ikf[4]+Ikf[7]];
+            const double Kinf1 = this->Kf_[j0+1-Ikf[4]+Ikf[7]];
+            const double Kinf2 = this->Kf_[j0+2-Ikf[4]+Ikf[7]];
             __m256d Kinf = _mm256_setr_pd(Kinf0,Kinf1,Kinf2,1);
 
             invKinf = _mm256_div_pd(one,Kinf);
@@ -1215,9 +1215,9 @@ void OptReaction::evalTroePartialDerivative()const noexcept
         //const double kinfj2 = this->Kf_[j0+2+this->offset_kinf];
         //__m256d Kinf = _mm256_setr_pd(kinfj0,kinfj1,kinfj2,1);
 
-        const double dKinfdTj0 = this->dKfdT_[j0+0+this->offset_kinf];
-        const double dKinfdTj1 = this->dKfdT_[j0+1+this->offset_kinf];
-        const double dKinfdTj2 = this->dKfdT_[j0+2+this->offset_kinf];
+        const double dKinfdTj0 = this->dKfdT_[j0+0-Ikf[4]+Ikf[7]];
+        const double dKinfdTj1 = this->dKfdT_[j0+1-Ikf[4]+Ikf[7]];
+        const double dKinfdTj2 = this->dKfdT_[j0+2-Ikf[4]+Ikf[7]];
         __m256d dKinfdT = _mm256_setr_pd(dKinfdTj0,dKinfdTj1,dKinfdTj2,1);
 
         const double Kfj0 = this->Kf_[j0+0];

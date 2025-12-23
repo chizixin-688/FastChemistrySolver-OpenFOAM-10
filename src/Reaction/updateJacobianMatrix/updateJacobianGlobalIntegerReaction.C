@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void  OptReaction::updateJacobianGlobalIntegerReaction
+void  FastChemistry::OptReaction::updateJacobianGlobalIntegerReaction
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,

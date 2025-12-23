@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::evalSRIPartialDerivative()const noexcept
+void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 {
     __m256d onev = _mm256_set1_pd(1.0);
     __m256d smallv = _mm256_set1_pd(TroeLimiter);

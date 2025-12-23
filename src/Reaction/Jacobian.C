@@ -3,7 +3,7 @@
 
 
 void 
-OptReaction::ddNdtByVdcTp
+FastChemistry::OptReaction::ddNdtByVdcTp
 (
     double p,
     double Temperature,

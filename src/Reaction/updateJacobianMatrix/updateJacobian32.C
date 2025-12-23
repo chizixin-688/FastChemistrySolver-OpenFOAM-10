@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void  OptReaction::updateJacobian32
+/*void  FastChemistry::OptReaction::updateJacobian32
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -158,11 +158,11 @@ void  OptReaction::updateJacobian32
         lhsIndex = lhsIndex + 3;
         rhsIndex = rhsIndex + 2;
     }
-}   
+}*/
 
 
 
-void  OptReaction::JF32RR
+void  FastChemistry::OptReaction::JF32RR
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -314,7 +314,7 @@ void  OptReaction::JF32RR
 
 
 
-void  OptReaction::JF32IR
+void  FastChemistry::OptReaction::JF32IR
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -433,7 +433,7 @@ void  OptReaction::JF32IR
 
 
 
-void  OptReaction::JF32NER
+void  FastChemistry::OptReaction::JF32NER
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,

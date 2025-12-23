@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::evalSRIRateConstant()const noexcept
+void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
 {
 
     unsigned int remainFO = this->n_SRIFO%4;

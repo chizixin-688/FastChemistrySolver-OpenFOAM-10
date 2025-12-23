@@ -1,5 +1,5 @@
 #include "OptReaction.H"
-void OptReaction::evalLindemannPartialDerivative()const noexcept
+void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
 {
     const unsigned int remainFO = (this->n_LindemannFO)%4;
     __m256d one = _mm256_set1_pd(1.0);    

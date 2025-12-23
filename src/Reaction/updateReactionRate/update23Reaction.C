@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 
-void 
-OptReaction::update23Reaction
+/*void 
+FastChemistry::OptReaction::update23Reaction
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -44,18 +44,7 @@ OptReaction::update23Reaction
         const double CF = c[sl0]*c[sl1];
         const double CR = c[sr0]*c[sr1]*c[sr2];
         const double q = (Kf*CF) - (Kr*CR);
-        /*if(this->isIrreversible[KfIndex]==0)
-        {
-            debugRR.push_back(q);
-        }
-        else if(this->isIrreversible[KfIndex]==1)
-        {
-            debugIR.push_back(q);
-        }
-        else if(this->isIrreversible[KfIndex]==2)
-        {
-            debugNER.push_back(q);
-        }*/
+
         dNdtByV[sl0] = dNdtByV[sl0] - q;
         dNdtByV[sl1] = dNdtByV[sl1] - q;
         dNdtByV[sr0] = dNdtByV[sr0] + q;
@@ -66,24 +55,10 @@ OptReaction::update23Reaction
         rhsIndex = rhsIndex + 3;
 
     }
-
-    /*for(int i =0;i<debugRR.size();i++)
-    {
-        std::cout<<debugRR[i]<<std::endl;
-    }
-    for(int i =0;i<debugIR.size();i++)
-    {
-        std::cout<<debugIR[i]<<std::endl;
-    }
-    for(int i =0;i<debugNER.size();i++)
-    {
-        std::cout<<debugNER[i]<<std::endl;
-    }
-    std::exit(0);*/
-}
+}*/
 
 void 
-OptReaction::RF23RR
+FastChemistry::OptReaction::RF23RR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -295,7 +270,7 @@ OptReaction::RF23RR
 }
 
 void 
-OptReaction::RF23IR
+FastChemistry::OptReaction::RF23IR
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -431,7 +406,7 @@ OptReaction::RF23IR
     }
 }
 void 
-OptReaction::RF23NER
+FastChemistry::OptReaction::RF23NER
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

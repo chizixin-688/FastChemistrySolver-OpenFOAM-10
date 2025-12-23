@@ -20,14 +20,9 @@
 
 
 #define KcLimiter (1.4901171103413047e-8)
-//#define KcLimiter 0.0
 #define invKcLimiter (1.0/KcLimiter)
-
-
 #define TroeLimiter 2.220446049250313e-16
-
 #define SRILimiter 2.220446049250313e-16
-
 #define LuLimiter 2.220446049250313e-16
 
 

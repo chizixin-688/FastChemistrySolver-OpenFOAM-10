@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::findPlogPressureRange(double p)const noexcept
+void FastChemistry::OptReaction::findPlogPressureRange(double p)const noexcept
 {
     int k = 0;
     for(unsigned int i = 0; i< this->n_PlogReaction; i++)

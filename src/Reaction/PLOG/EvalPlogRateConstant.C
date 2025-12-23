@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 #include <immintrin.h>  
 
-void OptReaction::evalPlogRateConstant()const noexcept
+void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
 {
     const double logT_ = this->logT;
     const double invT_ = this->invT;

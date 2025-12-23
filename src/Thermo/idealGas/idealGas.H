@@ -4,8 +4,6 @@
 #ifndef idealGas_H
 #define idealGas_H
 
-#include "fvCFD.H"
-#include "HashTable.H"
 #include <vector>
 #include <array>
 #include <immintrin.h>

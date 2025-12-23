@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 
 void 
-OptReaction::updateGlobalNonIntegerReaction
+FastChemistry::OptReaction::RFGNI
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,

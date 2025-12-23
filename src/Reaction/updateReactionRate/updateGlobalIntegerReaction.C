@@ -1,7 +1,7 @@
 #include "OptReaction.H"
 
 void 
-OptReaction::updateGlobalIntegerReaction
+FastChemistry::OptReaction::RFGI
 (
     const double* __restrict__ c,
     double*  __restrict__ dNdtByV,
@@ -26,7 +26,7 @@ OptReaction::updateGlobalIntegerReaction
             for(unsigned int j = 0; j < this->lhsSpeciesIndex[i].size();j++)
             {
                 const unsigned int si = this->lhsSpeciesIndex[i][j];
-                Kp = Kp / ExpNegGbyRT[si];
+                Kp = Kp * invNegGstdByRT[si];
                 sumVki = sumVki - 1;
                 CF = CF * c[si];
             }

@@ -68,11 +68,14 @@ class FastChemistryModel
         //- Number of species
         label nSpecie_;
 
-        //- Type of the Jacobian to be calculated
-        const jacobianType jacobianType_;
+    // Public Enumerations
+
+        //- Type of the Jacobian to be calculated in Fast Chemistry Model
+        // 0:Fast 1:Exact
+        int FCjacobianType_;
 
         //- Gas phase reactions
-        mutable OptReaction reaction;
+        mutable FastChemistry::OptReaction reaction;
 
         //- List of reaction rate per specie [kg/m^3/s]
         PtrList<volScalarField> RR_;
@@ -226,7 +229,7 @@ public:
         virtual void calculate();
 
         // Return the reaction object
-        inline OptReaction&  getReaction() const;
+        inline FastChemistry::OptReaction&  getReaction() const;
 
         // Chemistry model functions (overriding abstract functions in
         // basicChemistryModel.H)

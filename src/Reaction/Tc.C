@@ -2,7 +2,7 @@
 #include "OptReaction.H"
 
 void 
-OptReaction::Tc
+FastChemistry::OptReaction::Tc
 (
     int celli,
     double p,
