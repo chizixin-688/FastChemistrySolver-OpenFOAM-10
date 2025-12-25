@@ -1,16 +1,34 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for ideal gas objects. Contains class declarations 
+      and function prototypes related to ideal gas.
 
-
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
 
 #ifndef idealGas_H
 #define idealGas_H
 
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <vector>
 #include <array>
-#include <immintrin.h>
+
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
 #include "Macro.H"
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+//---------------------------------
+// 3. SIMD / AVX2 headers
+//---------------------------------
+#include <immintrin.h>
 
+//=============================================================================//
 
 
 namespace FastChemistry

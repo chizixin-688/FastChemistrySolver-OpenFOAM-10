@@ -1,6 +1,27 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing mass fraction based jacobian matrix using molar concentration 
+      based matrix
+      Computing partial derivatives of dTdt w.r.t mass fraction and temperature
+      the tail is 2.  
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "FastChemistryModel.H"
+
+//---------------------------------
+// 2. SIMD / AVX2 headers
+//---------------------------------
 #include <immintrin.h>  
 
+//=============================================================================//
 
 template<class UnusedThermo>
 void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_2

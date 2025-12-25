@@ -1,3 +1,11 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Inline function file for LU decomposition of matrix.
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 
 inline double& FastChemistry::LUsolver::operator()
 (

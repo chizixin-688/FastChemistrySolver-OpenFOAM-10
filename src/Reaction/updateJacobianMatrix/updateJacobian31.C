@@ -1,5 +1,24 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for three-one reaction, e.g. A+A+A=B. A+B+C=D 
+      
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 /*void  FastChemistry::OptReaction::updateJacobian31
 (
@@ -171,8 +190,7 @@ void  FastChemistry::OptReaction::JF31RR
 
         double Kf = this->Kf_[i];
         double dKfdT = this->dKfdT_[i];
-        double Kr = 0;
-        double dKrdT = 0;
+
 
 
         /*const double Kp = (ExpNegGbyRT[sr0])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
@@ -186,11 +204,11 @@ void  FastChemistry::OptReaction::JF31RR
 
         const double invKp = (invNegGstdByRT[sr0]*ExpNegGbyRT[sl0])*(ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
         double invKc = invKp*this->Pow_pByRT_SumVki[4];
-        invKc = std::min(invKc,invKcLimiter);
-        Kr = Kf*invKc;
+        invKc = std::min(invKc,FastChemistry::invKcLimiter);
+        const double Kr = Kf*invKc;
         const double sumVdBdT = (dBdT[sr0]) - (dBdT[sl0] + dBdT[sl1] + dBdT[sl2]);
         const double dKcdTByKc = sumVdBdT + 2*invT;
-        dKrdT = (dKfdT*invKc - (invKc < invKcLimiter ? Kr*dKcdTByKc : 0));
+        const double dKrdT = (dKfdT*invKc - (invKc < FastChemistry::invKcLimiter ? Kr*dKcdTByKc : 0));
             
         const double dCrdC0 = 1;
         ddNdtByVdcTp[sl0*(this->alignN)+sr0] -= (-Kr*dCrdC0);

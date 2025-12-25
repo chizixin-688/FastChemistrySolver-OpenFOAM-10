@@ -1,4 +1,21 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration reaction rate. The function 
+      is used for general reaction with integer stoichiometric number, e.g.
+      4A+5B=6C
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
 
 void 
 FastChemistry::OptReaction::RFGI

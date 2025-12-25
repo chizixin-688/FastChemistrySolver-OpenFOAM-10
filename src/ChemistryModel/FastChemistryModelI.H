@@ -23,6 +23,16 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+
+/*---------------------------------------------------------------------------*\
+  Description
+      Inline function for FastChemistryModel object
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class UnusedThermo>
@@ -42,13 +52,14 @@ Foam::FastChemistryModel<UnusedThermo>::RR()
 template<class UnusedThermo>
 inline Foam::label Foam::FastChemistryModel<UnusedThermo>::nReaction() const
 {
-    return reaction.n_Reactions;
+    return GasReaction->n_Reactions;
 }
 
 template<class UnusedThermo>
-inline FastChemistry::OptReaction& Foam::FastChemistryModel<UnusedThermo>::getReaction() const
+inline std::unique_ptr<FastChemistry::OptReaction>& 
+Foam::FastChemistryModel<UnusedThermo>::getReaction() const
 {
-    return reaction;
+    return GasReaction;
 }
 
 

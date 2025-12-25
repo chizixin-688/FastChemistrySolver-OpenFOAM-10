@@ -1,4 +1,21 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration reaction rate. The function 
+      is used for general reaction with non-integer stoichiometric number,e.g.
+      4.5A+5.5B=6.5C
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
 
 void 
 FastChemistry::OptReaction::RFGNI
@@ -29,7 +46,7 @@ FastChemistry::OptReaction::RFGNI
                 const double el = this->lhsReactionOrder[i][j];
                 Kp += sl*this->negGstdByRT[si];
                 sumVki = sumVki - sl;
-                CF = CF * (c[si] >= small || el >= 1 ? std::pow(c[si], el) : 0.0);
+                CF = CF * (c[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow(c[si], el) : 0.0);
             }
             
             for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
@@ -39,7 +56,7 @@ FastChemistry::OptReaction::RFGNI
                 const double er = this->rhsReactionOrder[i][j];
                 Kp -= sr*this->negGstdByRT[si];
                 sumVki = sumVki + sr;
-                CR = CR * (c[si] >= small || er >= 1 ? std::pow(c[si], er) : 0.0);            
+                CR = CR * (c[si] >= FastChemistry::ConcentrationLimiter || er >= 1 ? std::pow(c[si], er) : 0.0);            
             }
             __m256d KpPow = _mm256_setr_pd(Kp,sumVki*(this->logP-this->logRuT),1,1);
             KpPow = vec256_expd(KpPow);
@@ -63,14 +80,14 @@ FastChemistry::OptReaction::RFGNI
             {
                 const unsigned int si = this->lhsSpeciesIndex[i][j];
                 const double el = this->lhsReactionOrder[i][j];
-                CF = CF * (c[si] >= small || el >= 1 ? std::pow(c[si], el) : 0.0);
+                CF = CF * (c[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow(c[si], el) : 0.0);
             }
             
             for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
             {
                 const unsigned int si = this->rhsSpeciesIndex[i][j];
                 const double er = this->rhsReactionOrder[i][j];
-                CR = CR * (c[si] >= small || er >= 1 ? std::pow(c[si], er) : 0.0);            
+                CR = CR * (c[si] >= FastChemistry::ConcentrationLimiter || er >= 1 ? std::pow(c[si], er) : 0.0);            
             }
         }
         else
@@ -79,14 +96,14 @@ FastChemistry::OptReaction::RFGNI
             {
                 const unsigned int si = this->lhsSpeciesIndex[i][j];
                 const double el = this->lhsReactionOrder[i][j];
-                CF = CF * (c[si] >= small || el >= 1 ? std::pow(c[si], el) : 0.0);
+                CF = CF * (c[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow(c[si], el) : 0.0);
             }
             
             for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
             {
                 const unsigned int si = this->rhsSpeciesIndex[i][j];
                 const double er = this->rhsReactionOrder[i][j];
-                CR = CR * (c[si] >= small || er >= 1 ? std::pow(c[si], er) : 0.0);
+                CR = CR * (c[si] >= FastChemistry::ConcentrationLimiter || er >= 1 ? std::pow(c[si], er) : 0.0);
             }
         }
 

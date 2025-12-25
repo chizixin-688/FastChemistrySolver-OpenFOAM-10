@@ -1,3 +1,12 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the (Pstd/Ru/T)^sumvKi
+      sumvKi is the net stoichiometric coefficients of k-th reaction
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 inline void FastChemistry::OptReaction::update_Pow_pByRT_SumVki
 (
     const double T_

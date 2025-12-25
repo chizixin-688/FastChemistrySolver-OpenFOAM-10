@@ -1,12 +1,26 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant of SRI reactions
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
 {
 
     unsigned int remainFO = this->n_SRIFO%4;
     __m256d invLog10v = _mm256_set1_pd(0.43429448190325182765112891891661);
-    __m256d SRILimiterv = _mm256_set1_pd(SRILimiter);
+    __m256d SRILimiterv = _mm256_set1_pd(FastChemistry::SRILimiter);
     __m256d onev = _mm256_set1_pd(1);
     __m256d logTv = _mm256_set1_pd(this->logT);
 
@@ -113,7 +127,7 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
 
         const double Pr = K0*M*invKinf; 
         const double invLog10 = _mm_cvtsd_f64(_mm256_castpd256_pd128(invLog10v));
-        const double logPr = std::log(max(Pr, small))*invLog10;
+        const double logPr = std::log(std::max(Pr, FastChemistry::SRILimiter))*invLog10;
 
         const double expbT = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3];
         const double expTc = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI];
@@ -408,7 +422,7 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
 
         const double Pr = K0*M*invKinf; 
         const double invLog10 = _mm_cvtsd_f64(_mm256_castpd256_pd128(invLog10v));
-        const double logPr = std::log(max(Pr, small))*invLog10;
+        const double logPr = std::log(std::max(Pr, FastChemistry::SRILimiter))*invLog10;
 
         const double expbT = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRIFO];
         const double expTc = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI+this->n_SRIFO];
@@ -647,9 +661,9 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         this->Kf_[j+0] = this->get_elem0(Nv);
         this->Kf_[j+1] = this->get_elem1(Nv);
         this->Kf_[j+2] = this->get_elem2(Nv);
-        std::cout<<this->Kf_[j+0]<<std::endl;
-        std::cout<<this->Kf_[j+1]<<std::endl;
-        std::cout<<this->Kf_[j+2]<<std::endl;
+        //std::cout<<this->Kf_[j+0]<<std::endl;
+        //std::cout<<this->Kf_[j+1]<<std::endl;
+        //std::cout<<this->Kf_[j+2]<<std::endl;
 
     }
 

@@ -1,3 +1,13 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
+
+      Solving chemistry using transient time step
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 template<class UnusedThermo>
 Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
 (

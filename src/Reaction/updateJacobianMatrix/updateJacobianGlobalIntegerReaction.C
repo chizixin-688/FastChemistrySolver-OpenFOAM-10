@@ -1,7 +1,23 @@
-#include "OptReaction.H"
-#include <immintrin.h>  
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for general reaction with integer stoichiometric number, e.g.
+      4A+5B=6C
 
-void  FastChemistry::OptReaction::updateJacobianGlobalIntegerReaction
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
+#include "OptReaction.H"
+
+//=============================================================================//
+
+void  FastChemistry::OptReaction::JFGI
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -32,7 +48,7 @@ void  FastChemistry::OptReaction::updateJacobianGlobalIntegerReaction
             for(unsigned int j = 0; j < this->lhsSpeciesIndex[i].size();j++)
             {
                 const unsigned int si = this->lhsSpeciesIndex[i][j];
-                Kp = Kp / this->tmp_Exp[si];
+                Kp = Kp * this->invNegGstdByRT[si];
                 sumVki = sumVki - 1;
                 sumVdBdT = sumVdBdT - dBdT[si];
                 CF = CF * C[si];
@@ -46,13 +62,13 @@ void  FastChemistry::OptReaction::updateJacobianGlobalIntegerReaction
                 sumVdBdT = sumVdBdT + dBdT[si];
                 CR = CR * C[si];
             }
-            //this->update_Pow_pByRT_SumVki(T);
-            const double Kc = std::max(Kp*this->Pow_pByRT_SumVki_I[sumVki],KcLimiter);
+
+            const double Kc = std::max(Kp*this->Pow_pByRT_SumVki_I[sumVki],FastChemistry::KcLimiter);
             invKc = 1.0/Kc;            
 
             const double dKcdTByKc = sumVdBdT - sumVki*invT;
             Kr = Kf*invKc;
-            dKrdT = dKfdT*invKc - (Kc > KcLimiter ? Kr*dKcdTByKc : 0);
+            dKrdT = dKfdT*invKc - (Kc > FastChemistry::KcLimiter ? Kr*dKcdTByKc : 0);
         }
         else if(this->isIrreversible[i]==2)
         {

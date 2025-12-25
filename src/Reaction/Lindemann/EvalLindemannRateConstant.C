@@ -1,4 +1,20 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant of lindemann reactions
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
+
 void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
 {
     __m256d one = _mm256_set1_pd(1.0);

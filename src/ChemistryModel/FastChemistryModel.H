@@ -32,17 +32,44 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for FastChemistryModel object
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 #ifndef FastChemistryModel_H
 #define FastChemistryModel_H
 
+//=============================================================================//
 
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
+#include <chrono>
+
+//---------------------------------
+// 2. OpenFOAM library headers
+//---------------------------------
 #include "basicChemistryModel.H"
+
+//---------------------------------
+// 3. FastChemistry headers
+//---------------------------------
+#include "LUsolver.H"
 #include "dataBlock.H"
 #include "simpleDataBlock.H"
-#include "OptReaction.H"
-
 #include "idealGas.H"
+#include "OptReaction.H"
 #include "createIdealGasFromFoamDict.H"
+#include "createGasPhaseReactionFromFoamDict.H"
+
+//=============================================================================//
+
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -75,7 +102,9 @@ class FastChemistryModel
         int FCjacobianType_;
 
         //- Gas phase reactions
-        mutable FastChemistry::OptReaction reaction;
+        //mutable FastChemistry::OptReaction reaction;
+
+        mutable std::unique_ptr<FastChemistry::OptReaction> GasReaction;
 
         //- List of reaction rate per specie [kg/m^3/s]
         PtrList<volScalarField> RR_;
@@ -229,7 +258,7 @@ public:
         virtual void calculate();
 
         // Return the reaction object
-        inline FastChemistry::OptReaction&  getReaction() const;
+        inline std::unique_ptr<FastChemistry::OptReaction>&  getReaction() const;
 
         // Chemistry model functions (overriding abstract functions in
         // basicChemistryModel.H)

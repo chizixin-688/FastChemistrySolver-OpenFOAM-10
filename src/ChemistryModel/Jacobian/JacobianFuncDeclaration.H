@@ -1,8 +1,13 @@
-// Note: This file is for text substitution purposes only, 
-// not compliant with standard C++ header file usage conventions
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
 
-// These function is used for computing mass fraction based 
-// jacobian matrix using molar concentration based matrix
+      Declare the functions for computing mass fraction based jacobian matrix 
+      using molar concentration based matrix
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
 
     void FastddYdtdY_Vec44_0
     (

@@ -41,18 +41,45 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for Seulex algorithm, note that this implementation is not
+      consistent with OpenFOAM-10 version. But same with Imren's version
+
+      Reference
+
+      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff 
+      ODE solvers for combustion CFD. Combustion and Flame 174 (2016) 1–15.
+
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 #ifndef OptSeulex_H
 #define OptSeulex_H
 
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
+//---------------------------------
+// 2. OpenFOAM library headers
+//---------------------------------
 #include "chemistrySolver.H"
-#include "simpleMatrix.H"
+//#include "simpleMatrix.H"
 
-
+//---------------------------------
+// 3. FastChemistry headers
+//---------------------------------
 #include "LUsolver.H"
+
+//=============================================================================//
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,14 +102,14 @@ class OptSeulex
         public:
 
         const bool forward;
-        scalar dxTry;
-        scalar dxDid;
+        double dxTry;
+        double dxDid;
         bool first;
         bool last;
         bool reject;
         bool prevReject;
 
-        stepState(const scalar dx)
+        stepState(const double dx)
         :
             forward(dx > 0 ? true : false),
             dxTry(dx),
@@ -101,12 +128,12 @@ class OptSeulex
     // ODE solver
 
         //- Absolute convergence tolerance per step
-        const scalar absTol_=1e-8;
+        const double absTol_=1e-8;
 
         //- Relative convergence tolerance per step
-        const scalar relTol_=1e-4;
+        const double relTol_=1e-4;
 
-        scalar logTol;
+        double logTol;
 
         //- The maximum number of sub-steps allowed for the integration step
         const label maxSteps_;
@@ -138,7 +165,7 @@ class OptSeulex
         // held to avoid dynamic memory allocation between calls
         // and to transfer internal values between functions
 
-            mutable scalar theta_;
+            mutable double theta_;
             mutable label kTarg_;
             mutable scalarRectangularMatrix table_;
 

@@ -1,5 +1,19 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing molar concentration based jacobian matrix.
+        
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 
 void 
@@ -16,7 +30,6 @@ FastChemistry::OptReaction::ddNdtByVdcTp
 {
     this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);
-
 
     for(unsigned int i = 0; i <this->n_Troe;i++)
     {
@@ -35,8 +48,6 @@ FastChemistry::OptReaction::ddNdtByVdcTp
         this->tmp_Exp[j0] = -this->b_[i]*invT;
         this->tmp_Exp[j1] = -Temperature*this->invc_[i];            
     }   
-
-
 
     {
         unsigned int remain = this->tmp_ExpSize%4;
@@ -281,8 +292,6 @@ FastChemistry::OptReaction::ddNdtByVdcTp
         this->dKfdT_[j] = this->dKfdT_[j]*M;
     }
     
-
-
     for(unsigned int i = 0; i < this->n_NonEquilibriumThirdBodyReaction; i++)
     {
         double Mfwd = this->tmp_M[i];
@@ -305,164 +314,14 @@ FastChemistry::OptReaction::ddNdtByVdcTp
         this->evalTroePartialDerivative();
     }        
 
-
     if(this->n_SRI>0)
     {
         this->evalSRIPartialDerivative();
-        /*for (unsigned int i = 0;i<this->n_SRI;i++)
-        {
-            const unsigned int j = this->SRIFO[i];
-            const unsigned int k = j - this->Ikf[4];
-            const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-            const double Kinf = this->Kf_[j+this->offset_kinf];
-            const double invKinf = 1.0/Kinf;
-            const double K0 = this->Kf_[j];
-            const double dKinfdT = this->dKfdT_[j+this->offset_kinf];
-            double F ;
-            double dFdT;
-            double dFdPr;
-            double M = tmp_M[m];
-            const double Pr = K0*M*invKinf; 
-            this->SRI_F_dFdT_dFdPr(Temperature,Pr,i,F,dFdT,dFdPr);
-            const double dK0dT =  this->dKfdT_[j]; 
-            const double invOnePlusPr = 1.0/(1.0+Pr);
-            const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            const double dKdT   = k<this->n_Fall_Off_Reaction?Pr*dKinfdT:dK0dT;
-            const double K      = k<this->n_Fall_Off_Reaction?Kinf      :K0;
-            const double MM     = k<this->n_Fall_Off_Reaction?M         :1;
-            const double KK     = k<this->n_Fall_Off_Reaction?1         :K0*invKinf;
-            const double N1     = k<this->n_Fall_Off_Reaction?F*invOnePlusPr  :-F*invOnePlusPr;
-            const double N2     = k<this->n_Fall_Off_Reaction?Pr*dFdPr  :dFdPr;
-            const double N  = invOnePlusPr*F*K0;
-            this->dKfdT_[j] = F*invOnePlusPr*dKdT 
-            + F*invOnePlusPr*invOnePlusPr*dPrdT*K 
-            + K0*invOnePlusPr*dFdT*MM;
-            this->dKfdC_[m] =  K0*invOnePlusPr*KK*(N1 + N2); 
-            this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }*/
     }
-//auto GlobalTimeStart = std::chrono::high_resolution_clock::now();
 
-//for(unsigned int i =0;i<10000000;i++)
-//{    
     for(auto funcPtr : JFptr)
     {
         (this->*funcPtr)(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
     }
-
-
-    /*this->JF11RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF11IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF11NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-    this->JF12RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF12IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF12NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-    this->JF13RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF13IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF13NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF21RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF21IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF21NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF22RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF22IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF22NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF23RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF23IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF23NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF31RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF31IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF31NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF32RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF32IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF32NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-
-    this->JF33RR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF33IR(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->JF33NER(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-
-    this->updateJacobianGlobalNonIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);
-    this->updateJacobianGlobalIntegerReaction(c,dNdtByV,ddNdtByVdcT,tmp_Exp,dBdT);*/
-
-
-//}
-//auto duration = (std::chrono::duration_cast<std::chrono::microseconds>
-//(std::chrono::high_resolution_clock::now()-GlobalTimeStart));
-//    std::cout<<duration.count()<<std::endl;
-//    std::exit(0);
-
-
-
-
-
-    /*for(unsigned int z = 0; z < this->Ikf[7];z++)
-    {
-
-        if(this->isGlobal[z]==1)
-        {
-            this->JFGNI(z,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);            
-            continue;
-        }    
-        const unsigned int i = z ;
-        const auto j = lhsOffset[i+1]-lhsOffset[i];
-        const auto k = rhsOffset[i+1]-rhsOffset[i];
-        if(j==2)
-        {
-            if(k==2)        {this->JF22(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else 
-            if(k==1)   {this->JF21(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else
-            if(k==3)   {this->JF23(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        else 
-        if(j==1)
-        {
-            if(k==2)        {this->JF12(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else 
-            if(k==1)   {this->JF11(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else 
-            if(k==3)   {this->JF13(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        else 
-        if(j==3)
-        {
-            if(k==2)        {this->JF32(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else 
-            if(k==1)   {this->JF31(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-            else 
-            if(k==3)   {this->JF33(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        }
-        if(j>3 || k>3){this->JFGI(i,this->Kf_[z],this->dKfdT_[z],c,dNdtByV,ddNdtByVdcT,&this->tmp_Exp[0],dBdT);}
-        //std::cout<<j<<" "<<k<<std::endl;
-    }*/
-
-/*for(int i = 0; i < this->nSpecies;i++)
-{
-    for(int j = 0; j < this->nSpecies-1;j++)
-    {
-        std::cout<<ddNdtByVdcT[i*(this->alignN)+j]<<" ";
-    }
-    int j = this->nSpecies-1;
-    std::cout<<ddNdtByVdcT[i*(this->alignN)+j]<<std::endl;
-}
-
-for(int i = 0; i < this->nSpecies;i++)
-{
-    std::cout<<dNdtByV[i]<<std::endl;
-}
-std::exit(0);*/
-
 }
 

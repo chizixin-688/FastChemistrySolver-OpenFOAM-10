@@ -1,12 +1,35 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for LU decomposition of matrix. Contains class declarations 
+      and function prototypes related to gas-phase chemistry reactions.
 
-
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
 
 #ifndef LUsolver_H
 #define LUsolver_H
-#include "Macro.H"
+
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <vector>
+
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
+#include "Macro.H"
+
+//---------------------------------
+// 3. SIMD / AVX2 headers
+//---------------------------------
 #include <immintrin.h>
-#include <string>
+
+//=============================================================================//
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
@@ -153,10 +176,6 @@ public:
                 void UpdateL22U22_Vec_38_04(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
                 void UpdateL22U22_Vec_38_14(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
                 void UpdateL22U22_Vec_38_24(unsigned int k0,unsigned int k1, unsigned int rowTimes, unsigned int colTimes);
-        //void LUDecompose_s();
-
-        // Read square matrix from text.
-        //void ReadTxt(std::string fileName);
 
         // Reassign a square matrix
         void ReAssign(double* externalData);

@@ -1,6 +1,24 @@
-#include "idealGas.H"
+/*---------------------------------------------------------------------------*\
+  Description
+      Containing class constructor, destructor and member functions.
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <cstring>
 
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
+#include "idealGas.H"
+
+//=============================================================================//
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -395,7 +413,6 @@ void FastChemistry::idealGas::JacobianThermoYT
     else if(remain==3)
     {
         unsigned int i = this->nSpecies-3;
-        __m256d zerov = _mm256_setzero_pd();
 
         __m256d invW_ = load256d(&this->invW[i+0]);
         invW_ = _mm256_blend_pd(invW_,zerov,0b1000);
@@ -725,40 +742,43 @@ void FastChemistry::idealGas::DerivativeThermoYT
 
     __m256d rhoMvv = _mm256_set1_pd(this->rhoM);
 
-    __m256d zerov = _mm256_setzero_pd();
-    for (int i=0; i<this->nSpecies-remain; i=i+4)
+    // Compute molar concentration for each species [kmol/m^3]
     {
-        //concentration[i] = rhoM*this->invW[i]*Phi[i];
-        __m256d invWv = load256d(&this->invW[i]);
-        __m256d Phiv = load256d(&Phi[i]);
-        __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
-        cv = _mm256_max_pd(cv,zerov);
-        store256d(&concentration[i],cv);
-    }
-    if(remain==1)
-    {
-        int i = this->nSpecies-1;
-        concentration[i] = std::max(rhoM*this->invW[i]*Phi[i],0.0);
-    }
-    else if(remain==2)
-    {
-        int i = this->nSpecies-2;
-        __m128d invWv = load128d(&this->invW[i]);
-        __m128d Phiv = load128d(&Phi[i]);
-        __m128d cv = _mm_mul_pd(_mm256_castpd256_pd128(rhoMvv),_mm_mul_pd(Phiv,invWv));
-        cv = _mm_max_pd(cv,_mm256_castpd256_pd128(zerov));
-        store128d(&concentration[i],cv);
-    }
-    else if(remain==3)
-    {
-        int i = this->nSpecies-3;
         __m256d zerov = _mm256_setzero_pd();
-        __m256d invWv = _mm256_blend_pd(load256d(&this->invW[i]),zerov,0b1000);
-        __m256d Phiv = _mm256_blend_pd(load256d(&Phi[i]),zerov,0b1000);
-        __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
-        cv = _mm256_max_pd(cv,zerov);
-        store256d(&concentration[i],cv);
+        for (int i=0; i<this->nSpecies-remain; i=i+4)
+        {
+            //concentration[i] = rhoM*this->invW[i]*Phi[i];
+            __m256d invWv = load256d(&this->invW[i]);
+            __m256d Phiv = load256d(&Phi[i]);
+            __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
+            cv = _mm256_max_pd(cv,zerov);
+            store256d(&concentration[i],cv);
+        }
+        if(remain==1)
+        {
+            int i = this->nSpecies-1;
+            concentration[i] = std::max(rhoM*this->invW[i]*Phi[i],0.0);
+        }
+        else if(remain==2)
+        {
+            int i = this->nSpecies-2;
+            __m128d invWv = load128d(&this->invW[i]);
+            __m128d Phiv = load128d(&Phi[i]);
+            __m128d cv = _mm_mul_pd(_mm256_castpd256_pd128(rhoMvv),_mm_mul_pd(Phiv,invWv));
+            cv = _mm_max_pd(cv,_mm256_castpd256_pd128(zerov));
+            store128d(&concentration[i],cv);
+        }
+        else if(remain==3)
+        {
+            int i = this->nSpecies-3;
+            __m256d invWv = _mm256_blend_pd(load256d(&this->invW[i]),zerov,0b1000);
+            __m256d Phiv = _mm256_blend_pd(load256d(&Phi[i]),zerov,0b1000);
+            __m256d cv = _mm256_mul_pd(rhoMvv,_mm256_mul_pd(Phiv,invWv));
+            cv = _mm256_max_pd(cv,zerov);
+            store256d(&concentration[i],cv);
+        }
     }
+
 
     __m256d vT = _mm256_set1_pd(T);
     __m256d vInvT = _mm256_set1_pd(this->invT);

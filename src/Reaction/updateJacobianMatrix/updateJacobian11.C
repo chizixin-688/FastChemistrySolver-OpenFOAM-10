@@ -1,5 +1,25 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for one-one reaction, e.g. A=B. A=C
+
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
+
 
 /*void  FastChemistry::OptReaction::updateJacobian11
 (
@@ -119,18 +139,22 @@ void  FastChemistry::OptReaction::JF11RR
 
         double Kf = this->Kf_[i];
         double dKfdT = this->dKfdT_[i];
-        double Kr = 0;
-        double dKrdT = 0;
-        double invKc = 0;
 
+        //const double Kp = ExpNegGbyRT[sr0]/ExpNegGbyRT[sl0];
+        //const double Kc = Kp > KcLimiter?Kp:KcLimiter;
+        //const double sumVdBdT = (dBdT[sr0] ) - (dBdT[sl0] );
+        //const double dKcdTByKc = sumVdBdT;
+        //invKc = 1.0/Kc;        
+        //Kr = Kf*invKc;
+        //dKrdT = (dKfdT*invKc - (Kc > KcLimiter ? Kr*dKcdTByKc : 0));
 
-        const double Kp = ExpNegGbyRT[sr0]/ExpNegGbyRT[sl0];
-        const double Kc = Kp > KcLimiter?Kp:KcLimiter;
+        const double invKp = invNegGstdByRT[sr0]*ExpNegGbyRT[sl0];
+        const double invKc = std::min(invKp,FastChemistry::invKcLimiter);
         const double sumVdBdT = (dBdT[sr0] ) - (dBdT[sl0] );
         const double dKcdTByKc = sumVdBdT;
-        invKc = 1.0/Kc;        
-        Kr = Kf*invKc;
-        dKrdT = (dKfdT*invKc - (Kc > KcLimiter ? Kr*dKcdTByKc : 0));
+        const double Kr = Kf*invKc;
+        const double dKrdT = (dKfdT*invKc - (invKc < FastChemistry::invKcLimiter ? Kr*dKcdTByKc : 0));
+
         const double dCrdC0 = 1;
         ddNdtByVdcTp[sl0*(this->alignN)+sr0] -= (-Kr*dCrdC0);
         ddNdtByVdcTp[sr0*(this->alignN)+sr0] += (-Kr*dCrdC0);

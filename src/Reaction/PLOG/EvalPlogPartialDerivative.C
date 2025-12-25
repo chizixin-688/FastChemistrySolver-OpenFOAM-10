@@ -1,5 +1,20 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant and the partial derivatives of Plog
+      reactions. Including Kf and dKfdT
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
 {

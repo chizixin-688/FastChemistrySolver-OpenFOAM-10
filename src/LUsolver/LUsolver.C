@@ -1,12 +1,30 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Implementation file for LU decomposition of matrix. 
 
-#include "LUsolver.H"
-#include <immintrin.h>  
-#include <stdlib.h>
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <chrono>
 #include <cmath>
+
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
+#include "LUsolver.H"
+
+//---------------------------------
+// 3. SIMD / AVX2 headers
+//---------------------------------
+#include <immintrin.h>
+
+//=============================================================================//
 
 FastChemistry::LUsolver::LUsolver(double* externalData, int size)
 {
@@ -128,7 +146,7 @@ void FastChemistry::LUsolver::LUDecompose4
     }
     if(rowk0[k0]==0)
     {
-        rowk0[k0] = LuLimiter;
+        rowk0[k0] = FastChemistry::LuLimiter;
     }
     double rU00 = 1.0/rowk0[k0];
 
@@ -171,7 +189,7 @@ void FastChemistry::LUsolver::LUDecompose4
 
     if(rowk1[k0+1]==0)
     {
-        rowk1[k0+1] = LuLimiter;
+        rowk1[k0+1] = FastChemistry::LuLimiter;
     }
 
     rowk1[k0+2] = rowk1[k0+2] - rowk1[k0+0]*rowk0[k0+2];
@@ -199,7 +217,7 @@ void FastChemistry::LUsolver::LUDecompose4
     }
     if(rowk2[k0+2]==0)
     {
-        rowk2[k0+2] = LuLimiter;
+        rowk2[k0+2] = FastChemistry::LuLimiter;
     }
 
     rowk2[k0+3] =  rowk2[k0+3] - rowk2[k0+0]*rowk0[k0+3] - rowk2[k0+1]*rowk1[k0+3];
@@ -212,7 +230,7 @@ void FastChemistry::LUsolver::LUDecompose4
     rowk3[k0+3] =  rowk3[k0+3] - rowk3[k0+0]*rowk0[k0+3] - rowk3[k0+1]*rowk1[k0+3] - rowk3[k0+2]*rowk2[k0+3];
     if(rowk3[k0+3]==0)
     {
-        rowk3[k0+3] = LuLimiter;
+        rowk3[k0+3] = FastChemistry::LuLimiter;
     }
     double rU33 = 1.0/rowk3[k0+3];
     this->invD[k0+0] = rU00;
@@ -239,7 +257,7 @@ void FastChemistry::LUsolver::LUDecompose4_2
     {
         if(a==0)
         {
-            a = LuLimiter;
+            a = FastChemistry::LuLimiter;
         }
         double inva = 1.0/a;        
         rowN1[N-2] = c*inva;
@@ -247,7 +265,7 @@ void FastChemistry::LUsolver::LUDecompose4_2
         this->invD[N-2] = inva;
         if(rowN1[N-1]==0)
         {
-            rowN1[N-1] = LuLimiter;
+            rowN1[N-1] = FastChemistry::LuLimiter;
         }
         this->invD[N-1] = 1.0/rowN1[N-1];
     }
@@ -255,7 +273,7 @@ void FastChemistry::LUsolver::LUDecompose4_2
     {
         if(c==0)
         {
-            c = LuLimiter;
+            c = FastChemistry::LuLimiter;
         }        
         double invc = 1.0/c;        
         rowN2[N-2] = c;
@@ -266,7 +284,7 @@ void FastChemistry::LUsolver::LUDecompose4_2
         this->invD[N-2] = invc;
         if(rowN1[N-1]==0)
         {
-            rowN1[N-1] = LuLimiter;
+            rowN1[N-1] = FastChemistry::LuLimiter;
         }    
         this->invD[N-1] = 1.0/rowN1[N-1];
     }
@@ -315,7 +333,7 @@ void FastChemistry::LUsolver::LUDecompose4_3
 
         if(rowk0[k0+0]==0)
         {
-            rowk0[k0+0] = LuLimiter;
+            rowk0[k0+0] = FastChemistry::LuLimiter;
         }
         double rU00 = 1.0/rowk0[k0+0];
 
@@ -351,7 +369,7 @@ void FastChemistry::LUsolver::LUDecompose4_3
 
         if(rowk1[k0+1]==0)
         {
-            rowk1[k0+1] = LuLimiter;
+            rowk1[k0+1] = FastChemistry::LuLimiter;
         }
 
         rowk1[k0+2] = rowk1[k0+2] - rowk1[k0+0]*rowk0[k0+2];
@@ -361,7 +379,7 @@ void FastChemistry::LUsolver::LUDecompose4_3
 
         if(rowk2[k0+2]==0)
         {
-            rowk2[k0+2] = LuLimiter;
+            rowk2[k0+2] = FastChemistry::LuLimiter;
         }
         double rU22 = 1.0/rowk2[k0+2];        
         this->invD[N-3] = rU00;
@@ -3908,7 +3926,7 @@ void FastChemistry::LUsolver::Block4LUDecompose
         }
         if(v_[(N-1)*alignN+N-1]==0)
         {
-            v_[(N-1)*alignN+N-1] = LuLimiter;
+            v_[(N-1)*alignN+N-1] = FastChemistry::LuLimiter;
         }
         this->invD[N-1] = 1.0/v_[(N-1)*alignN+N-1];
     }
@@ -3964,37 +3982,6 @@ void FastChemistry::LUsolver::Block4LUDecompose
     }
 }
 
-/*void LUsolver::ReadTxt
-(
-    std::string fileName
-)
-{
-    std::ifstream ifs(fileName);
-    if(ifs.is_open())
-    {
-        int i = 0;
-
-        std::string line;
-        while(std::getline(ifs,line))
-        {
-            int j = 0;
-            std::istringstream iss(line);
-
-            std::string word;
-            while(iss>>word)
-            {
-                (*this)(i,j) = std::stod(word);                      
-                j++;
-            }
-            i++;
-        }
-        ifs.close();
-    }
-}*/
 void FastChemistry::LUsolver::ReAssign(double* externalData)
 {this->v_ = externalData;}
-
-
-/*void LUsolver::LUDecompose_s()
-{}*/
 

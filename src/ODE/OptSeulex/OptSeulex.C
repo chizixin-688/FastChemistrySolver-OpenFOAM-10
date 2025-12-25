@@ -23,11 +23,36 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "OptSeulex.H"
+/*---------------------------------------------------------------------------*\
+  Description
+      Note that this implementation is not consistent with OpenFOAM-10 version. 
+      But same with Imren's version
+
+      Reference
+
+      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff 
+      ODE solvers for combustion CFD. Combustion and Flame 174 (2016) 1–15.
+
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. OpenFOAM library headers
+//---------------------------------
 #include "SubField.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include <immintrin.h>  
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
+#include "OptSeulex.H"
+
+//=============================================================================//
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
@@ -104,17 +129,6 @@ Foam::OptSeulex<ChemistryModel>::OptSeulex
         }
     }
     this->logTol = -log10(relTol_ + absTol_)*0.6 + 0.5;
-
-    /*this->y0_   = this->YTpWork[5];
-    this->ySequence_         = this->YTpWork[8];
-    this->scale_         = this->YTpWork[10];
-
-    for(unsigned int i = 0; i < this->alignN ; i++)
-    {
-        this->y0_[i] = 0;
-        this->ySequence_[i] = 0;
-        this->scale_[i] = 0;
-    }*/
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -122,13 +136,9 @@ Foam::OptSeulex<ChemistryModel>::OptSeulex
 template<class ChemistryModel>
 Foam::OptSeulex<ChemistryModel>::~OptSeulex()
 {
-
     free(this->y0_);
     free(this->ySequence_);
     free(this->scale_);
-    /*this->y0_ = nullptr;
-    this->ySequence_ = nullptr;
-    this->scale_ = nullptr;*/
 }
 
 

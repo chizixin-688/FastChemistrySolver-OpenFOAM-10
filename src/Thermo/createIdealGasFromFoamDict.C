@@ -1,7 +1,21 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Initializing idealGas objects using OpenFOAM dictionary
 
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "createIdealGasFromFoamDict.H"
-#include "fvCFD.H"
-#include "hashedWordList.H"
+
+//=============================================================================//
+
+
 
 namespace FastChemistry
 {

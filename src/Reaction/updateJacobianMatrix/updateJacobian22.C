@@ -1,5 +1,24 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for two-two reaction, e.g. A+A=B+B. A+B=C+D
+      
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 /*void  FastChemistry::OptReaction::updateJacobian22
 (
@@ -177,9 +196,8 @@ void  FastChemistry::OptReaction::JF22RR
 
         double Kf0 = this->Kf_[i0];
         double dKfdT0 = this->dKfdT_[i0];
-        double Kr0 = 0;
-        double dKrdT0 = 0;
-        //double invKc0 = 0;
+
+
 
         
             //const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
@@ -191,11 +209,11 @@ void  FastChemistry::OptReaction::JF22RR
             //dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));
 
             const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a])*(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            double invKc0 = std::min(invKp0,invKcLimiter);
+            double invKc0 = std::min(invKp0,FastChemistry::invKcLimiter);
             const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
             const double dKcdTByKc0 = sumVdBdT0;    
-            Kr0 = Kf0*invKc0;
-            dKrdT0 = (dKfdT0*invKc0 - (invKc0 < invKcLimiter ? Kr0*dKcdTByKc0 : 0));
+            const double Kr0 = Kf0*invKc0;
+            const double dKrdT0 = (dKfdT0*invKc0 - (invKc0 < FastChemistry::invKcLimiter ? Kr0*dKcdTByKc0 : 0));
 
             const double dCrdC0a = C[sr1a];
             const double dCrdC1a = C[sr0a];
@@ -280,9 +298,6 @@ void  FastChemistry::OptReaction::JF22RR
 
         double Kf1 = this->Kf_[i1];
         double dKfdT1 = this->dKfdT_[i1];
-        double Kr1 = 0;
-        double dKrdT1 = 0;
-        double invKc1 = 0;
 
         
             //const double Kp1 = (ExpNegGbyRT[sr0b]*ExpNegGbyRT[sr1b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
@@ -295,11 +310,11 @@ void  FastChemistry::OptReaction::JF22RR
             //dKrdT1 = (dKfdT1*invKc1 - (Kc1 > KcLimiter ? Kr1*dKcdTByKc1 : 0));    
 
             const double invKp1 = (invNegGstdByRT[sr0b]*invNegGstdByRT[sr1b])*(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
-            invKc1 = std::min(invKp1,invKcLimiter);
+            const double invKc1 = std::min(invKp1,FastChemistry::invKcLimiter);
             const double sumVdBdT1 = (dBdT[sr0b] + dBdT[sr1b]) - (dBdT[sl0b] + dBdT[sl1b]);
             const double dKcdTByKc1 = sumVdBdT1;    
-            Kr1 = Kf1*invKc1;
-            dKrdT1 = (dKfdT1*invKc1 - (invKc1 < invKcLimiter ? Kr1*dKcdTByKc1 : 0));
+            const double Kr1 = Kf1*invKc1;
+            const double dKrdT1 = (dKfdT1*invKc1 - (invKc1 < FastChemistry::invKcLimiter ? Kr1*dKcdTByKc1 : 0));
 
             const double dCrdC0b = C[sr1b];
             const double dCrdC1b = C[sr0b];
@@ -385,11 +400,8 @@ void  FastChemistry::OptReaction::JF22RR
 
         double Kf2 = this->Kf_[i2];
         double dKfdT2 = this->dKfdT_[i2];
-        double Kr2 = 0;
-        double dKrdT2 = 0;
-        double invKc2 = 0;
 
-        
+    
             //const double Kp2 = (ExpNegGbyRT[sr0c]*ExpNegGbyRT[sr1c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
             //double Kc2 = Kp2;  
             //Kc2 = Kc2 > KcLimiter?Kc2:KcLimiter;
@@ -400,11 +412,11 @@ void  FastChemistry::OptReaction::JF22RR
             //dKrdT2 = (dKfdT2*invKc2 - (Kc2 > KcLimiter ? Kr2*dKcdTByKc2 : 0));  
 
             const double invKp2 = (invNegGstdByRT[sr0c]*invNegGstdByRT[sr1c])*(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
-            invKc2 = std::min(invKp2,invKcLimiter);
+            const double invKc2 = std::min(invKp2,FastChemistry::invKcLimiter);
             const double sumVdBdT2 = (dBdT[sr0c] + dBdT[sr1c]) - (dBdT[sl0c] + dBdT[sl1c]);
             const double dKcdTByKc2 = sumVdBdT2;    
-            Kr2 = Kf2*invKc2;
-            dKrdT2 = (dKfdT2*invKc2 - (invKc2 < invKcLimiter ? Kr2*dKcdTByKc2 : 0));
+            const double Kr2 = Kf2*invKc2;
+            const double dKrdT2 = (dKfdT2*invKc2 - (invKc2 < FastChemistry::invKcLimiter ? Kr2*dKcdTByKc2 : 0));
 
             const double dCrdC0c = C[sr1c];
             const double dCrdC1c = C[sr0c];
@@ -490,9 +502,6 @@ void  FastChemistry::OptReaction::JF22RR
 
         double Kf3 = this->Kf_[i3];
         double dKfdT3 = this->dKfdT_[i3];
-        double Kr3 = 0;
-        double dKrdT3 = 0;
-        double invKc3 = 0;
 
         
             //const double Kp3 = (ExpNegGbyRT[sr0d]*ExpNegGbyRT[sr1d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
@@ -505,11 +514,11 @@ void  FastChemistry::OptReaction::JF22RR
             //dKrdT3 = (dKfdT3*invKc3 - (Kc3 > KcLimiter ? Kr3*dKcdTByKc3 : 0));    
 
             const double invKp3 = (invNegGstdByRT[sr0d]*invNegGstdByRT[sr1d])*(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
-            invKc3 = std::min(invKp3,invKcLimiter);
+            const double invKc3 = std::min(invKp3,FastChemistry::invKcLimiter);
             const double sumVdBdT3 = (dBdT[sr0d] + dBdT[sr1d]) - (dBdT[sl0d] + dBdT[sl1d]);
             const double dKcdTByKc3 = sumVdBdT3;    
-            Kr3 = Kf3*invKc3;
-            dKrdT3 = (dKfdT3*invKc3 - (invKc3 < invKcLimiter ? Kr3*dKcdTByKc3 : 0));
+            const double Kr3 = Kf3*invKc3;
+            const double dKrdT3 = (dKfdT3*invKc3 - (invKc3 < FastChemistry::invKcLimiter ? Kr3*dKcdTByKc3 : 0));
 
             const double dCrdC0d = C[sr1d];
             const double dCrdC1d = C[sr0d];
@@ -602,9 +611,6 @@ void  FastChemistry::OptReaction::JF22RR
 
         double Kf0 = this->Kf_[i0];
         double dKfdT0 = this->dKfdT_[i0];
-        double Kr0 = 0;
-        double dKrdT0 = 0;
-        double invKc0 = 0;
 
         
             //const double Kp0 = (ExpNegGbyRT[sr0a]*ExpNegGbyRT[sr1a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
@@ -617,11 +623,11 @@ void  FastChemistry::OptReaction::JF22RR
             //dKrdT0 = (dKfdT0*invKc0 - (Kc0 > KcLimiter ? Kr0*dKcdTByKc0 : 0));   
 
             const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a])*(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
-            invKc0 = std::min(invKp0,invKcLimiter);
+            const double invKc0 = std::min(invKp0,FastChemistry::invKcLimiter);
             const double sumVdBdT0 = (dBdT[sr0a] + dBdT[sr1a]) - (dBdT[sl0a] + dBdT[sl1a]);
             const double dKcdTByKc0 = sumVdBdT0;    
-            Kr0 = Kf0*invKc0;
-            dKrdT0 = (dKfdT0*invKc0 - (invKc0 < invKcLimiter ? Kr0*dKcdTByKc0 : 0));
+            const double Kr0 = Kf0*invKc0;
+            const double dKrdT0 = (dKfdT0*invKc0 - (invKc0 < FastChemistry::invKcLimiter ? Kr0*dKcdTByKc0 : 0));
 
             const double dCrdC0a = C[sr1a];
             const double dCrdC1a = C[sr0a];

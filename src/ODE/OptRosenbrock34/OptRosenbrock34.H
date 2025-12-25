@@ -50,19 +50,37 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for Rosenbrock34 algorithm
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
 #ifndef OptRosenbrock34_H
 #define OptRosenbrock34_H
 
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
+//---------------------------------
+// 2. OpenFOAM library headers
+//---------------------------------
 #include "chemistrySolver.H"
-#include "simpleMatrix.H"
 
-
+//---------------------------------
+// 3. FastChemistry headers
+//---------------------------------
 #include "LUsolver.H"
 
+//=============================================================================//
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,9 +103,9 @@ class OptRosenbrock34
         public:
 
 
-        scalar dxTry;
+        double dxTry;
         bool last;
-        stepState(const scalar dx)
+        stepState(const double dx)
         :
             dxTry(dx),
             last(false)
@@ -100,10 +118,10 @@ class OptRosenbrock34
     // ODE solver
     
         //- Absolute convergence tolerance per step
-        const scalar absTol_;
+        const double absTol_;
 
         //- Relative convergence tolerance per step
-        const scalar relTol_;
+        const double relTol_;
 
         //- The maximum number of sub-steps allowed for the integration step
         const label maxSteps_;
@@ -111,50 +129,50 @@ class OptRosenbrock34
     // Adaptive Solver
 
         //- Step-size adjustment controls
-        constexpr static const scalar safeScale_ =     0.9;
-        constexpr static const scalar alphaInc_  =     0.2;
-        constexpr static const scalar alphaDec_ =     0.25;
-        constexpr static const scalar minScale_ =      0.2;
-        constexpr static const scalar maxScale_ =      10;
+        constexpr static const double safeScale_ =     0.9;
+        constexpr static const double alphaInc_  =     0.2;
+        constexpr static const double alphaDec_ =     0.25;
+        constexpr static const double minScale_ =      0.2;
+        constexpr static const double maxScale_ =      10;
 
         //constexpr static const scalar ratio = std::pow(maxScale_/safeScale_, -1.0/alphaInc_);
-        constexpr static const scalar ratio = 5.904900000E-06;
+        constexpr static const double ratio = 5.904900000E-06;
 
-        constexpr static const scalar safeMaxScale = safeScale_*maxScale_;
+        constexpr static const double safeMaxScale = safeScale_*maxScale_;
 
     // Rosenbrock
 
-        constexpr static const scalar a21= 2;
-        constexpr static const scalar a31= 48.0/25.0;
-        constexpr static const scalar a32= 6.0/25.0;
+        constexpr static const double a21= 2;
+        constexpr static const double a31= 48.0/25.0;
+        constexpr static const double a32= 6.0/25.0;
 
-        constexpr static const scalar c21= -8;
-        constexpr static const scalar c31= 372.0/25.0;
-        constexpr static const scalar c32= 12.0/5.0;
+        constexpr static const double c21= -8;
+        constexpr static const double c31= 372.0/25.0;
+        constexpr static const double c32= 12.0/5.0;
 
-        constexpr static const scalar c41= -112.0/125.0;
-        constexpr static const scalar c42= -54.0/125.0;
-        constexpr static const scalar c43= -2.0/5.0;
+        constexpr static const double c41= -112.0/125.0;
+        constexpr static const double c42= -54.0/125.0;
+        constexpr static const double c43= -2.0/5.0;
 
-        constexpr static const scalar b1= 19.0/9.0;
-        constexpr static const scalar b2= 1.0/2.0;
-        constexpr static const scalar b3= 25.0/108.0;
-        constexpr static const scalar b4= 125.0/108.0;
+        constexpr static const double b1= 19.0/9.0;
+        constexpr static const double b2= 1.0/2.0;
+        constexpr static const double b3= 25.0/108.0;
+        constexpr static const double b4= 125.0/108.0;
 
-        constexpr static const scalar e1= 34.0/108.0;
-        constexpr static const scalar e2= 7.0/36.0;
-        constexpr static const scalar e3= 0;
-        constexpr static const scalar e4= 125.0/108.0;
+        constexpr static const double e1= 34.0/108.0;
+        constexpr static const double e2= 7.0/36.0;
+        constexpr static const double e3= 0;
+        constexpr static const double e4= 125.0/108.0;
 
-        constexpr static const scalar gamma= 1.0/2.0;
-        constexpr static const scalar Invgamma= 1.0/gamma;
-        constexpr static const scalar c2= 1;
-        constexpr static const scalar c3= 3.0/5.0;
+        constexpr static const double gamma= 1.0/2.0;
+        constexpr static const double Invgamma= 1.0/gamma;
+        constexpr static const double c2= 1;
+        constexpr static const double c3= 3.0/5.0;
 
-        constexpr static const scalar d1= 1.0/2.0;
-        constexpr static const scalar d2= -3.0/2.0;
-        constexpr static const scalar d3= 605.0/250.0;
-        constexpr static const scalar d4= 29.0/250.0;
+        constexpr static const double d1= 1.0/2.0;
+        constexpr static const double d2= -3.0/2.0;
+        constexpr static const double d3= 605.0/250.0;
+        constexpr static const double d4= 29.0/250.0;
         
     // Rosenbrock
 
@@ -181,12 +199,12 @@ public:
         //- Update the concentrations and return the chemical time
         virtual void solve
         (
-            scalar& __restrict__ p,
-            scalar& __restrict__ T,
+            double& __restrict__ p,
+            double& __restrict__ T,
             scalarField& Y,
             const label li,
-            scalar& __restrict__ deltaT,
-            scalar& __restrict__ subDeltaT
+            double& __restrict__ deltaT,
+            double& __restrict__ subDeltaT
         ) const;
 
         virtual void solve
@@ -201,9 +219,9 @@ public:
 
         void ODESolve
         (
-            const scalar xEnd,
+            const double xEnd,
             const label li,
-            scalar& dxTry,
+            double& dxTry,
             const double p,
             double* __restrict__ Phi0,
             double* __restrict__ PhiTemp,
@@ -221,9 +239,9 @@ public:
 
         void adaptiveSolve
         (
-            scalar& __restrict__ x,
+            double& __restrict__ x,
             const label li,
-            scalar& __restrict__ dxTry,
+            double& __restrict__ dxTry,
             const double p,
             double* __restrict__ Phi0,
             double* __restrict__ PhiTemp,
@@ -238,12 +256,12 @@ public:
         )const;
 
 
-        scalar Rosenbrock34Solve
+        double Rosenbrock34Solve
         (
-            const scalar x0,
+            const double x0,
             const label li,
-            const scalar dx,
-            const scalar invdx,
+            const double dx,
+            const double invdx,
             const double p,
             double* __restrict__ Phi0,
             double* __restrict__ PhiTemp,
@@ -258,7 +276,7 @@ public:
         )const;
 
         //- Return the normalised scalar error
-        inline scalar normaliseError
+        inline double normaliseError
         (
             const double* __restrict__ Phi0,
             const double* __restrict__ Phi,

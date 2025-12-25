@@ -1,11 +1,20 @@
-// Note: This file is for text substitution purposes only, 
-// not compliant with standard C++ header file usage conventions
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
 
-// These function is used for computing molar concentration based matrix
-// RR:  reversible reaction
-// IR:  irreversible reaction reverse rate constant is zero
-// NER: non-equilibrium reaction, reverse rate constant is computed using
-//      Arrhenius form instead of equilibrium rate constant
+      Declare the functions computing the molar concentration based jacobian 
+      matrix.
+
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+      GNI: non-integer reaction. e.g. 1.5A^1.5 = B
+      GI:  integer reaction with number of reactants > 3 or 
+           number of products > 3. e.g. 3A+B = C
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
 
     // for one-one reactions. e.g. A<=>B.
     void JF11RR
@@ -265,7 +274,7 @@
 
     // for general reactions with integer number. e.g. A+A+A+A<=>B+C+D, A<=>D+E+F+G.
 
-    void updateJacobianGlobalIntegerReaction
+    void JFGI
     (
         const double* __restrict__ C,
         double* __restrict__ dNdtByV,
@@ -275,7 +284,7 @@
     )const noexcept;
 
     // for general reactions with non-integer number. e.g. 3.5A^1.4<=>B+C+D.
-    void updateJacobianGlobalNonIntegerReaction
+    void JFGNI
     (
         const double* __restrict__ C,
         double* __restrict__ dNdtByV,

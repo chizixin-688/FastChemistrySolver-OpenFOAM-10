@@ -1,4 +1,24 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration reaction rate. The function 
+      is used for two-three reaction, e.g. A+A=B+B+B. A+B=C+D+E
+      
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
 
 /*void 
 FastChemistry::OptReaction::update23Reaction
@@ -96,7 +116,7 @@ FastChemistry::OptReaction::RF23RR
             const double invKp0 = (invNegGstdByRT[sr0a]*invNegGstdByRT[sr1a]*invNegGstdByRT[sr2a])*
                 (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]);
             double invKc0 = invKp0*this->Pow_pByRT_SumVki[1];
-            invKc0 = std::min(invKc0, invKcLimiter);
+            invKc0 = std::min(invKc0, FastChemistry::invKcLimiter);
             Kr0 = Kf0*invKc0;
         
 
@@ -134,7 +154,7 @@ FastChemistry::OptReaction::RF23RR
             const double invKp1 = (invNegGstdByRT[sr0b]*invNegGstdByRT[sr1b]*invNegGstdByRT[sr2b])*
                 (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]);
             double invKc1 = invKp1*this->Pow_pByRT_SumVki[1];
-            invKc1 = std::min(invKc1,invKcLimiter);
+            invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
             Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b]*c[sl1b];
@@ -168,7 +188,7 @@ FastChemistry::OptReaction::RF23RR
             const double invKp2 = (invNegGstdByRT[sr0c]*invNegGstdByRT[sr1c]*invNegGstdByRT[sr2c])*
                 (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]);
             double invKc2 = invKp2*this->Pow_pByRT_SumVki[1];
-            invKc2 = std::min(invKc2,invKcLimiter);
+            invKc2 = std::min(invKc2,FastChemistry::invKcLimiter);
             Kr2 = Kf2*invKc2;
         
 
@@ -204,7 +224,7 @@ FastChemistry::OptReaction::RF23RR
             const double invKp3 = (invNegGstdByRT[sr0d]*invNegGstdByRT[sr1d]*invNegGstdByRT[sr2d])*
                 (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]);
             double invKc3 = invKp3*this->Pow_pByRT_SumVki[1];
-            invKc3 = std::min(invKc3,invKcLimiter);
+            invKc3 = std::min(invKc3,FastChemistry::invKcLimiter);
             Kr3 = Kf3*invKc3;
         
 
@@ -250,7 +270,7 @@ FastChemistry::OptReaction::RF23RR
             const double invKp = (invNegGstdByRT[sr0]*invNegGstdByRT[sr1]*invNegGstdByRT[sr2])*
                 (ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
             double invKc = invKp*this->Pow_pByRT_SumVki[1];
-            invKc = std::min(invKc,invKcLimiter);
+            invKc = std::min(invKc,FastChemistry::invKcLimiter);
             Kr = Kf*invKc;    
 
         const double CF = c[sl0]*c[sl1];

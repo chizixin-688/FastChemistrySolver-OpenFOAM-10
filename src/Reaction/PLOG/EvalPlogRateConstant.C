@@ -1,5 +1,19 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant of Plog reactions
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
 {

@@ -1,5 +1,20 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant and the partial derivatives of Troe
+      reactions. Including Kf, dKfdT and dKfdC
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 {
@@ -25,7 +40,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);           
             __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
             tmpPr = _mm256_mul_pd(_mm256_mul_pd(M,K0),invKinf);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm256_add_pd(tmpPr,_mm256_set1_pd(1e-100));
             tmplogPr = _mm256_mul_pd(vec256_logd(_mm256_max_pd(small,tmpPr)),_mm256_set1_pd(invLog10));
         }
@@ -47,7 +62,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d F = _mm256_setzero_pd();
         __m256d invFcent = _mm256_setzero_pd();
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm256_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm256_add_pd(expTTss,Fcent);
             __m256d tmp0 = _mm256_set1_pd(1e-100);
@@ -80,7 +95,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm256_mul_pd(tmp0,expTTs);
             dFcentdT = _mm256_sub_pd(dFcentdT,tmp0);
             __m256d invT2 = _mm256_set1_pd(invT*invT);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d Tss = _mm256_loadu_pd(&this->Tss_[i]);
             tmp0 = _mm256_mul_pd(Tss,invT2);
             dFcentdT = _mm256_fmadd_pd(expTTss,tmp0,dFcentdT);
@@ -110,7 +125,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invOnePlusPr = _mm256_add_pd(one,Pr);
         invOnePlusPr = _mm256_div_pd(one,invOnePlusPr);
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d cmp_result_Pr = _mm256_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm256_blendv_pd(_mm256_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m256d c2 = _mm256_set1_pd(-f1);
@@ -172,7 +187,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const double M = this->tmp_M[m];
         const double Pr = K0*M/Kinf; 
         const double invKinf = 1.0/Kinf;
-        const double logPr = std::log10(std::max(Pr, small));
+        const double logPr = std::log10(std::max(Pr, FastChemistry::TroeLimiter));
         const double expTTsss = this->tmp_Exp[i+this->nSpecies];
         const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->n_Troe];
         const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->n_Troe*2];
@@ -184,7 +199,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         double invx3 = 0;
         double F = 0;
         {
-            const double logFcent = std::log10(std::max(Fcent, small));
+            const double logFcent = std::log10(std::max(Fcent, FastChemistry::TroeLimiter));
             const double c = -0.4 - 0.67*logFcent;
             const double n = 0.75 - 1.27*logFcent;
             const double x1 = n - 0.14*(logPr + c);
@@ -203,7 +218,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         double dFdT = 0;
         {
-            const double dlogFcentdT = Fcent >= small ? dFcentdT/Fcent*invLog10 : 0;
+            const double dlogFcentdT = Fcent >= FastChemistry::TroeLimiter ? dFcentdT/Fcent*invLog10 : 0;
             const double dcdT = -0.67*dlogFcentdT;
             const double dndT = - 1.27*dlogFcentdT;
             const double dx1dT = dndT - 0.14*dcdT;
@@ -215,7 +230,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         double dFdPr = 0;
         {
-            const double dlogPrdPr = Pr >= small ? invLog10/Pr : 0;
+            const double dlogPrdPr = Pr >= FastChemistry::TroeLimiter ? invLog10/Pr : 0;
             const double dx1dPr = -0.14*dlogPrdPr;
             const double dx2dPr = (dlogPrdPr - x2*dx1dPr)*invx1;
             const double dx3dPr = 2*x2*dx2dPr;
@@ -264,7 +279,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);           
             __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
             tmpPr = _mm_mul_pd(_mm_mul_pd(M,K0),invKinf);
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm_add_pd(tmpPr,_mm_set1_pd(1e-100));
 
             __m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
@@ -291,7 +306,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m128d F = _mm_setzero_pd();
         __m128d invFcent = _mm_setzero_pd();
         {
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm_add_pd(expTTss,Fcent);
             __m128d tmp0 = _mm_set1_pd(1e-100);
@@ -333,7 +348,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm_mul_pd(tmp0,expTTs);
             dFcentdT = _mm_sub_pd(dFcentdT,tmp0);
             __m128d invT2 = _mm_set1_pd(invT*invT);
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             __m128d Tss = _mm_loadu_pd(&this->Tss_[i]);
             tmp0 = _mm_mul_pd(Tss,invT2);
             dFcentdT = _mm_fmadd_pd(expTTss,tmp0,dFcentdT);
@@ -363,7 +378,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m128d invOnePlusPr = _mm_add_pd(one128,Pr);
         invOnePlusPr = _mm_div_pd(one128,invOnePlusPr);
         {
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             __m128d cmp_result_Pr = _mm_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm_blendv_pd(_mm_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m128d c2 = _mm_set1_pd(-f1);
@@ -439,7 +454,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             const double m2s = this->tmp_M[m0+2];
             __m256d M = _mm256_setr_pd(m0s,m1s,m2s,1);
             tmpPr = _mm256_mul_pd(_mm256_mul_pd(M,K0),invKinf);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm256_add_pd(tmpPr,_mm256_set1_pd(1e-100));
             tmplogPr = _mm256_mul_pd(vec256_logd(_mm256_max_pd(small,tmpPr)),_mm256_set1_pd(invLog10));
         }
@@ -476,7 +491,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d F = _mm256_setzero_pd();
         __m256d invFcent = _mm256_setzero_pd();
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm256_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm256_add_pd(expTTss,Fcent);
             __m256d tmp0 = _mm256_set1_pd(1e-100);
@@ -520,7 +535,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm256_mul_pd(tmp0,expTTs);
             dFcentdT = _mm256_sub_pd(dFcentdT,tmp0);
             __m256d invT2 = _mm256_set1_pd(invT*invT);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
 
             tmps0 = this->Tss_[i+0];
             tmps1 = this->Tss_[i+1];
@@ -555,7 +570,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invOnePlusPr = _mm256_add_pd(one,Pr);
         invOnePlusPr = _mm256_div_pd(one,invOnePlusPr);
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d cmp_result_Pr = _mm256_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm256_blendv_pd(_mm256_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m256d c2 = _mm256_set1_pd(-f1);
@@ -664,7 +679,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);           
             __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
             tmpPr = _mm256_mul_pd(_mm256_mul_pd(M,K0),invKinf);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm256_add_pd(tmpPr,_mm256_set1_pd(1e-100));
             tmplogPr = _mm256_mul_pd(vec256_logd(_mm256_max_pd(small,tmpPr)),_mm256_set1_pd(invLog10));
         }
@@ -686,7 +701,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d F = _mm256_setzero_pd();
         __m256d invFcent = _mm256_setzero_pd();
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm256_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm256_add_pd(expTTss,Fcent);
             __m256d tmp0 = _mm256_set1_pd(1e-100);
@@ -719,7 +734,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm256_mul_pd(tmp0,expTTs);
             dFcentdT = _mm256_sub_pd(dFcentdT,tmp0);
             __m256d invT2 = _mm256_set1_pd(invT*invT);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d Tss = _mm256_loadu_pd(&this->Tss_[i+this->n_TroeFO]);
             tmp0 = _mm256_mul_pd(Tss,invT2);
             dFcentdT = _mm256_fmadd_pd(expTTss,tmp0,dFcentdT);
@@ -749,7 +764,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invOnePlusPr = _mm256_add_pd(one,Pr);
         invOnePlusPr = _mm256_div_pd(one,invOnePlusPr);
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d cmp_result_Pr = _mm256_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm256_blendv_pd(_mm256_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m256d c2 = _mm256_set1_pd(-f1);
@@ -813,7 +828,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const double M = this->tmp_M[m];
         const double Pr = K0*M/Kinf; 
         const double invKinf = 1.0/Kinf;
-        const double logPr = std::log10(std::max(Pr, small));
+        const double logPr = std::log10(std::max(Pr, FastChemistry::TroeLimiter));
         const double expTTsss = this->tmp_Exp[i+this->nSpecies+this->n_TroeFO];
         const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->n_TroeCA+this->n_TroeFO];
         const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO];
@@ -826,7 +841,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         double invx3 = 0;
         double F = 0;
         {
-            const double logFcent = std::log10(std::max(Fcent, small));
+            const double logFcent = std::log10(std::max(Fcent, FastChemistry::TroeLimiter));
             const double c = -0.4 - 0.67*logFcent;
             const double n = 0.75 - 1.27*logFcent;
             const double x1 = n - 0.14*(logPr + c);
@@ -845,7 +860,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         double dFdT = 0;
         {
-            const double dlogFcentdT = Fcent >= small ? dFcentdT/Fcent*invLog10 : 0;
+            const double dlogFcentdT = Fcent >= FastChemistry::TroeLimiter ? dFcentdT/Fcent*invLog10 : 0;
             const double dcdT = -0.67*dlogFcentdT;
             const double dndT = - 1.27*dlogFcentdT;
             const double dx1dT = dndT - 0.14*dcdT;
@@ -857,7 +872,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         double dFdPr = 0;
         {
-            const double dlogPrdPr = Pr >= small ? invLog10/Pr : 0;
+            const double dlogPrdPr = Pr >= FastChemistry::TroeLimiter ? invLog10/Pr : 0;
             const double dx1dPr = -0.14*dlogPrdPr;
             const double dx2dPr = (dlogPrdPr - x2*dx1dPr)*invx1;
             const double dx3dPr = 2*x2*dx2dPr;
@@ -899,7 +914,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);           
             __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
             tmpPr = _mm_mul_pd(_mm_mul_pd(M,K0),invKinf);
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm_add_pd(tmpPr,_mm_set1_pd(1e-100));
 
             __m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
@@ -926,7 +941,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m128d F = _mm_setzero_pd();
         __m128d invFcent = _mm_setzero_pd();
         {
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm_add_pd(expTTss,Fcent);
             __m128d tmp0 = _mm_set1_pd(1e-100);
@@ -968,7 +983,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm_mul_pd(tmp0,expTTs);
             dFcentdT = _mm_sub_pd(dFcentdT,tmp0);
             __m128d invT2 = _mm_set1_pd(invT*invT);
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             __m128d Tss = _mm_loadu_pd(&this->Tss_[i+this->n_TroeFO]);
             tmp0 = _mm_mul_pd(Tss,invT2);
             dFcentdT = _mm_fmadd_pd(expTTss,tmp0,dFcentdT);
@@ -998,7 +1013,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m128d invOnePlusPr = _mm_add_pd(one128,Pr);
         invOnePlusPr = _mm_div_pd(one128,invOnePlusPr);
         {
-            __m128d small = _mm_set1_pd(TroeLimiter);
+            __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             __m128d cmp_result_Pr = _mm_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm_blendv_pd(_mm_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m128d c2 = _mm_set1_pd(-f1);
@@ -1076,7 +1091,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             const double m2s = this->tmp_M[m0+2];
             __m256d M = _mm256_setr_pd(m0s,m1s,m2s,1);
             tmpPr = _mm256_mul_pd(_mm256_mul_pd(M,K0),invKinf);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm256_add_pd(tmpPr,_mm256_set1_pd(1e-100));
             tmplogPr = _mm256_mul_pd(vec256_logd(_mm256_max_pd(small,tmpPr)),_mm256_set1_pd(invLog10));
         }
@@ -1113,7 +1128,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d F = _mm256_setzero_pd();
         __m256d invFcent = _mm256_setzero_pd();
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             Fcent = _mm256_fmadd_pd(alpha,expTTs,Fcent);
             Fcent = _mm256_add_pd(expTTss,Fcent);
             __m256d tmp0 = _mm256_set1_pd(1e-100);
@@ -1157,7 +1172,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmp0 = _mm256_mul_pd(tmp0,expTTs);
             dFcentdT = _mm256_sub_pd(dFcentdT,tmp0);
             __m256d invT2 = _mm256_set1_pd(invT*invT);
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
 
             tmps0 = this->Tss_[i+0+this->n_TroeFO];
             tmps1 = this->Tss_[i+1+this->n_TroeFO];
@@ -1192,7 +1207,7 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         __m256d invOnePlusPr = _mm256_add_pd(one,Pr);
         invOnePlusPr = _mm256_div_pd(one,invOnePlusPr);
         {
-            __m256d small = _mm256_set1_pd(TroeLimiter);
+            __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
             __m256d cmp_result_Pr = _mm256_cmp_pd(Pr,small,_CMP_GE_OQ);
             dlogPrdPr = _mm256_blendv_pd(_mm256_setzero_pd(), dlogPrdPr, cmp_result_Pr);
             __m256d c2 = _mm256_set1_pd(-f1);

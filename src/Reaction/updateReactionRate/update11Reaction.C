@@ -1,4 +1,24 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration reaction rate. The function 
+      is used for one-one reaction, e.g. A=B. A=C
+
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
 
 /*void 
 FastChemistry::OptReaction::update11Reaction
@@ -77,7 +97,7 @@ FastChemistry::OptReaction::RF11RR
 
         const double invKp0 = (invNegGstdByRT[sr0a])*(ExpNegGbyRT[sl0a]);
         double invKc0 = invKp0;
-        invKc0 = std::min(invKc0,invKcLimiter);
+        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
         double Kr0 = Kf0*invKc0;
 
         const double CF0 = c[sl0a];
@@ -103,7 +123,7 @@ FastChemistry::OptReaction::RF11RR
 
         const double invKp1 = (invNegGstdByRT[sr0b])*(ExpNegGbyRT[sl0b]);
         double invKc1 = invKp1;
-        invKc1 = std::min(invKc1,invKcLimiter);
+        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
         double Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b];
@@ -130,7 +150,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr2 = Kf2/Kc2;
         const double invKp2 = (invNegGstdByRT[sr0c])*(ExpNegGbyRT[sl0c]);
         double invKc2 = invKp2;
-        invKc2 = std::min(invKc2,invKcLimiter);
+        invKc2 = std::min(invKc2,FastChemistry::invKcLimiter);
         double Kr2 = Kf2*invKc2;
 
         const double CF2 = c[sl0c];
@@ -180,7 +200,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr0 = Kf0/Kc0;
         const double invKp0 = (invNegGstdByRT[sr0a])*(ExpNegGbyRT[sl0a]);
         double invKc0 = invKp0;
-        invKc0 = std::min(invKc0,invKcLimiter);
+        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
         double Kr0 = Kf0*invKc0;
 
 
@@ -210,7 +230,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr0 = Kf0/Kc0;
         const double invKp0 = (invNegGstdByRT[sr0a])*(ExpNegGbyRT[sl0a]);
         double invKc0 = invKp0;
-        invKc0 = std::min(invKc0,invKcLimiter);
+        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
         double Kr0 = Kf0*invKc0;
 
         const double CF0 = c[sl0a];
@@ -234,7 +254,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr1 = Kf1/Kc1;
         const double invKp1 = (invNegGstdByRT[sr0b])*(ExpNegGbyRT[sl0b]);
         double invKc1 = invKp1;
-        invKc1 = std::min(invKc1,invKcLimiter);
+        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
         double Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b];
@@ -264,7 +284,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr0 = Kf0/Kc0;
         const double invKp0 = (invNegGstdByRT[sr0a])*(ExpNegGbyRT[sl0a]);
         double invKc0 = invKp0;
-        invKc0 = std::min(invKc0,invKcLimiter);
+        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
         double Kr0 = Kf0*invKc0;
 
         const double CF0 = c[sl0a];
@@ -288,7 +308,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr1 = Kf1/Kc1;
         const double invKp1 = (invNegGstdByRT[sr0b])*(ExpNegGbyRT[sl0b]);
         double invKc1 = invKp1;
-        invKc1 = std::min(invKc1,invKcLimiter);
+        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
         double Kr1 = Kf1*invKc1;
 
         const double CF1 = c[sl0b];
@@ -313,7 +333,7 @@ FastChemistry::OptReaction::RF11RR
         //double Kr2 = Kf2/Kc2;
         const double invKp2 = (invNegGstdByRT[sr0c])*(ExpNegGbyRT[sl0c]);
         double invKc2 = invKp2;
-        invKc2 = std::min(invKc2,invKcLimiter);
+        invKc2 = std::min(invKc2,FastChemistry::invKcLimiter);
         double Kr2 = Kf2*invKc2;
 
         const double CF2 = c[sl0c];

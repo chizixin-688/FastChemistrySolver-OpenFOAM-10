@@ -1,7 +1,23 @@
-#include "OptReaction.H"
-#include <immintrin.h>  
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for general reaction with non-integer stoichiometric number,e.g.
+      4.5A+5.5B=6.5C
 
-void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
+#include "OptReaction.H"
+
+//=============================================================================//
+
+void  FastChemistry::OptReaction::JFGNI
 (
     const double* __restrict__ C,
     double* __restrict__ dNdtByV,
@@ -37,7 +53,7 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
                 Kp += sl*this->negGstdByRT[si];
                 sumVdBdT = sumVdBdT - sl*dBdT[si];
                 sumVki = sumVki - sl;
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);
+                CF = CF * (C[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);
             }
 
             for(unsigned int j = 0; j < this->rhsSpeciesIndex[iii].size();j++)
@@ -48,17 +64,17 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
                 Kp -= sr*this->negGstdByRT[si];
                 sumVdBdT = sumVdBdT + sr*dBdT[si];
                 sumVki = sumVki + sr;
-                CR = CR * (C[si] >= small || er >= 1.0 ? std::pow((C[si]), er) : 0.0);    
+                CR = CR * (C[si] >= FastChemistry::ConcentrationLimiter || er >= 1.0 ? std::pow((C[si]), er) : 0.0);    
             }
             Kp = std::exp(Kp);        
             double Kc = Kp*std::pow(this->Pstd/(this->Ru*this->T),sumVki);
-            Kc = std::max(Kc,KcLimiter);
+            Kc = std::max(Kc,FastChemistry::KcLimiter);
             invKc = 1.0/Kc;
 
             const double dKcdTByKc = sumVdBdT - sumVki*invT;
 
             Kr = Kf*invKc;
-            dKrdT = dKfdT*invKc - (Kc > KcLimiter ? Kr*dKcdTByKc : 0.0);
+            dKrdT = dKfdT*invKc - (Kc > FastChemistry::KcLimiter ? Kr*dKcdTByKc : 0.0);
         }
         else if(this->isIrreversible[iii]==2)
         {
@@ -69,13 +85,13 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
             {
                 const unsigned int si = this->rhsSpeciesIndex[iii][j];
                 const double er = lhsReactionOrder[iii][j];
-                CR = CR * (C[si] >= small || er >= 1 ? std::pow((C[si]), er) : 0.0);   
+                CR = CR * (C[si] >= FastChemistry::ConcentrationLimiter || er >= 1 ? std::pow((C[si]), er) : 0.0);   
             }
             for(unsigned int j = 0; j < lhsSpeciesIndex[iii].size();j++)
             {
                 const unsigned int si = lhsSpeciesIndex[iii][j];
                 const double el = lhsReactionOrder[iii][j];
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);            
+                CF = CF * (C[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);            
             }
         }
         else
@@ -84,13 +100,13 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
             {
                 const unsigned int si = this->rhsSpeciesIndex[iii][j];
                 const double er = lhsReactionOrder[iii][j];
-                CR = CR * (C[si] >= small || er >= 1 ? std::pow((C[si]), er) : 0.0);   
+                CR = CR * (C[si] >= FastChemistry::ConcentrationLimiter || er >= 1 ? std::pow((C[si]), er) : 0.0);   
             }
             for(unsigned int j = 0; j < lhsSpeciesIndex[iii].size();j++)
             {
                 const unsigned int si = lhsSpeciesIndex[iii][j];
                 const double el = lhsReactionOrder[iii][j];
-                CF = CF * (C[si] >= small || el >= 1 ? std::pow((C[si]), el) : 0.0);            
+                CF = CF * (C[si] >= FastChemistry::ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);            
             }        
         }
 
@@ -127,14 +143,14 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
                 if (i == j)
                 {
                     dCfdCj *=
-                    C[si] >= small || el >= 1
+                    C[si] >= FastChemistry::ConcentrationLimiter || el >= 1
                         ? el*std::pow((C[si]), el - 1.0)
                         : 0;
                 }
                 else
                 {
                     dCfdCj *=
-                        C[si] >= small || el >= 1
+                        C[si] >= FastChemistry::ConcentrationLimiter || el >= 1
                         ? std::pow((C[si]), el)
                         : 0;
                 }            
@@ -174,14 +190,14 @@ void  FastChemistry::OptReaction::updateJacobianGlobalNonIntegerReaction
                     if (i == j)
                     {
                         dCrdCj *=
-                            C[si] >= small || er >= 1.0
+                            C[si] >= FastChemistry::ConcentrationLimiter || er >= 1.0
                         ? er*std::pow((C[si]), er - 1.0)
                         : 0;
                     }
                     else
                     {
                         dCrdCj *=
-                            C[si] >= small || er >= 1.0
+                            C[si] >= FastChemistry::ConcentrationLimiter || er >= 1.0
                         ? std::pow((C[si]), er)
                         : 0;
                     }

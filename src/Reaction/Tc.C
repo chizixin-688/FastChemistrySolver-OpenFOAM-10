@@ -1,5 +1,20 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the chemistry time scale. The definition of Tc is consistent 
+      with OpenFOAM-10 rather than other versions
 
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
+
+//=============================================================================//
 
 void 
 FastChemistry::OptReaction::Tc
@@ -345,162 +360,15 @@ FastChemistry::OptReaction::Tc
     if(this->n_Lindemann>0)
     {
         this->evalLindemannRateConstant();
-        /*unsigned int remain = this->n_LindemannFO%4;
-        for (unsigned int i = 0;i<this->n_LindemannFO-remain;i=i+4)
-        {
-            const unsigned int j0 = this->LindemannFO[i+0]+0;
-            const unsigned int j1 = this->LindemannFO[i+0]+1;
-            const unsigned int j2 = this->LindemannFO[i+0]+2;
-            const unsigned int j3 = this->LindemannFO[i+0]+3;
-
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const unsigned int k3 = j3 - this->Ikf[4];
-            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-            __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
-            __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);         
-            __m256d Pr = _mm256_div_pd(_mm256_mul_pd(K0,M),Kinf);
-            __m256d N = _mm256_div_pd(K0,_mm256_add_pd(Pr,_mm256_set1_pd(1.0)));
-            __m256d k = _mm256_setr_pd(k0,k1,k2,k3);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d Kf = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);
-            _mm256_storeu_pd(&this->Kf_[j0],Kf);
-        }
-        if(remain==1)
-        {
-            const unsigned i = this->n_LindemannFO-1;
-            const unsigned int j = this->LindemannFO[i];
-            const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k = j - this->Ikf[4];
-            const double Kinf = this->Kf_[j+this->offset_kinf];
-            double M = this->tmp_M[m];     
-            const double K0 = this->Kf_[j];
-            const double Pr = K0*M/Kinf;   
-            const double N          = 1/(1+Pr)*K0;
-            this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;            
-        }
-        else if(remain==2)
-        {
-            const unsigned i = this->n_LindemannFO-2;
-            const unsigned int j0 = this->LindemannFO[i+0]+0;
-            const unsigned int j1 = this->LindemannFO[i+0]+1;
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-            __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
-            __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);
-            __m128d Pr = _mm_div_pd(_mm_mul_pd(K0,M),Kinf);
-            __m128d N = _mm_div_pd(K0,_mm_add_pd(Pr,_mm_set1_pd(1.0)));
-            __m128d k = _mm_setr_pd(k0,k1);
-            __m128d cmp = _mm_cmp_pd(k,_mm_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m128d Kf = _mm_blendv_pd(N,_mm_mul_pd(M,N),cmp);
-            _mm_storeu_pd(&this->Kf_[j0],Kf);
-        }
-        else if(remain==3)
-        {
-            const unsigned i = this->n_LindemannFO-3;
-            const unsigned int j0 = this->LindemannFO[i+0];
-            const unsigned int j1 = this->LindemannFO[i+1];
-            const unsigned int j2 = this->LindemannFO[i+2];
-            const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const double Kinf0 = this->Kf_[j0+this->offset_kinf];
-            const double Kinf1 = this->Kf_[j1+this->offset_kinf];
-            const double Kinf2 = this->Kf_[j2+this->offset_kinf];
-            double M0 = this->tmp_M[m0];
-            double M1 = this->tmp_M[m1];
-            double M2 = this->tmp_M[m2];
-            const double K00 = this->Kf_[j0];
-            const double K01 = this->Kf_[j1];
-            const double K02 = this->Kf_[j2];
-            __m256d Kinf = _mm256_setr_pd(Kinf0,Kinf1,Kinf2,1);
-            __m256d M = _mm256_setr_pd(M0,M1,M2,0);
-            __m256d K0 = _mm256_setr_pd(K00,K01,K02,0);         
-            __m256d Pr = _mm256_div_pd(_mm256_mul_pd(K0,M),Kinf);
-            __m256d N = _mm256_div_pd(K0,_mm256_add_pd(Pr,_mm256_set1_pd(1.0)));
-            __m256d k = _mm256_setr_pd(k0,k1,k2,0);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d Kf = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);
-            this->Kf_[j0] = get_elem0(Kf);
-            this->Kf_[j1] = get_elem1(Kf);
-            this->Kf_[j2] = get_elem2(Kf);
-        }*/
-
     }
 
     if(this->n_Troe>0)
     {
         this->evalTroeRateConstant();
-        /*unsigned int remain = this->n_Troe%4;
-        for(unsigned int i = 0; i < this->n_Troe-remain;i=i+4)
-        {
-            const unsigned int j0 = this->TroeFO[i+0];
-            const unsigned int j1 = j0 + 1;
-            const unsigned int j2 = j0 + 2;
-            const unsigned int j3 = j0 + 3;
-            const unsigned int k0 = j0 - this->Ikf[4];
-            const unsigned int k1 = j1 - this->Ikf[4];
-            const unsigned int k2 = j2 - this->Ikf[4];
-            const unsigned int k3 = j3 - this->Ikf[4];
-            const unsigned int m0 = j0 - this->Ikf[4] + Itbr[2];
-            __m256d Kinf = _mm256_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
-            __m256d M = _mm256_loadu_pd(&this->tmp_M[m0]);
-            __m256d K0 = _mm256_loadu_pd(&this->Kf_[j0]);    
-            __m256d Pr_ = _mm256_div_pd(_mm256_mul_pd(K0,M),Kinf);
-            __m256d small = _mm256_set1_pd(2.2e-16);
-            Pr_ = _mm256_max_pd(small,Pr_);
-            const double invLog10 = 0.43429448190325182765112891891661;
-            __m256d logPr_ = _mm256_mul_pd(vec256_logd(Pr_),_mm256_set1_pd(invLog10));
-            __m256d alpha = _mm256_loadu_pd(&this->alpha_[i]);
-            __m256d one = _mm256_set1_pd(1.0);
-            __m256d expTTsss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies]);
-            __m256d expTTss = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe]);
-            __m256d expTTs = _mm256_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*2]);
-            __m256d Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha), expTTsss);
-            Fcent = _mm256_fmadd_pd(alpha, expTTs,Fcent);
-            Fcent = _mm256_add_pd(expTTss,Fcent);
-            __m256d logFcent = _mm256_mul_pd(vec256_logd(_mm256_max_pd(Fcent,small)),_mm256_set1_pd(invLog10));
-            __m256d cc = _mm256_fmadd_pd(logFcent,_mm256_set1_pd(0.67),_mm256_set1_pd(0.4));
-            __m256d n = _mm256_fmadd_pd(logFcent,_mm256_set1_pd(-1.27),_mm256_set1_pd(0.75));
-            __m256d x1 = _mm256_fmadd_pd(_mm256_sub_pd(cc,logPr_),_mm256_set1_pd(0.14),n);
-            __m256d x2 = _mm256_div_pd(_mm256_sub_pd(logPr_,cc),x1);
-            __m256d x3 = _mm256_fmadd_pd(x2,x2,one);
-            __m256d x4 = _mm256_div_pd(logFcent,x3);
-            __m256d F_ = vec256_powd(_mm256_set1_pd(10),x4);
-            __m256d N = _mm256_div_pd(_mm256_mul_pd(K0,F_),_mm256_add_pd(_mm256_set1_pd(1.0),Pr_));
-            __m256d k = _mm256_setr_pd(k0,k1,k2,k3);
-            __m256d cmp = _mm256_cmp_pd(k,_mm256_set1_pd(this->n_Fall_Off_Reaction),_CMP_LT_OQ);
-            __m256d Kf = _mm256_blendv_pd(N,_mm256_mul_pd(M,N),cmp);
-            _mm256_storeu_pd(&this->Kf_[j0],Kf);         
-        }        
-        if(remain==1)       {this->Troe_F_1();}
-        else if(remain==2)  {this->Troe_F_2();}
-        else if(remain==3)  {this->Troe_F_3();}*/
     }
     if(this->n_SRI>0)
     {
         this->evalSRIRateConstant();
-        /*for (unsigned int i = 0;i<this->n_SRI;i++)
-        {
-            const unsigned int j = this->SRIFO[i];
-
-            const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-            const unsigned int k = j - this->Ikf[4];
-            const double Kinf = this->Kf_[j+this->offset_kinf];
-            double M = this->tmp_M[m]; 
-            const double K0 = this->Kf_[j];
-            const double Pr = K0*M/Kinf;   
-            const double F  = this->SRI_F(Temperature,Pr,i);
-            const double N  = 1/(1+Pr)*F*K0;
-            this->Kf_[j] = k<this->n_Fall_Off_Reaction ? M*N : N;   
-        }*/
     }
 
 
@@ -524,7 +392,7 @@ FastChemistry::OptReaction::Tc
                     const double el = this->lhsReactionOrder[i][j];
                     Kp += sl*this->negGstdByRT[si];
                     sumVki = sumVki - sl;
-                    CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);
+                    CF = CF * (C[si] >= ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);
                 }
                 
                 for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
@@ -534,7 +402,7 @@ FastChemistry::OptReaction::Tc
                     const double er = this->rhsReactionOrder[i][j];
                     Kp -= sr*this->negGstdByRT[si];
                     sumVki = sumVki + sr;
-                    CR = CR * (C[si] >= small || er >= 1 ? std::pow(std::max(C[si], 0.0), er) : 0.0);            
+                    CR = CR * (C[si] >= ConcentrationLimiter || er >= 1 ? std::pow((C[si]), er) : 0.0);            
                 }
                 Kp = std::exp(Kp);
                 Kc_ = Kp*std::pow(this->Pstd/(this->Ru*this->T),sumVki);
@@ -550,14 +418,14 @@ FastChemistry::OptReaction::Tc
                 {
                     const unsigned int si = this->lhsSpeciesIndex[i][j];
                     const double el = this->lhsReactionOrder[i][j];
-                    CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);
+                    CF = CF * (C[si] >= ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);
                 }
                 
                 for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
                 {
                     const unsigned int si = this->rhsSpeciesIndex[i][j];
                     const double er = this->rhsReactionOrder[i][j];
-                    CR = CR * (C[si] >= small || er >= 1 ? std::pow(std::max(C[si], 0.0), er) : 0.0);            
+                    CR = CR * (C[si] >= ConcentrationLimiter || er >= 1 ? std::pow((C[si]), er) : 0.0);            
                 }
             }
             else
@@ -566,14 +434,14 @@ FastChemistry::OptReaction::Tc
                 {
                     const unsigned int si = this->lhsSpeciesIndex[i][j];
                     const double el = this->lhsReactionOrder[i][j];
-                    CF = CF * (C[si] >= small || el >= 1 ? std::pow(std::max(C[si], 0.0), el) : 0.0);
+                    CF = CF * (C[si] >= ConcentrationLimiter || el >= 1 ? std::pow((C[si]), el) : 0.0);
                 }
                 
                 for(unsigned int j = 0; j < this->rhsSpeciesIndex[i].size();j++)
                 {
                     const unsigned int si = this->rhsSpeciesIndex[i][j];
                     const double er = this->rhsReactionOrder[i][j];
-                    CR = CR * (C[si] >= small || er >= 1 ? std::pow(std::max(C[si], 0.0), er) : 0.0);            
+                    CR = CR * (C[si] >= ConcentrationLimiter || er >= 1 ? std::pow((C[si]), er) : 0.0);            
                 }
             }
 
@@ -617,7 +485,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
                     double Kc = Kp;
-                    Kc = std::max(Kc,1.4901171103413047e-8);  
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);  
                     Kr = this->Kf_[i]/Kc;         
                 }
                 else if(this->isIrreversible[i]==2)
@@ -649,7 +517,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = ExpNegGbyRT[sr0]/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[1];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;        
                 }
                 else if(this->isIrreversible[i]==2)
@@ -685,7 +553,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[3];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;    
                 }
                 else if(this->isIrreversible[i]==2)
@@ -721,7 +589,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[3];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;       
                 }
                 else if(this->isIrreversible[i]==2)
@@ -752,7 +620,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = ExpNegGbyRT[sr0]/ExpNegGbyRT[sl0];
                     double Kc = Kp;
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;       
                 }
                 else if(this->isIrreversible[i]==2)
@@ -786,7 +654,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[4];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;         
                 }
                 else if(this->isIrreversible[i]==2)
@@ -825,7 +693,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[1];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;
                 }
                 else if(this->isIrreversible[i]==2)
@@ -860,7 +728,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
                     double Kc = Kp*this->Pow_pByRT_SumVki[0];
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;         
                 }
                 else if(this->isIrreversible[i]==2)
@@ -896,7 +764,7 @@ FastChemistry::OptReaction::Tc
                 {
                     const double Kp = (ExpNegGbyRT[sr0]*ExpNegGbyRT[sr1]*ExpNegGbyRT[sr2])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
                     double Kc = Kp;
-                    Kc = std::max(Kc,1.4901171103413047e-8);
+                    Kc = std::max(Kc,FastChemistry::KcLimiter);
                     Kr = this->Kf_[i]/Kc;   
                 }
                 else if(this->isIrreversible[i]==2)
@@ -948,7 +816,7 @@ FastChemistry::OptReaction::Tc
                 }
 
                 Kc_ = Kp*this->Pow_pByRT_SumVki_I[sumVki];
-                Kc_ = std::max(Kc_,1.49011611938476E-08);
+                Kc_ = std::max(Kc_,FastChemistry::KcLimiter);
                 Kr = Kf/Kc_;
             }
             else if(this->isIrreversible[i]==2)

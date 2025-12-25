@@ -1,67 +1,45 @@
 /*---------------------------------------------------------------------------*\
-  =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
-     \\/     M anipulation  |
--------------------------------------------------------------------------------
-License
-    This file is part of OpenFOAM.
+  Description
+      Header file for gas phase reaction objects. Contains class declarations 
+      and function prototypes related to gas-phase chemistry reactions.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
-Class
-    OptReaction
-
-Description
-    A class to optimized the computation of reaction rate
-
-SourceFiles
-    Reaction.C
-
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
 #ifndef OptReaction_H
 #define OptReaction_H
 
+//=============================================================================//
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <vector>
 #include <string>
-#include <algorithm>
-#include <immintrin.h>
 #include <math.h>
 #include <unordered_map>
-#include <iomanip>
-#include <array>
-#include "PtrList.H"
-#include "scalarField.H"
-#include "fvCFD.H"
-#include "HashTable.H"
+
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
 #include "Macro.H"
 #include "vec_math_avx2.H"
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//---------------------------------
+// 3. SIMD / AVX2 headers
+//---------------------------------
+#include <immintrin.h>
+
+//=============================================================================//
+
 
 namespace FastChemistry
 {
+
 /*---------------------------------------------------------------------------*\
                         Class Reaction Declaration
 \*---------------------------------------------------------------------------*/
-
-
 class OptReaction
 {
 
@@ -70,7 +48,7 @@ public:
     // Constructors
 
         // construct from using OpenFOAM
-        OptReaction(const dictionary& chemistryDict,const dictionary& physicalDict);
+        //OptReaction(const dictionary& chemistryDict,const dictionary& physicalDict);
 
         // default constructor
         OptReaction();
@@ -85,25 +63,25 @@ public:
     // Member function
 
         // Read information from OpenFOAM
-        void readInfo
+        /*void readInfo
         (
             const dictionary& chemistryDict,
             const dictionary& physicalDict  
-        );
+        );*/
 
         // Read reaction information from OpenFOAM, read reaction with integer number
         // e.g. A+B=C
-        void readReactionInfo
+        /*void readReactionInfo
         (
             std::vector<unsigned int>& lhsIndex,
             std::vector<unsigned int>& rhsIndex,
             const dictionary& nthreaction,
             const hashedWordList& speciesTable
-        );
+        );*/
 
         // Read reaction information from OpenFOAM, read reaction with non-integer number
         // e.g. A+1.5B=C, A+B^1.5=B
-        void readReactionInfo
+        /*void readReactionInfo
         (
             std::vector<unsigned int>& lhsIndex,
             std::vector<double>& lhsStoichCoeff,
@@ -113,7 +91,7 @@ public:
             std::vector<double>& rhsRectionOrder,
             const dictionary& nthreaction,
             const hashedWordList& speciesTable
-        );
+        );*/
 
         // Find reaction with two reactant and two products
         /*bool findTwoTwoReaction
@@ -124,10 +102,10 @@ public:
 
         // Check whether the stoichiometric number is an integer, this class only treat 
         // integer.
-        bool checkInteger
+        /*bool checkInteger
         (
             const dictionary& nthreaction
-        );
+        );*/
 
 
     // Member Operators
@@ -192,7 +170,6 @@ public:
 
             // The number of SRI reaction(ChemicallyActivated).
             mutable unsigned int n_SRICA=0;
-
 
             // The number of third body reactions.
             mutable unsigned int n_ThirdBodyReaction=0;     
@@ -266,7 +243,6 @@ public:
             // Store the index of the SRI form.
             mutable std::vector<unsigned int> SRIFO;
 
-
             // Store the index of the Lindemann form.
             mutable std::vector<unsigned int> LindemannCA;
 
@@ -283,50 +259,50 @@ public:
             mutable std::vector<std::vector<unsigned int>>     lhsSpeciesIndex;
             mutable std::vector<std::vector<unsigned int>>     rhsSpeciesIndex;
 
-            mutable std::vector<unsigned int> reaction11index;
+            //mutable std::vector<unsigned int> reaction11index;
             mutable std::vector<unsigned int> reversibleReaction11index;
             mutable std::vector<unsigned int> irreversibleReaction11index;
             mutable std::vector<unsigned int> nonEquilibriumReaction11index;
 
-            mutable std::vector<unsigned int> reaction12index;
+            //mutable std::vector<unsigned int> reaction12index;
             mutable std::vector<unsigned int> reversibleReaction12index;
             mutable std::vector<unsigned int> irreversibleReaction12index;
             mutable std::vector<unsigned int> nonEquilibriumReaction12index;
 
-            mutable std::vector<unsigned int> reaction13index;
+            //mutable std::vector<unsigned int> reaction13index;
             mutable std::vector<unsigned int> reversibleReaction13index;
             mutable std::vector<unsigned int> irreversibleReaction13index;
             mutable std::vector<unsigned int> nonEquilibriumReaction13index;
 
 
-            mutable std::vector<unsigned int> reaction21index;
+            //mutable std::vector<unsigned int> reaction21index;
             mutable std::vector<unsigned int> reversibleReaction21index;
             mutable std::vector<unsigned int> irreversibleReaction21index;
             mutable std::vector<unsigned int> nonEquilibriumReaction21index;
 
 
-            mutable std::vector<unsigned int> reaction22index;
+            //mutable std::vector<unsigned int> reaction22index;
             mutable std::vector<unsigned int> reversibleReaction22index;
             mutable std::vector<unsigned int> irreversibleReaction22index;
             mutable std::vector<unsigned int> nonEquilibriumReaction22index;
 
-            mutable std::vector<unsigned int> reaction23index;
+            //mutable std::vector<unsigned int> reaction23index;
             mutable std::vector<unsigned int> reversibleReaction23index;
             mutable std::vector<unsigned int> irreversibleReaction23index;
             mutable std::vector<unsigned int> nonEquilibriumReaction23index;
 
-            mutable std::vector<unsigned int> reaction31index;
+            //mutable std::vector<unsigned int> reaction31index;
             mutable std::vector<unsigned int> reversibleReaction31index;
             mutable std::vector<unsigned int> irreversibleReaction31index;
             mutable std::vector<unsigned int> nonEquilibriumReaction31index;
 
-            mutable std::vector<unsigned int> reaction32index;
+            //mutable std::vector<unsigned int> reaction32index;
             mutable std::vector<unsigned int> reversibleReaction32index;
             mutable std::vector<unsigned int> irreversibleReaction32index;
             mutable std::vector<unsigned int> nonEquilibriumReaction32index;
 
 
-            mutable std::vector<unsigned int> reaction33index;
+            //mutable std::vector<unsigned int> reaction33index;
             mutable std::vector<unsigned int> reversibleReaction33index;
             mutable std::vector<unsigned int> irreversibleReaction33index;
             mutable std::vector<unsigned int> nonEquilibriumReaction33index;
@@ -764,8 +740,7 @@ public:
 #include "ChemicalEquilibriumFunctionI.H"
 #include "thirdBodyReactionI.H"
 
-#ifdef NoRepository
-
+/*#ifdef NoRepository
     #include "EvalTroePartialDerivative.C"
     #include "EvalTroeRateConstant.C"
     #include "EvalSRIPartialDerivative.C"
@@ -801,7 +776,7 @@ public:
     #include "update33Reaction.C"
     #include "updateGlobalIntegerReaction.C"
     #include "updateGlobalNonIntegerReaction.C"
-#endif
+#endif*/
 
 
 

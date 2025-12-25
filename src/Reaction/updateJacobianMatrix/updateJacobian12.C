@@ -1,5 +1,24 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the molar concentration based jacobian matrix. The function 
+      is used for one-two reaction, e.g. A=B+B. A=B+C
+      
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 /*void  FastChemistry::OptReaction::updateJacobian12
 (
@@ -150,8 +169,6 @@ void  FastChemistry::OptReaction::JF12RR
 
         double Kf = this->Kf_[i];
         double dKfdT = this->dKfdT_[i];
-        double Kr = 0;
-        double dKrdT = 0;
 
 
 
@@ -167,11 +184,11 @@ void  FastChemistry::OptReaction::JF12RR
 
         const double invKp = (invNegGstdByRT[sr0]*invNegGstdByRT[sr1])*(ExpNegGbyRT[sl0]);
         double invKc = invKp*this->Pow_pByRT_SumVki[1];  
-        invKc = std::min(invKc,invKcLimiter);
+        invKc = std::min(invKc,FastChemistry::invKcLimiter);
         const double sumVdBdT = (dBdT[sr0] + dBdT[sr1]) - (dBdT[sl0] );
         const double dKcdTByKc = sumVdBdT - 1*invT;
-        Kr = Kf*invKc;
-        dKrdT = (dKfdT*invKc - (invKc < invKcLimiter ? Kr*dKcdTByKc : 0));
+        const double Kr = Kf*invKc;
+        const double dKrdT = (dKfdT*invKc - (invKc < FastChemistry::invKcLimiter ? Kr*dKcdTByKc : 0));
 
         const double dCrdC0 = C[sr1];
         const double dCrdC1 = C[sr0];     

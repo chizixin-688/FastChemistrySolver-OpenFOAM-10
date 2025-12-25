@@ -1,10 +1,25 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant and the partial derivatives of SRI
+      reactions. Including Kf, dKfdT and dKfdC
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 {
     __m256d onev = _mm256_set1_pd(1.0);
-    __m256d smallv = _mm256_set1_pd(TroeLimiter);
+    __m256d smallv = _mm256_set1_pd(FastChemistry::SRILimiter);
     __m256d invLog10v = _mm256_set1_pd(0.43429448190325182765112891891661);
     __m256d logTv = _mm256_set1_pd(this->logT);
     __m256d invTv = _mm256_set1_pd(this->invT);
@@ -178,7 +193,7 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double Pr = K0*M*invKinf; 
 
-        const double logPr = std::log(max(Pr, small))*invLog10;
+        const double logPr = std::log(std::max(Pr, FastChemistry::SRILimiter))*invLog10;
 
         const double expbT = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3];
 
@@ -208,7 +223,7 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double dpsidT = a*b*invT*invT*expbT - invc*expTc;
 
-        const double dlogPrdPr = Pr >= small ? invLog10*1/Pr : 0;
+        const double dlogPrdPr = Pr >= FastChemistry::SRILimiter ? invLog10*1/Pr : 0;
 
         const double dK0dT =  this->dKfdT_[j]; 
 
@@ -239,9 +254,6 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
             this->dKfdC_[m] =  K0*invOnePlusPr*(N1 + N2); 
         }
-        //std::cout<<"K FallOff: "<<    this->Kf_   [j+0]<<std::endl;
-        //std::cout<<"dKdT FallOff: "<< this->dKfdT_[j+0]<<std::endl;
-        //std::cout<<"dKdc FallOff: "<< this->dKfdC_[m+0]<<std::endl;
     }
     else if (remainFO==2)
     {
@@ -812,7 +824,7 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double Pr = K0*M*invKinf; 
 
-        const double logPr = std::log(max(Pr, small))*invLog10;
+        const double logPr = std::log(std::max(Pr, FastChemistry::SRILimiter))*invLog10;
 
         const double expbT = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRIFO];
 
@@ -842,7 +854,7 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double dpsidT = a*b*invT*invT*expbT - invc*expTc;
 
-        const double dlogPrdPr = Pr >= small ? invLog10*1/Pr : 0;
+        const double dlogPrdPr = Pr >= FastChemistry::SRILimiter ? invLog10*1/Pr : 0;
 
         const double dK0dT =  this->dKfdT_[j]; 
 

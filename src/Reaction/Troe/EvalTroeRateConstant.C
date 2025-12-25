@@ -1,5 +1,19 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Computing the forward rate constant of Troe reactions
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::evalTroeRateConstant()const noexcept
 {
@@ -14,7 +28,7 @@ void FastChemistry::OptReaction::evalTroeRateConstant()const noexcept
     __m256d n3 = _mm256_set1_pd(0.75);
     __m256d n4 = _mm256_set1_pd(0.14);
     __m256d n5 = _mm256_set1_pd(10);
-    __m256d small = _mm256_set1_pd(TroeLimiter);
+    __m256d small = _mm256_set1_pd(FastChemistry::TroeLimiter);
         for(unsigned int i = 0; i < this->n_TroeFO-remainFO;i=i+4)
         {
             const unsigned int j = this->TroeFO[i+0];
@@ -62,12 +76,12 @@ void FastChemistry::OptReaction::evalTroeRateConstant()const noexcept
             double M0 = this->tmp_M[m0];   
             const double K00 = this->Kf_[j];
             const double Pr0 = K00*M0/Kinf0;  
-            const double logPr0 = std::log10(std::max(Pr0, TroeLimiter));
+            const double logPr0 = std::log10(std::max(Pr0, FastChemistry::TroeLimiter));
             const double expTTsss0 = this->tmp_Exp[i + 0 + this->nSpecies];
             const double expTTss0  = this->tmp_Exp[i + 0 + this->nSpecies + this->n_Troe];
             const double expTTs0   = this->tmp_Exp[i + 0 + this->nSpecies + this->n_Troe*2];
             const double Fcent0 =(1 - this->alpha_[i+0])*expTTsss0 + this->alpha_[i+0]*expTTs0 + expTTss0;
-            const double logFcent0 = std::log10(std::max(Fcent0, TroeLimiter));
+            const double logFcent0 = std::log10(std::max(Fcent0, FastChemistry::TroeLimiter));
             const double c0 = -0.4 - 0.67*logFcent0;
             const double n0 = 0.75 - 1.27*logFcent0;
             const double x1_0 = n0 - 0.14*(logPr0 + c0);
@@ -250,12 +264,12 @@ void FastChemistry::OptReaction::evalTroeRateConstant()const noexcept
             double M0 = this->tmp_M[m0];   
             const double K00 = this->Kf_[j];
             const double Pr0 = K00*M0/Kinf0;  
-            const double logPr0 = std::log10(std::max(Pr0, TroeLimiter));
+            const double logPr0 = std::log10(std::max(Pr0, FastChemistry::TroeLimiter));
             const double expTTsss0 = this->tmp_Exp[i+this->nSpecies+this->n_TroeFO];
             const double expTTss0  = this->tmp_Exp[i+this->nSpecies+this->n_Troe+this->n_TroeFO];
             const double expTTs0   = this->tmp_Exp[i+this->nSpecies+this->n_Troe*2+this->n_TroeFO];
             const double Fcent0 =(1 - this->alpha_[i+this->n_TroeFO])*expTTsss0 + this->alpha_[i+this->n_TroeFO]*expTTs0 + expTTss0;
-            const double logFcent0 = std::log10(std::max(Fcent0, TroeLimiter));
+            const double logFcent0 = std::log10(std::max(Fcent0, FastChemistry::TroeLimiter));
             const double c0 = -0.4 - 0.67*logFcent0;
             const double n0 = 0.75 - 1.27*logFcent0;
             const double x1_0 = n0 - 0.14*(logPr0 + c0);

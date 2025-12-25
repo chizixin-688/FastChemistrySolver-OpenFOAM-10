@@ -23,10 +23,23 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*\
+  Description
+      Implementation file for FastChemistryModel object
 
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "FastChemistryModel.H"
-#include "basicChemistryModel.H"
-#include "OptReaction.H"
+
+//=============================================================================//
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -38,7 +51,7 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
 :   basicChemistryModel(thermo),
     Yvf_(this->thermo().composition().Y()),
     nSpecie_(Yvf_.size()),
-    reaction(),
+    //reaction(),
     RR_(this->nSpecie_),
     n_(this->nSpecie_+1),
     alignN(((n_+3)/4)*4),
@@ -63,7 +76,7 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
     (
         IOobject
         (
-            "physicalProperties",
+            FastChemistry::thermoDictName,
             this->mesh().time().constant(),
             this->mesh(),
             IOobject::MUST_READ_IF_MODIFIED,
@@ -74,7 +87,7 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
     (
         IOobject
         (
-            "chemistryProperties",
+            FastChemistry::chemistryDictName,
             this->mesh().time().constant(),
             this->mesh(),
             IOobject::MUST_READ_IF_MODIFIED,
@@ -115,8 +128,12 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
                     << "Index of default species is wrong!"
                     << Foam::abort(FatalError);
     }
-    reaction.readInfo(chemistryProperties,thermoDict);
+
+
+    //reaction.readInfo(chemistryProperties,thermoDict);
     FastChemistry::createIdealGasFromFoamDict(thermoDict,gas);
+    FastChemistry::createGasPhaseReactionFromFoamDict(chemistryProperties,thermoDict,GasReaction);
+
     // Create the fields for the chemistry sources
     forAll(RR_, fieldi)
     {
@@ -172,7 +189,8 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
         cpuLoadTransferTable[i].resize(Pstream::nProcs(),0);
     }
 
-    reaction.alignN = this->alignN;
+    //reaction.alignN = this->alignN;
+    GasReaction->alignN = this->alignN;
 
     // select the jacobian function
     {
@@ -297,11 +315,17 @@ void Foam::FastChemistryModel<UnusedThermo>::derivatives
     const double logRuT = get_elem2(TPRuT);
     gas->invT = invT;
     gas->logT = logT;
-    reaction.T = T;
-    reaction.invT = invT;
-    reaction.logT = logT;
-    reaction.logP = logP;
-    reaction.logRuT = logRuT;
+    //reaction.T = T;
+    //reaction.invT = invT;
+    //reaction.logT = logT;
+    //reaction.logP = logP;
+    //reaction.logRuT = logRuT;
+    
+    GasReaction->T = T;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
 
     // set to zero
     memset(dPhidt, 0, alignN*sizeof(double));
@@ -320,14 +344,14 @@ void Foam::FastChemistryModel<UnusedThermo>::derivatives
     // gas->rhoM        :Mixture density                                    [kg/m^3]
     // gas->vM          :Mixture specific volume                            [m^3/kg]
     // Cp[nSpecie()]    :Mixture specific heat capacity                     [J/kg/K]
-    gas->DerivativeThermoYT(T,p,Phi,c,Cp,Ha,reaction.tmp_Exp,reaction.negGstdByRT);
+    gas->DerivativeThermoYT(T,p,Phi,c,Cp,Ha,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
 
 
     // Compute the molar reaction rate
 
     // i-th species variables (size:nSpecie):
     // dPhidt[i]        :Molar reaction rate                                [kmol/m^3/s]
-    reaction.dNdtByV(p,T,c,dPhidt);
+    GasReaction->dNdtByV(p,T,c,dPhidt);
 
 
     // Compute the change rate of mass fraction and temperature
@@ -359,7 +383,7 @@ void Foam::FastChemistryModel<UnusedThermo>::derivatives
         dPhidt[i] =dPhidt[i]*W[i]*vm;
         dTdt -= dPhidt[i]*Ha[i];
     }
-    dTdt = dTdt -(reaction.hsum4(dTdtv));
+    dTdt = dTdt -(GasReaction->hsum4(dTdtv));
     dTdt /= Cp[this->nSpecie()];
     dPhidt[this->nSpecie()] = dTdt;
 
@@ -400,10 +424,10 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
     const double logRuT = get_elem2(TPRuT);
     gas->invT = invT;
     gas->logT = logT;
-    reaction.invT = invT;
-    reaction.logT = logT;
-    reaction.logP = logP;
-    reaction.logRuT = logRuT;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
 
 
     
@@ -451,8 +475,8 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
         T,
         Phi,
         c,
-        reaction.tmp_Exp,
-        reaction.negGstdByRT,
+        GasReaction->tmp_Exp,
+        GasReaction->negGstdByRT,
         dBdT,
         dCpdT,
         Cp,
@@ -463,7 +487,7 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
 
     // Compute the molar based jacobian matrix d(dcTdt)dcT
     // cT = [c0, c1, ..., cNs, T]
-    reaction.ddNdtByVdcTp
+    GasReaction->ddNdtByVdcTp
     (
         p,
         T,
@@ -524,6 +548,7 @@ Foam::FastChemistryModel<UnusedThermo>::tc() const
             for (label i=0; i<nSpecie_; i++)
             {
                 C[i] = rhoi*Yvf_[i][celli]*gas->invW[i];
+                C[i] = std::max(C[i],0.0);
             }
 
             // Constrain temperature to valid range (given by thermo.dat)
@@ -533,19 +558,22 @@ Foam::FastChemistryModel<UnusedThermo>::tc() const
             Ti = Ti>Thighmax?Thighmax:Ti;
 
             // Computing temperature and pressure, required by thermo and chemistry
-            __m256d TP = _mm256_setr_pd(Ti,pi,1,1);
-            TP = vec256_logd(TP);
+            double RuT = gas->Ru*Ti;
+            __m256d TPRuT = _mm256_setr_pd(Ti,pi,RuT,1);
+            TPRuT = vec256_logd(TPRuT);
             const double invT = 1.0/Ti;
-            const double logT = get_elem0(TP);
-            const double logP = get_elem1(TP);
+            const double logT = get_elem0(TPRuT);
+            const double logP = get_elem1(TPRuT);
+            const double logRuT = get_elem2(TPRuT);
             gas->invT = invT;
             gas->logT = logT;
-            reaction.invT = invT;
-            reaction.logT = logT;
-            reaction.logP = logP;
+            GasReaction->invT = invT;
+            GasReaction->logT = logT;
+            GasReaction->logP = logP;
+            GasReaction->logRuT = logRuT;
 
             // Computing dimensionless standard Gibbs energy
-            gas->negGstdByRT(Ti,reaction.tmp_Exp,reaction.negGstdByRT);
+            gas->negGstdByRT(Ti,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
 
             // A reaction's rate scale is calculated as it's molar
             // production rate divided by the total number of moles in the
@@ -564,7 +592,7 @@ Foam::FastChemistryModel<UnusedThermo>::tc() const
             // reactions produce the same result as the equivalent pair of
             // irreversible reactions.
             scalar sumW = 0, sumWRateByCTot = 0;
-            reaction.Tc(celli,pi,Ti,C,sumW,sumWRateByCTot);
+            GasReaction->Tc(celli,pi,Ti,C,sumW,sumWRateByCTot);
 
             double sumc = 0;
             for(int i = 0; i < this->nSpecie();i++)
@@ -682,10 +710,10 @@ void Foam::FastChemistryModel<UnusedThermo>::calculate()
         const double logRuT = get_elem2(TPRuT);
         gas->invT = invT;
         gas->logT = logT;
-        reaction.invT = invT;
-        reaction.logT = logT;
-        reaction.logP = logP;
-        reaction.logRuT = logRuT;
+        GasReaction->invT = invT;
+        GasReaction->logT = logT;
+        GasReaction->logP = logP;
+        GasReaction->logRuT = logRuT;
     
         // Computing molar concentration
         for (int i=0; i<this->nSpecie(); i++)
@@ -693,11 +721,11 @@ void Foam::FastChemistryModel<UnusedThermo>::calculate()
             const scalar Yi = Yvf_[i][celli];
             C[i] = rhoi*Yi*gas->invW[i];
         }
-        gas->negGstdByRT(Ti,reaction.tmp_Exp,reaction.negGstdByRT);
+        gas->negGstdByRT(Ti,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
 
         memset(C, 0, this->alignN * sizeof(double)*4);
 
-        reaction.dNdtByV(pi,Ti,C,dNdtByV);
+        GasReaction->dNdtByV(pi,Ti,C,dNdtByV);
         //reaction.dNdtByV(pi,Ti,C,dNdtByV,Cp,Ha);
         for (int i=0; i<this->nSpecie(); i++)
         {

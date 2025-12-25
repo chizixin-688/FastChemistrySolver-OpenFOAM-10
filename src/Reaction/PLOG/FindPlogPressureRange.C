@@ -1,5 +1,19 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Finding pressure range for Plog reactions
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "OptReaction.H"
-#include <immintrin.h>  
+
+//=============================================================================//
 
 void FastChemistry::OptReaction::findPlogPressureRange(double p)const noexcept
 {

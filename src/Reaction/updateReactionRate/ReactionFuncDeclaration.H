@@ -1,14 +1,19 @@
-// Note: This file is for text substitution purposes only, 
-// not compliant with standard C++ header file usage conventions
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
 
-// These function is used for computing molar reaction rate
-// RR:  reversible reaction
-// IR:  irreversible reaction reverse rate constant is zero
-// NER: non-equilibrium reaction, reverse rate constant is computed using
-//      Arrhenius form instead of equilibrium rate constant
-// GNI: non-integer reaction. e.g. 1.5A^1.5 = B
-// GI:  integer reaction with number of reactants > 3 or 
-//      number of products > 3. e.g. 3A+B = C
+      Declare the functions computing the molar concentration reaction rate
+      
+      RR:  reversible reaction
+      IR:  irreversible reaction reverse rate constant is zero
+      NER: non-equilibrium reaction, reverse rate constant is computed using
+           Arrhenius form instead of equilibrium rate constant
+      GNI: non-integer reaction. e.g. 1.5A^1.5 = B
+      GI:  integer reaction with number of reactants > 3 or 
+           number of products > 3. e.g. 3A+B = C
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
             
             void RFGNI
             (
