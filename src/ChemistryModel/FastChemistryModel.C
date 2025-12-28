@@ -134,6 +134,9 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
     FastChemistry::createIdealGasFromFoamDict(thermoDict,gas);
     FastChemistry::createGasPhaseReactionFromFoamDict(chemistryProperties,thermoDict,GasReaction);
 
+    GasReaction->alignN = this->alignN;
+
+
     // Create the fields for the chemistry sources
     forAll(RR_, fieldi)
     {
@@ -189,8 +192,11 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
         cpuLoadTransferTable[i].resize(Pstream::nProcs(),0);
     }
 
-    //reaction.alignN = this->alignN;
-    GasReaction->alignN = this->alignN;
+    GasReaction->JacRowPtr.resize(this->nSpecie()+1);
+    for(int i=0; i<this->nSpecie()+1;i++)
+    {
+        GasReaction->JacRowPtr[i] = &YTpYTpWork[0][i*this->alignN];
+    }
 
     // select the jacobian function
     {

@@ -6,3 +6,4 @@ src/Make/linux*
 src/lnInclude/
 src/build
 
+src/Thermo/PengRobinson/

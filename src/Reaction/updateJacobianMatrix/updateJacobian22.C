@@ -254,23 +254,27 @@ void  FastChemistry::OptReaction::JF22RR
         ddNdtByVdcTp[sr0a*(this->alignN)+ sl1a] += Kf0*dCfdC1a;
         ddNdtByVdcTp[sr1a*(this->alignN)+ sl1a] += Kf0*dCfdC1a;     
 
-        if(i0>=this->Ikf[2] && i0 <this->Ikf[6])
+        if(i0>=this->Ikf[3] && i0 <this->Ikf[6])
         { 
             const unsigned int k = i0 - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CFa);            
-            __m256d CR_ = _mm256_set1_pd(CRa);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc0);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CFa);            
+            //__m256d CR_ = _mm256_set1_pd(CRa);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc0);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+
+            double W = this->dKfdC_[k]*(CFa-invKc0*CRa);
+            __m256d Wv = _mm256_set1_pd(W);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
@@ -355,23 +359,27 @@ void  FastChemistry::OptReaction::JF22RR
         ddNdtByVdcTp[sr0b*(this->alignN)+ sl1b] += Kf1*dCfdC1b;
         ddNdtByVdcTp[sr1b*(this->alignN)+ sl1b] += Kf1*dCfdC1b;     
 
-        if(i1>=this->Ikf[2] && i1 <this->Ikf[6])
+        if(i1>=this->Ikf[3] && i1 <this->Ikf[6])
         { 
             const unsigned int k = i1 - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CFb);            
-            __m256d CR_ = _mm256_set1_pd(CRb);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc1);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CFb);            
+            //__m256d CR_ = _mm256_set1_pd(CRb);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc1);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            double W = this->dKfdC_[k]*(CFb-invKc1*CRb);
+            __m256d Wv = _mm256_set1_pd(W);
+
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0b*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
@@ -457,24 +465,26 @@ void  FastChemistry::OptReaction::JF22RR
         ddNdtByVdcTp[sr0c*(this->alignN)+ sl1c] += Kf2*dCfdC1c;
         ddNdtByVdcTp[sr1c*(this->alignN)+ sl1c] += Kf2*dCfdC1c;     
 
-        if(i2>=this->Ikf[2] && i2 <this->Ikf[6])
+        if(i2>=this->Ikf[3] && i2 <this->Ikf[6])
         { 
             const unsigned int k = i2 - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CFc);            
-            __m256d CR_ = _mm256_set1_pd(CRc);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc2);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CFc);            
+            //__m256d CR_ = _mm256_set1_pd(CRc);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc2);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            double W = this->dKfdC_[k]*(CFc-invKc2*CRc);
+            __m256d Wv = _mm256_set1_pd(W);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
-
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0c*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
                 store256d(&ddNdtByVdcTp[sl0c*(this->alignN)+j],sl0v);
@@ -559,24 +569,27 @@ void  FastChemistry::OptReaction::JF22RR
         ddNdtByVdcTp[sr0d*(this->alignN)+ sl1d] += Kf3*dCfdC1d;
         ddNdtByVdcTp[sr1d*(this->alignN)+ sl1d] += Kf3*dCfdC1d;     
 
-        if(i3>=this->Ikf[2] && i3 <this->Ikf[6])
+        if(i3>=this->Ikf[3] && i3 <this->Ikf[6])
         { 
             const unsigned int k = i3 - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CFd);            
-            __m256d CR_ = _mm256_set1_pd(CRd);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc3);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CFd);            
+            //__m256d CR_ = _mm256_set1_pd(CRd);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc3);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+
+            double W = this->dKfdC_[k]*(CFd-invKc3*CRd);
+            __m256d Wv = _mm256_set1_pd(W);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
-
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0d*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
                 store256d(&ddNdtByVdcTp[sl0d*(this->alignN)+j],sl0v);
@@ -668,24 +681,26 @@ void  FastChemistry::OptReaction::JF22RR
         ddNdtByVdcTp[sr0a*(this->alignN)+ sl1a] += Kf0*dCfdC1a;
         ddNdtByVdcTp[sr1a*(this->alignN)+ sl1a] += Kf0*dCfdC1a;     
 
-        if(i0>=this->Ikf[2] && i0 <this->Ikf[6])
+        if(i0>=this->Ikf[3] && i0 <this->Ikf[6])
         { 
             const unsigned int k = i0 - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CFa);            
-            __m256d CR_ = _mm256_set1_pd(CRa);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc0);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CFa);            
+            //__m256d CR_ = _mm256_set1_pd(CRa);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc0);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            double W = this->dKfdC_[k]*(CFa-invKc0*CRa);
+            __m256d Wv = _mm256_set1_pd(W);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
-
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
                 store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j],sl0v);
@@ -743,7 +758,7 @@ void  FastChemistry::OptReaction::JF22IR
 
 
         const double CF = C[sl0]*C[sl1];
-        const double CR = C[sr0]*C[sr1];
+        //const double CR = C[sr0]*C[sr1];
 
         const double q = (Kf*CF);
         dNdtByV[sl0] = dNdtByV[sl0] - q;
@@ -768,22 +783,25 @@ void  FastChemistry::OptReaction::JF22IR
         ddNdtByVdcTp[sr0*(this->alignN)+ sl1] += Kf*dCfdC1;
         ddNdtByVdcTp[sr1*(this->alignN)+ sl1] += Kf*dCfdC1;     
 
-        if(i>=this->Ikf[2] && i <this->Ikf[6])
+        if(i>=this->Ikf[3] && i <this->Ikf[6])
         { 
             const unsigned int k = i - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CF);            
-            __m256d CR_ = _mm256_set1_pd(CR);  
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CF);            
+            //__m256d CR_ = _mm256_set1_pd(CR);  
 
-            __m256d dKrdC_ = _mm256_set1_pd(0);
-
+            //__m256d dKrdC_ = _mm256_set1_pd(0);
+            double W = this->dKfdC_[k]*CF;
+            __m256d Wv = _mm256_set1_pd(W);
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
+
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
@@ -839,12 +857,12 @@ void  FastChemistry::OptReaction::JF22NER
         double dKfdT = this->dKfdT_[i];
         double Kr = 0;
         double dKrdT = 0;
-        double invKc = 0;
+        //double invKc = 0;
 
         {
             Kr = this->Kf_[i - Ikf[1] + Ikf[9]];
             dKrdT = this->dKfdT_[i - Ikf[1] + Ikf[9]];
-            invKc = Kr/Kf;
+            //invKc = Kr/Kf;
             const double dCrdC0 = C[sr1];
             const double dCrdC1 = C[sr0]; 
             ddNdtByVdcTp[sl0*(this->alignN)+ sr0] -= (-Kr*dCrdC0);
@@ -883,23 +901,26 @@ void  FastChemistry::OptReaction::JF22NER
         ddNdtByVdcTp[sr0*(this->alignN)+ sl1] += Kf*dCfdC1;
         ddNdtByVdcTp[sr1*(this->alignN)+ sl1] += Kf*dCfdC1;     
 
-        if(i>=this->Ikf[2] && i <this->Ikf[6])
+        if(i>=this->Ikf[2] && i <this->Ikf[3])
         { 
             const unsigned int k = i - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CF);            
-            __m256d CR_ = _mm256_set1_pd(CR);  
-            double dKrdC = 0;
-            dKrdC = (this->dKfdC_[k]*invKc);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            //__m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
+            //__m256d CF_ = _mm256_set1_pd(CF);            
+            //__m256d CR_ = _mm256_set1_pd(CR);  
+            //double dKrdC = 0;
+            //dKrdC = (this->dKfdC_[k]*invKc);
+            //__m256d dKrdC_ = _mm256_set1_pd(dKrdC);
+            double W = this->dKfdC_[k]*CF - this->dKfdC_[k+this->Itbr[4]]*CR;
+            __m256d Wv = _mm256_set1_pd(W);
 
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                //__m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
+                //WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);

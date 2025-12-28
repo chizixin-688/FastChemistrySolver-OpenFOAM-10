@@ -44,6 +44,15 @@
         const double* __restrict__ dBdT
     )const noexcept;
 
+    void JF11M
+    (
+        const double* __restrict__ C,
+        double* __restrict__ dNdtByV,
+        double* __restrict__ ddNdtByVdcTp,
+        const double* __restrict__ ExpNegGbyRT,
+        const double* __restrict__ dBdT
+    )const noexcept;
+
     // for one-two reactions. e.g. A<=>B+B, A<=>B+C.
     void JF12RR
     (
@@ -70,6 +79,11 @@
         double* __restrict__ ddNdtByVdcTp,
         const double* __restrict__ ExpNegGbyRT,
         const double* __restrict__ dBdT
+    )const noexcept;
+
+    void JF12M
+    (
+        double* ddNdtByVdcTp
     )const noexcept;
 
     // for one-three reactions. e.g. A<=>B+B+C, A<=>B+C+D.
@@ -126,6 +140,11 @@
         double* __restrict__ ddNdtByVdcTp,
         const double* __restrict__ ExpNegGbyRT,
         const double* __restrict__ dBdT
+    )const noexcept;
+
+    void JF21M
+    (
+        double* ddNdtByVdcTp
     )const noexcept;
 
     // for two-two reactions. e.g. A+D<=>B+B, A+A<=>B+C.
@@ -292,3 +311,5 @@
         const double* __restrict__ ExpNegGbyRT,
         const double* __restrict__ dBdT
     )const noexcept;
+
+

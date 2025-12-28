@@ -88,7 +88,8 @@ FastChemistry::OptReaction::Tc
     }
     if(this->n_PlogReaction>0)
     {
-        this->logP = std::log(p);
+        this->findPlogPressureRange(p);
+        /*this->logP = std::log(p);
         for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
         {
             const size_t length = this->Prange[i].size();
@@ -145,7 +146,7 @@ FastChemistry::OptReaction::Tc
                 this->Ta[i+this->Ikf[6]] = Ta0;
                 this->Ta[i+this->Ikf[11]] = Ta1;
             }
-        }
+        }*/
     }
 
 
@@ -207,9 +208,9 @@ FastChemistry::OptReaction::Tc
 
 
     {
-        unsigned int Tremain = (this->Itbr[5])%4;
+        unsigned int Tremain = (this->Itbr[4])%4;
 
-        for(unsigned int i = 0; i < this->Itbr[5]-Tremain; i=i+4)
+        for(unsigned int i = 0; i < this->Itbr[4]-Tremain; i=i+4)
         {
 
 
@@ -245,7 +246,7 @@ FastChemistry::OptReaction::Tc
         }
         if(Tremain==3)
         {
-            unsigned int i =(this->Itbr[5]) -3;
+            unsigned int i =(this->Itbr[4]) -3;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
@@ -276,7 +277,7 @@ FastChemistry::OptReaction::Tc
         }
         else if(Tremain==2)
         {
-            unsigned int i =(this->Itbr[5]) -2;
+            unsigned int i =(this->Itbr[4]) -2;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
             double M0 = 0;
@@ -300,7 +301,7 @@ FastChemistry::OptReaction::Tc
         }
         else if(Tremain==1)
         {
-            unsigned int i =(this->Itbr[5]) -1;
+            unsigned int i =(this->Itbr[4]) -1;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];            
             double M0 = 0;
             __m256d arrM_0 = _mm256_setzero_pd();
@@ -320,7 +321,7 @@ FastChemistry::OptReaction::Tc
 
     if(this->n_PlogReaction>0)
     {
-        for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
+        /*for(unsigned int i = 0; i< this->n_PlogReaction; i ++)
         {
             const size_t length = this->Prange[i].size();
             if(this->Pindex[i] == 0 || this->Pindex[i] == length-1)
@@ -335,7 +336,8 @@ FastChemistry::OptReaction::Tc
                 double Kf1 = this->Kf_[i+this->Ikf[11]];
                 this->Kf_[i+this->Ikf[6]] = Kf0*std::pow(Kf1/Kf0,weight);
             }
-        }
+        }*/
+        this->evalPlogRateConstant();
     }
 
 
@@ -351,9 +353,9 @@ FastChemistry::OptReaction::Tc
         for(unsigned int i = 0; i < this->n_NonEquilibriumThirdBodyReaction; i++)
         {
             double Mfwd = this->tmp_M[i];
-            double Mrev = this->tmp_M[this->Itbr[4]+i];
+            //double Mrev = this->tmp_M[this->Itbr[4]+i];
             this->Kf_[Ikf[2]+i] = this->Kf_[Ikf[2]+i]*Mfwd;
-            this->Kf_[Ikf[10]+i] = this->Kf_[Ikf[10]+i]*Mrev;
+            this->Kf_[Ikf[10]+i] = this->Kf_[Ikf[10]+i]*Mfwd;
         } 
     }
 
@@ -406,7 +408,7 @@ FastChemistry::OptReaction::Tc
                 }
                 Kp = std::exp(Kp);
                 Kc_ = Kp*std::pow(this->Pstd/(this->Ru*this->T),sumVki);
-                Kc_ = std::max(Kc_,1.49011611938476E-08);
+                Kc_ = std::max(Kc_,FastChemistry::KcLimiter);
                 Kr = this->Kf_[i]/Kc_;
             }
             else if(this->isIrreversible[i]==2)

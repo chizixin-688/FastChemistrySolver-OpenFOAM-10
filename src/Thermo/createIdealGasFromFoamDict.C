@@ -48,6 +48,7 @@ void createIdealGasFromFoamDict
         const Foam::dictionary species(specieDict.subDict("specie"));
         gas->W[i] = species.lookup<scalar>("molWeight");
         gas->invW[i] = 1.0/gas->W[i];
+        gas->invWRu[i] = gas->invW[i]*gas->Ru;
         for(unsigned int j = 0; j < 7; j ++)
         {
             gas->HCoeffs[i][j] = temp1[j];

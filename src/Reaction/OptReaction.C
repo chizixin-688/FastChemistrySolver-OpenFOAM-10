@@ -16,15 +16,11 @@
 
 //=============================================================================//
 
-FastChemistry::OptReaction::OptReaction
-()
-{
+FastChemistry::OptReaction::OptReaction()
+{}
 
-}
 
-FastChemistry::OptReaction::~OptReaction
-(
-)
+FastChemistry::OptReaction::~OptReaction()
 {
     if(this->tmp_Exp!=nullptr)
     {

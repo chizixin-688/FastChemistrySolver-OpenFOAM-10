@@ -50,7 +50,7 @@ public:
         idealGas(const idealGas& gas) = delete;
 
         // Move constructor
-        idealGas(const idealGas&& gas);
+        idealGas(const idealGas&& gas) = delete;
 
         // Construct using number of species
         idealGas(const int n);
@@ -112,6 +112,9 @@ public:
 
             // The standard enthalpy of formation [J/kg]
             mutable double* Hf;
+
+            // The reciprocal of moleweight of species multiplied with Ru [kmol/kg]
+            mutable double* invWRu;
 
             // Universal gas constant. [J/(kmol·K)]
             const static constexpr double Ru = 8314.470066505449722171761095523834228515625; 

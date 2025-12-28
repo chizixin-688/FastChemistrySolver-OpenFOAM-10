@@ -47,14 +47,14 @@ public:
 
     // Constructors
 
-        // construct from using OpenFOAM
-        //OptReaction(const dictionary& chemistryDict,const dictionary& physicalDict);
-
         // default constructor
         OptReaction();
 
         // disable copy construction
         OptReaction(const OptReaction& reactions) = delete;
+
+        // disable move constructor
+        OptReaction(const OptReaction&& reaction) = delete;
 
     // Destructor
 
@@ -189,6 +189,9 @@ public:
             mutable unsigned int n_Temperature_Independent_Reaction=0;
 
             // Whether this reaction is reversible
+            // 0: reversible using chemical equilibrium constant
+            // 1: irreversible
+            // 2: reversible using Arrhenius form
             mutable std::vector<char> isIrreversible;
 
             // Whether this reaction is not elementary reaction
@@ -232,6 +235,20 @@ public:
             // ...
             mutable unsigned int Ikf[13];
 
+
+            // Store the number of third body (pressure) element reaction with 
+            // different reactant/products
+            // NERTB[0] = number of one-one
+            // NERTB[1] = number of one-two
+            // NERTB[2] = number of one-three
+            // NERTB[3] = number of two-one
+            // NERTB[4] = number of two-two
+            // NERTB[5] = number of two-three
+            // NERTB[6] = number of three-one
+            // NERTB[7] = number of three-two
+            // NERTB[7] = number of three-three
+            mutable unsigned int NERTB[9];
+
         // Data to save the index of falloff and chemicallyactivated reactions.
 
             // Store the index of the Lindemann form.
@@ -263,50 +280,55 @@ public:
             mutable std::vector<unsigned int> reversibleReaction11index;
             mutable std::vector<unsigned int> irreversibleReaction11index;
             mutable std::vector<unsigned int> nonEquilibriumReaction11index;
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction11index;
 
             //mutable std::vector<unsigned int> reaction12index;
             mutable std::vector<unsigned int> reversibleReaction12index;
             mutable std::vector<unsigned int> irreversibleReaction12index;
             mutable std::vector<unsigned int> nonEquilibriumReaction12index;
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction12index;
 
             //mutable std::vector<unsigned int> reaction13index;
             mutable std::vector<unsigned int> reversibleReaction13index;
             mutable std::vector<unsigned int> irreversibleReaction13index;
             mutable std::vector<unsigned int> nonEquilibriumReaction13index;
-
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction13index;
 
             //mutable std::vector<unsigned int> reaction21index;
             mutable std::vector<unsigned int> reversibleReaction21index;
             mutable std::vector<unsigned int> irreversibleReaction21index;
             mutable std::vector<unsigned int> nonEquilibriumReaction21index;
-
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction21index;
 
             //mutable std::vector<unsigned int> reaction22index;
             mutable std::vector<unsigned int> reversibleReaction22index;
             mutable std::vector<unsigned int> irreversibleReaction22index;
             mutable std::vector<unsigned int> nonEquilibriumReaction22index;
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction22index;
 
             //mutable std::vector<unsigned int> reaction23index;
             mutable std::vector<unsigned int> reversibleReaction23index;
             mutable std::vector<unsigned int> irreversibleReaction23index;
             mutable std::vector<unsigned int> nonEquilibriumReaction23index;
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction23index;
 
             //mutable std::vector<unsigned int> reaction31index;
             mutable std::vector<unsigned int> reversibleReaction31index;
             mutable std::vector<unsigned int> irreversibleReaction31index;
             mutable std::vector<unsigned int> nonEquilibriumReaction31index;
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction31index;
 
             //mutable std::vector<unsigned int> reaction32index;
             mutable std::vector<unsigned int> reversibleReaction32index;
             mutable std::vector<unsigned int> irreversibleReaction32index;
             mutable std::vector<unsigned int> nonEquilibriumReaction32index;
-
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction32index;
 
             //mutable std::vector<unsigned int> reaction33index;
             mutable std::vector<unsigned int> reversibleReaction33index;
             mutable std::vector<unsigned int> irreversibleReaction33index;
             mutable std::vector<unsigned int> nonEquilibriumReaction33index;
-
+            mutable std::vector<unsigned int> thirdBodyEnhancedReaction33index;
 
             // The index of global integer reaction 
             // e.g. 2A+22B = 222C
@@ -315,8 +337,6 @@ public:
             // The index of global non-integer reaction 
             // e.g. 2A+2.2B = 2.22C
             mutable std::vector<unsigned int> reactionGNIindex;
-
-
 
             // 1D Data to save the index of reactants for all reactions.
             mutable std::vector<unsigned int> lhsSpeciesIndex1D;
@@ -334,6 +354,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D11IR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D11NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D11NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D11TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D11TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D12;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D12;
@@ -343,6 +365,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D12IR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D12NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D12NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D12TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D12TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D13;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D13;
@@ -352,56 +376,56 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D13IR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D13NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D13NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D13TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D13TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D21;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D21;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D21RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21RR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D21IR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21IR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D21NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D21NER;
-
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D21TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D21TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D22;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D22;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22RR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22IR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22IR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D22NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D22NER;
-
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D22TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D22TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D23;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D23;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23RR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23IR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23IR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D23NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D23NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D23TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D23TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D31;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D31;
 
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31RR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31RR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31IR;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31IR;
-
             mutable std::vector<unsigned int> lhsSpeciesIndex1D31NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D31NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D31TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D31TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D32;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D32;
@@ -411,6 +435,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D32IR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D32NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D32NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D32TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D32TBE;
 
             //mutable std::vector<unsigned int> lhsSpeciesIndex1D33;
             //mutable std::vector<unsigned int> rhsSpeciesIndex1D33;
@@ -420,6 +446,8 @@ public:
             mutable std::vector<unsigned int> rhsSpeciesIndex1D33IR;
             mutable std::vector<unsigned int> lhsSpeciesIndex1D33NER;
             mutable std::vector<unsigned int> rhsSpeciesIndex1D33NER;
+            mutable std::vector<unsigned int> lhsSpeciesIndex1D33TBE;
+            mutable std::vector<unsigned int> rhsSpeciesIndex1D33TBE;
 
             // Data to save the stoichiometric number of reactants for reaction with non-integer
             // stoichiometric number. For integer stoichiometric number, value = 1.
@@ -467,7 +495,16 @@ public:
         // Store the third dody efficiency for third body reactions, 
         // falloff and chemicallyactivated reactions
 
+            // Each row stores the three body efficiency factor of a reaction 
             mutable double* ThirdBodyFactor1D;
+
+            mutable double* TBF1Dpacked;
+
+        // Pointing to each row of Jacobian Matrix
+            mutable std::vector<double*> JacRowPtr;
+
+        // Pointing to each row of Third Body Factor
+            mutable std::vector<double*> TBFRowPtr;
 
         // Store the parameters of Troe form for falloff and chemicallyactivated reaction. 
 

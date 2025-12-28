@@ -164,9 +164,10 @@ FastChemistry::OptReaction::dNdtByV
 
 
     {
-        unsigned int Tremain = (this->Itbr[5])%4;
-
-        for(unsigned int i = 0; i < this->Itbr[5]-Tremain; i=i+4)
+        unsigned int Tremain = (this->Itbr[4])%4;
+        unsigned int index = 0;
+        unsigned int k = 0;
+        for(unsigned int i = 0; i < this->Itbr[4]-Tremain; i=i+4)
         {
 
 
@@ -174,22 +175,31 @@ FastChemistry::OptReaction::dNdtByV
             __m256d arrM_1 = _mm256_setzero_pd();
             __m256d arrM_2 = _mm256_setzero_pd();
             __m256d arrM_3 = _mm256_setzero_pd();
-            double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
-            double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
-            double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
-            double* __restrict__ TBF1DRowi3 = &ThirdBodyFactor1D[(i+3)*this->AlignSpecies];
+            //double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
+            //double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
+            //double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
+            //double* __restrict__ TBF1DRowi3 = &ThirdBodyFactor1D[(i+3)*this->AlignSpecies];
             for(unsigned int j  = 0;j<this->AlignSpecies;j=j+4)
             {
-                __m256d Factor0 = _mm256_loadu_pd(&TBF1DRowi0[j+0]);
-                __m256d Factor1 = _mm256_loadu_pd(&TBF1DRowi1[j+0]);
-                __m256d Factor2 = _mm256_loadu_pd(&TBF1DRowi2[j+0]);
-                __m256d Factor3 = _mm256_loadu_pd(&TBF1DRowi3[j+0]);
-                __m256d C_ = _mm256_loadu_pd(&c[j+0]);
+                //__m256d Factor0 = load256d(&TBF1DRowi0[j+0]);
+                //__m256d Factor1 = load256d(&TBF1DRowi1[j+0]);
+                //__m256d Factor2 = load256d(&TBF1DRowi2[j+0]);
+                //__m256d Factor3 = load256d(&TBF1DRowi3[j+0]);
+
+                __m256d C_ = load256d(&c[j+0]);
                 
+                __m256d Factor0 = load256d(&TBF1Dpacked[k+0]);
                 arrM_0 = _mm256_fmadd_pd(Factor0,C_,arrM_0);
+
+                __m256d Factor1 = load256d(&TBF1Dpacked[k+4]);
                 arrM_1 = _mm256_fmadd_pd(Factor1,C_,arrM_1);
+
+                __m256d Factor2 = load256d(&TBF1Dpacked[k+8]);
                 arrM_2 = _mm256_fmadd_pd(Factor2,C_,arrM_2);
+
+                __m256d Factor3 = load256d(&TBF1Dpacked[k+12]);
                 arrM_3 = _mm256_fmadd_pd(Factor3,C_,arrM_3);
+                k = k + 16;
             }
 
             __m256d s0h = _mm256_hadd_pd(arrM_0, arrM_1); 
@@ -202,7 +212,7 @@ FastChemistry::OptReaction::dNdtByV
         }
         if(Tremain==3)
         {
-            unsigned int i =(this->Itbr[5]) -3;
+            unsigned int i =(this->Itbr[4]) -3;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
@@ -233,7 +243,7 @@ FastChemistry::OptReaction::dNdtByV
         }
         else if(Tremain==2)
         {
-            unsigned int i =(this->Itbr[5]) -2;
+            unsigned int i =(this->Itbr[4]) -2;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
             double M0 = 0;
@@ -257,7 +267,7 @@ FastChemistry::OptReaction::dNdtByV
         }
         else if(Tremain==1)
         {
-            unsigned int i =(this->Itbr[5]) -1;
+            unsigned int i =(this->Itbr[4]) -1;
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];            
             double M0 = 0;
             __m256d arrM_0 = _mm256_setzero_pd();
@@ -292,9 +302,8 @@ FastChemistry::OptReaction::dNdtByV
         for(unsigned int i = 0; i < this->n_NonEquilibriumThirdBodyReaction; i++)
         {
             double Mfwd = this->tmp_M[i];
-            double Mrev = this->tmp_M[this->Itbr[4]+i];
             this->Kf_[Ikf[2]+i] = this->Kf_[Ikf[2]+i]*Mfwd;
-            this->Kf_[Ikf[10]+i] = this->Kf_[Ikf[10]+i]*Mrev;
+            this->Kf_[Ikf[10]+i] = this->Kf_[Ikf[10]+i]*Mfwd;
         } 
     }
 

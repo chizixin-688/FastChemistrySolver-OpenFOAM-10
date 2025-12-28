@@ -226,25 +226,20 @@ void  FastChemistry::OptReaction::JF21RR
         ddNdtByVdcTp[sl1*(this->alignN)+sl1] -= Kf*dCfdC1;
         ddNdtByVdcTp[sr0*(this->alignN)+sl1] += Kf*dCfdC1;
 
-        if(i>=this->Ikf[2] && i <this->Ikf[6])
+        if(i>=this->Ikf[3] && i <this->Ikf[6])
         { 
             const unsigned int k = i - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CF);            
-            __m256d CR_ = _mm256_set1_pd(CR);  
-            double dKrdC = 0;
 
+            double W = this->dKfdC_[k]*(CF-invKc*CR);
 
-            dKrdC = (this->dKfdC_[k]*invKc);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
-
+            //this->dKfdC_[k] = W;
+            __m256d Wv = _mm256_set1_pd(W);
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
@@ -299,7 +294,6 @@ void  FastChemistry::OptReaction::JF21IR
 
 
         const double CF = C[sl0]*C[sl1];
-        const double CR = C[sr0];
 
         const double q = (Kf*CF);
         dNdtByV[sl0] = dNdtByV[sl0] - q; 
@@ -320,23 +314,20 @@ void  FastChemistry::OptReaction::JF21IR
         ddNdtByVdcTp[sl1*(this->alignN)+sl1] -= Kf*dCfdC1;
         ddNdtByVdcTp[sr0*(this->alignN)+sl1] += Kf*dCfdC1;
 
-        if(i>=this->Ikf[2] && i <this->Ikf[6])
+        if(i>=this->Ikf[3] && i <this->Ikf[6])
         { 
             const unsigned int k = i - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CF);            
-            __m256d CR_ = _mm256_set1_pd(CR);  
+            double W = this->dKfdC_[k]*CF;
 
-            __m256d dKrdC_ = _mm256_set1_pd(0);
-
+            //this->dKfdC_[k] = W;
+            __m256d Wv = _mm256_set1_pd(W);
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
 
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
                 sl0v = _mm256_sub_pd(sl0v,WdMdC);
@@ -349,7 +340,7 @@ void  FastChemistry::OptReaction::JF21IR
                 __m256d sr0v = load256d(&ddNdtByVdcTp[sr0*(this->alignN)+j]);
                 sr0v = _mm256_add_pd(sr0v,WdMdC);
                 store256d(&ddNdtByVdcTp[sr0*(this->alignN)+j],sr0v);                              
-            } 
+            }
         }    
 
 
@@ -389,14 +380,14 @@ void  FastChemistry::OptReaction::JF21NER
         double dKfdT = this->dKfdT_[i];
         double Kr = 0;
         double dKrdT = 0;
-        double invKc = 0;
+        //double invKc = 0;
 
 
 
         
         Kr = this->Kf_[i - Ikf[1] + Ikf[9]];
         dKrdT = this->dKfdT_[i - Ikf[1] + Ikf[9]];
-        invKc = Kr/Kf;
+        //invKc = Kr/Kf;
         const double dCrdC0 = 1;
         ddNdtByVdcTp[sl0*(this->alignN)+sr0] -= (-Kr*dCrdC0);
         ddNdtByVdcTp[sl1*(this->alignN)+sr0] -= (-Kr*dCrdC0);
@@ -425,25 +416,20 @@ void  FastChemistry::OptReaction::JF21NER
         ddNdtByVdcTp[sl1*(this->alignN)+sl1] -= Kf*dCfdC1;
         ddNdtByVdcTp[sr0*(this->alignN)+sl1] += Kf*dCfdC1;
 
-        if(i>=this->Ikf[2] && i <this->Ikf[6])
+        if(i>=this->Ikf[2] && i <this->Ikf[3])
         { 
             const unsigned int k = i - this->Ikf[2];
 
-            __m256d dKfdC = _mm256_set1_pd(this->dKfdC_[k]);
-            __m256d CF_ = _mm256_set1_pd(CF);            
-            __m256d CR_ = _mm256_set1_pd(CR);  
-            double dKrdC = 0;
 
+            double W = this->dKfdC_[k]*CF - this->dKfdC_[k+this->Itbr[4]]*CR;
 
-            dKrdC = (this->dKfdC_[k]*invKc);
-            __m256d dKrdC_ = _mm256_set1_pd(dKrdC);
-
+            //this->dKfdC_[k] = W;
+            __m256d Wv = _mm256_set1_pd(W);
             for(unsigned int j = 0; j < this->AlignSpecies;j=j+4)
             {
                 __m256d dMdC = load256d(&this->ThirdBodyFactor1D[k*this->AlignSpecies+j]);
 
-                __m256d WdMdC = _mm256_mul_pd(_mm256_mul_pd(dKrdC_,dMdC),CR_);
-                WdMdC = _mm256_fmsub_pd(_mm256_mul_pd(dKfdC,dMdC),CF_,WdMdC);
+                __m256d WdMdC = _mm256_mul_pd(Wv,dMdC);
 
 
                 __m256d sl0v = load256d(&ddNdtByVdcTp[sl0*(this->alignN)+j]);
@@ -465,3 +451,161 @@ void  FastChemistry::OptReaction::JF21NER
         rhsIndex = rhsIndex + 1;
     }
 }   
+
+
+void  FastChemistry::OptReaction::JF21M
+(
+    double* ddNdtByVdcTp
+)const noexcept
+{
+    std::size_t end = this->thirdBodyEnhancedReaction21index.size();
+    std::size_t remain = end%4;
+    std::size_t lhsIndex = 0;
+
+    std::size_t rhsIndex = 0;
+    if(this->AlignSpecies%8==0)
+    {
+        for(std::size_t k=0; k<end; k=k+1)
+        {
+            const unsigned int i0 = this->thirdBodyEnhancedReaction21index[k+0];
+
+
+            const unsigned int m0 = i0 - this->Ikf[2];
+            __m256d Wv0 = _mm256_set1_pd(this->dKfdC_[m0]);
+
+            const unsigned int sl0a = this->lhsSpeciesIndex1D21TBE[lhsIndex+0];
+            const unsigned int sl1a = this->lhsSpeciesIndex1D21TBE[lhsIndex+1];
+
+            const unsigned int sr0a = this->rhsSpeciesIndex1D21TBE[rhsIndex+0];
+
+            for(unsigned int j = 0; j < this->AlignSpecies;j=j+8)
+            {
+                __m256d dM0dC03v = load256d(&this->ThirdBodyFactor1D[m0*this->AlignSpecies+j+0]);
+                __m256d dM0dC47v = load256d(&this->ThirdBodyFactor1D[m0*this->AlignSpecies+j+4]);
+
+                __m256d WdM0dC03v = _mm256_mul_pd(Wv0,dM0dC03v);
+                __m256d WdM0dC47v = _mm256_mul_pd(Wv0,dM0dC47v);
+                {
+                __m256d sl0va = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0]);
+                sl0va = _mm256_sub_pd(sl0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0],sl0va);
+                }
+                {
+                __m256d sl0va = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+4]);
+                sl0va = _mm256_sub_pd(sl0va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+4],sl0va);
+                }
+
+                {
+                __m256d sl1va = load256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0]);
+                sl1va = _mm256_sub_pd(sl1va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0],sl1va);
+                }
+                {
+                __m256d sl1va = load256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+4]);
+                sl1va = _mm256_sub_pd(sl1va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+4],sl1va);
+                }
+
+                {
+                __m256d sr0va = load256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0]);
+                sr0va = _mm256_add_pd(sr0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0],sr0va);
+                }
+                {
+                __m256d sr0va = load256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+4]);
+                sr0va = _mm256_add_pd(sr0va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+4],sr0va);
+                }
+            } 
+            lhsIndex = lhsIndex + 2;
+            rhsIndex = rhsIndex + 1;
+        }
+    }
+    else if(this->AlignSpecies%8==4)
+    {
+        for(std::size_t k=0; k<end; k=k+1)
+        {
+            const unsigned int i0 = this->thirdBodyEnhancedReaction21index[k+0];
+
+
+            const unsigned int m0 = i0 - this->Ikf[2];
+            __m256d Wv0 = _mm256_set1_pd(this->dKfdC_[m0]);
+
+            const unsigned int sl0a = lhsSpeciesIndex1D21TBE[lhsIndex+0];
+            const unsigned int sl1a = lhsSpeciesIndex1D21TBE[lhsIndex+1];
+            const unsigned int sr0a = rhsSpeciesIndex1D21TBE[rhsIndex+0];
+
+            for(unsigned int j = 0; j < this->AlignSpecies-4;j=j+8)
+            {
+                __m256d dM0dC03v = load256d(&this->ThirdBodyFactor1D[m0*this->AlignSpecies+j+0]);
+                __m256d dM0dC47v = load256d(&this->ThirdBodyFactor1D[m0*this->AlignSpecies+j+4]);
+
+                __m256d WdM0dC03v = _mm256_mul_pd(Wv0,dM0dC03v);
+                __m256d WdM0dC47v = _mm256_mul_pd(Wv0,dM0dC47v);
+                {
+                __m256d sl0va = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0]);
+                sl0va = _mm256_sub_pd(sl0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0],sl0va);
+                }
+                {
+                __m256d sl0va = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+4]);
+                sl0va = _mm256_sub_pd(sl0va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+4],sl0va);
+                }
+
+                {
+                __m256d sl1va = load256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0]);
+                sl1va = _mm256_sub_pd(sl1va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0],sl1va);
+                }
+                {
+                __m256d sl1va = load256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+4]);
+                sl1va = _mm256_sub_pd(sl1va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+4],sl1va);
+                }
+
+                {
+                __m256d sr0va = load256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0]);
+                sr0va = _mm256_add_pd(sr0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0],sr0va);
+                }
+                {
+                __m256d sr0va = load256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+4]);
+                sr0va = _mm256_add_pd(sr0va,WdM0dC47v);
+                store256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+4],sr0va);
+                }
+            }
+            {
+                unsigned int j = this->AlignSpecies-4;
+                __m256d dM0dC03v = load256d(&this->ThirdBodyFactor1D[m0*this->AlignSpecies+j+0]);
+
+
+                __m256d WdM0dC03v = _mm256_mul_pd(Wv0,dM0dC03v);
+
+                {
+                __m256d sl0va = load256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0]);
+                sl0va = _mm256_sub_pd(sl0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl0a*(this->alignN)+j+0],sl0va);
+                }
+
+
+                {
+                __m256d sl1va = load256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0]);
+                sl1va = _mm256_sub_pd(sl1va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sl1a*(this->alignN)+j+0],sl1va);
+                }
+
+
+                {
+                __m256d sr0va = load256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0]);
+                sr0va = _mm256_add_pd(sr0va,WdM0dC03v);
+                store256d(&ddNdtByVdcTp[sr0a*(this->alignN)+j+0],sr0va);
+                }
+
+            }
+            lhsIndex = lhsIndex + 2;
+            rhsIndex = rhsIndex + 1;
+        }
+    }
+}
