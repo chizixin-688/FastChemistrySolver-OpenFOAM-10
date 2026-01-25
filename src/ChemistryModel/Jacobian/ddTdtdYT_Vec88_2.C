@@ -214,7 +214,8 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_2
         store128d(&Jac[this->nSpecie()*(alignN)+i+0],ddTdtdYi01v);
 
 
-        __m256d dYi01dtv = _mm256_zextpd128_pd256(load128d(&dPhidt[i+0]));
+        //__m256d dYi01dtv = _mm256_zextpd128_pd256(load128d(&dPhidt[i+0]));
+        __m256d dYi01dtv = _mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&dPhidt[i+0]), 0);
 
         const double ddYi0dtdT = Jac[(i+0) *(alignN)+ this->nSpecie()];
         const double ddYi1dtdT = Jac[(i+1) *(alignN)+ this->nSpecie()];
@@ -222,8 +223,12 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_2
 
         __m256d ddYi01dtdTv = _mm256_setr_pd(ddYi0dtdT,ddYi1dtdT,0,0);
 
-        ddTdtdTv = _mm256_fmadd_pd(dYi01dtv,_mm256_zextpd128_pd256(load128d(&Cp[i+0])),ddTdtdTv);
-        ddTdtdTv = _mm256_fmadd_pd(ddYi01dtdTv,_mm256_zextpd128_pd256(load128d(&Ha[i+0])),ddTdtdTv);
+        //ddTdtdTv = _mm256_fmadd_pd(dYi01dtv,_mm256_zextpd128_pd256(load128d(&Cp[i+0])),ddTdtdTv);
+        ddTdtdTv = _mm256_fmadd_pd(dYi01dtv,_mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&Cp[i+0]), 0),ddTdtdTv);
+
+        //ddTdtdTv = _mm256_fmadd_pd(ddYi01dtdTv,_mm256_zextpd128_pd256(load128d(&Ha[i+0])),ddTdtdTv);
+        ddTdtdTv = _mm256_fmadd_pd(ddYi01dtdTv,_mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&Ha[i+0]), 0),ddTdtdTv);
+        
     }
     ddTdtdT = ddTdtdT - hsum4(ddTdtdTv);
     ddTdtdT -= dTdt*dCpMdT; 

@@ -4,7 +4,8 @@
 #include <immintrin.h>
 
 #include "Macro.H"
-
+namespace FastChemistry
+{
     #if USE_LOCALFILE_
 
         extern "C" 
@@ -34,4 +35,5 @@
         extern __m256d vec256_logd(__m256d) asm("_ZGVdN4v_log");
 
     #endif
+}
 #endif

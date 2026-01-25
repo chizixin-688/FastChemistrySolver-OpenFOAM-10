@@ -49,8 +49,11 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6
         __m256d dPhi04dtv = load256d(&dPhidt[i+0]);
         dTdtv = _mm256_fmadd_pd(negHai04v,dPhi04dtv,dTdtv);
 
-        __m256d negHai45v = -_mm256_zextpd128_pd256(_mm_loadu_pd(&Ha[i+4]));
-        __m256d dPhi45dtv = _mm256_zextpd128_pd256(_mm_loadu_pd(&dPhidt[i+4]));
+        //__m256d negHai45v = -_mm256_zextpd128_pd256(_mm_loadu_pd(&Ha[i+4]));
+        __m256d negHai45v = -_mm256_insertf128_pd (_mm256_setzero_pd(), _mm_loadu_pd(&Ha[i+4]), 0);
+        //__m256d dPhi45dtv = _mm256_zextpd128_pd256(_mm_loadu_pd(&dPhidt[i+4]));
+        __m256d dPhi45dtv = _mm256_insertf128_pd (_mm256_setzero_pd (), _mm_loadu_pd(&dPhidt[i+4]), 0);
+
         dTdtv = _mm256_fmadd_pd(negHai45v,dPhi45dtv,dTdtv);
     }
     double dTdt = hsum4(dTdtv);   
@@ -195,49 +198,57 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6
             __m256d negHaj0v = _mm256_set1_pd(-Ha[j+0]);
             __m256d ddYj0dtdYi03v = load256d(&Jac[(j+0)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj0dtdYi03v,negHaj0v,ddTdtdYi03v);
-            __m256d ddYj0dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]));
+            //__m256d ddYj0dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]));
+            __m256d ddYj0dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj0dtdYi45v,negHaj0v,ddTdtdYi45v);
 
             __m256d negHaj1v = _mm256_set1_pd(-Ha[j+1]);
             __m256d ddYj1dtdYi03v = load256d(&Jac[(j+1)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj1dtdYi03v,negHaj1v,ddTdtdYi03v);
-            __m256d ddYj1dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]));
+            //__m256d ddYj1dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]));
+            __m256d ddYj1dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj1dtdYi45v,negHaj1v,ddTdtdYi45v);
 
             __m256d negHaj2v = _mm256_set1_pd(-Ha[j+2]);
             __m256d ddYj2dtdYi03v = load256d(&Jac[(j+2)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj2dtdYi03v,negHaj2v,ddTdtdYi03v);
-            __m256d ddYj2dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]));
+            //__m256d ddYj2dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]));
+            __m256d ddYj2dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj2dtdYi45v,negHaj2v,ddTdtdYi45v);
 
             __m256d negHaj3v = _mm256_set1_pd(-Ha[j+3]);
             __m256d ddYj3dtdYi03v = load256d(&Jac[(j+3)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj3dtdYi03v,negHaj3v,ddTdtdYi03v);
-            __m256d ddYj3dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]));
+            //__m256d ddYj3dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]));
+            __m256d ddYj3dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj3dtdYi45v,negHaj3v,ddTdtdYi45v);
 
             __m256d negHaj4v = _mm256_set1_pd(-Ha[j+4]);
             __m256d ddYj4dtdYi03v = load256d(&Jac[(j+4)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj4dtdYi03v,negHaj4v,ddTdtdYi03v);
-            __m256d ddYj4dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]));
+            //__m256d ddYj4dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]));
+            __m256d ddYj4dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj4dtdYi45v,negHaj4v,ddTdtdYi45v);
 
             __m256d negHaj5v = _mm256_set1_pd(-Ha[j+5]);
             __m256d ddYj5dtdYi03v = load256d(&Jac[(j+5)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj5dtdYi03v,negHaj5v,ddTdtdYi03v);
-            __m256d ddYj5dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]));
+            //__m256d ddYj5dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]));
+            __m256d ddYj5dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj5dtdYi45v,negHaj5v,ddTdtdYi45v);
 
             __m256d negHaj6v = _mm256_set1_pd(-Ha[j+6]);
             __m256d ddYj6dtdYi03v = load256d(&Jac[(j+6)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj6dtdYi03v,negHaj6v,ddTdtdYi03v);
-            __m256d ddYj6dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+6)*(alignN)+ (i+4)]));
+            //__m256d ddYj6dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+6)*(alignN)+ (i+4)]));
+            __m256d ddYj6dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+6)*(alignN)+ (i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj6dtdYi45v,negHaj6v,ddTdtdYi45v);
 
             __m256d negHaj7v = _mm256_set1_pd(-Ha[j+7]);
             __m256d ddYj7dtdYi03v = load256d(&Jac[(j+7)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj7dtdYi03v,negHaj7v,ddTdtdYi03v);
-            __m256d ddYj7dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+7)*(alignN)+ (i+4)]));
+            //__m256d ddYj7dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+7)*(alignN)+ (i+4)]));
+            __m256d ddYj7dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+7)*(alignN)+ (i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj7dtdYi45v,negHaj7v,ddTdtdYi45v);             
         }
         {
@@ -246,37 +257,43 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6
             __m256d negHaj0v = _mm256_set1_pd(-Ha[j+0]);
             __m256d ddYj0dtdYi03v = load256d(&Jac[(j+0)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj0dtdYi03v,negHaj0v,ddTdtdYi03v);
-            __m256d ddYj0dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]));
+            //__m256d ddYj0dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]));
+            __m256d ddYj0dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+0)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj0dtdYi45v,negHaj0v,ddTdtdYi45v);
 
             __m256d negHaj1v = _mm256_set1_pd(-Ha[j+1]);
             __m256d ddYj1dtdYi03v = load256d(&Jac[(j+1)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj1dtdYi03v,negHaj1v,ddTdtdYi03v);
-            __m256d ddYj1dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]));
+            //__m256d ddYj1dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]));
+            __m256d ddYj1dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+1)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj1dtdYi45v,negHaj1v,ddTdtdYi45v);
 
             __m256d negHaj2v = _mm256_set1_pd(-Ha[j+2]);
             __m256d ddYj2dtdYi03v = load256d(&Jac[(j+2)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj2dtdYi03v,negHaj2v,ddTdtdYi03v);
-            __m256d ddYj2dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]));
+            //__m256d ddYj2dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]));
+            __m256d ddYj2dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+2)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj2dtdYi45v,negHaj2v,ddTdtdYi45v);
 
             __m256d negHaj3v = _mm256_set1_pd(-Ha[j+3]);
             __m256d ddYj3dtdYi03v = load256d(&Jac[(j+3)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj3dtdYi03v,negHaj3v,ddTdtdYi03v);
-            __m256d ddYj3dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]));
+            //__m256d ddYj3dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]));
+            __m256d ddYj3dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+3)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj3dtdYi45v,negHaj3v,ddTdtdYi45v);
 
             __m256d negHaj4v = _mm256_set1_pd(-Ha[j+4]);
             __m256d ddYj4dtdYi03v = load256d(&Jac[(j+4)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj4dtdYi03v,negHaj4v,ddTdtdYi03v);
-            __m256d ddYj4dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]));
+            //__m256d ddYj4dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]));
+            __m256d ddYj4dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+4)*(alignN)+(i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj4dtdYi45v,negHaj4v,ddTdtdYi45v);
 
             __m256d negHaj5v = _mm256_set1_pd(-Ha[j+5]);
             __m256d ddYj5dtdYi03v = load256d(&Jac[(j+5)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj5dtdYi03v,negHaj5v,ddTdtdYi03v);
-            __m256d ddYj5dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]));
+            //__m256d ddYj5dtdYi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]));
+            __m256d ddYj5dtdYi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Jac[(j+5)*(alignN)+ (i+4)]), 0);
             ddTdtdYi45v = _mm256_fmadd_pd(ddYj5dtdYi45v,negHaj5v,ddTdtdYi45v);
         }
         __m256d Cpi03v = load256d(&Cp[i+0]);
@@ -292,16 +309,19 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6
         ddTdtdTv = _mm256_fmadd_pd(dYi03dtv,Cpi03v,ddTdtdTv);
         ddTdtdTv = _mm256_fmadd_pd(ddYi03dtdTv,load256d(&Ha[i+0]),ddTdtdTv);
 
-        __m256d Cpi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Cp[i+4]));
+        //__m256d Cpi45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Cp[i+4]));
+        __m256d Cpi45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Cp[i+4]), 0);
         ddTdtdYi45v = _mm256_fmadd_pd(Cpi45v,negdTdtv,ddTdtdYi45v);
         ddTdtdYi45v =_mm256_mul_pd(ddTdtdYi45v,invCpMv);
         store256d(&Jac[this->nSpecie() *(alignN)+ i+4],ddTdtdYi45v);
-        __m256d dYi45dtv = _mm256_zextpd128_pd256(_mm_loadu_pd(&dPhidt[i+4]));
+        //__m256d dYi45dtv = _mm256_zextpd128_pd256(_mm_loadu_pd(&dPhidt[i+4]));
+        __m256d dYi45dtv = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&dPhidt[i+4]), 0);
         const double ddYi4dtdT = Jac[(i+4) *(alignN)+ this->nSpecie()];
         const double ddYi5dtdT = Jac[(i+5) *(alignN)+ this->nSpecie()];
         __m256d ddYi45dtdTv = _mm256_setr_pd(ddYi4dtdT,ddYi5dtdT,0,0);
         ddTdtdTv = _mm256_fmadd_pd(dYi45dtv,Cpi45v,ddTdtdTv);
-        __m256d Hai45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Ha[i+4]));
+        //__m256d Hai45v = _mm256_zextpd128_pd256(_mm_loadu_pd(&Ha[i+4]));
+        __m256d Hai45v = _mm256_insertf128_pd(_mm256_setzero_pd (), _mm_loadu_pd(&Ha[i+4]), 0);
         ddTdtdTv = _mm256_fmadd_pd(ddYi45dtdTv,Hai45v,ddTdtdTv);
     }
     ddTdtdT = ddTdtdT - hsum4(ddTdtdTv);

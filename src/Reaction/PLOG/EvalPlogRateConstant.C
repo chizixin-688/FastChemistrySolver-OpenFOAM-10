@@ -55,34 +55,39 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
         __m256d tmp0v = _mm256_setzero_pd();
         __m128d a0 = _mm_loadu_pd(&this->logAPlog[j0][index0]);
         __m128d a1 = _mm_loadu_pd(&this->logAPlog[j1][index1]);
-        tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a0), a1, 1);
             
         __m256d tmp1v = _mm256_setzero_pd();
         __m128d a2 = _mm_loadu_pd(&this->logAPlog[j2][index2]);
         __m128d a3 = _mm_loadu_pd(&this->logAPlog[j3][index3]);
-        tmp1v = _mm256_set_m128d(a3, a2);//c_logA0 c_logA1 d_logA0 d_logA1 
-            
+        //tmp1v = _mm256_set_m128d(a3, a2);//c_logA0 c_logA1 d_logA0 d_logA1 
+        tmp1v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a2), a3, 1);
 
         __m256d tmp2v = _mm256_setzero_pd();
         __m128d a4 = _mm_loadu_pd(&this->betaPlog[j0][index0]);
         __m128d a5 = _mm_loadu_pd(&this->betaPlog[j1][index1]);
-        tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
-            
+        //tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp2v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a4), a5, 1);
+
         __m256d tmp3v = _mm256_setzero_pd();
         __m128d a6 = _mm_loadu_pd(&this->betaPlog[j2][index2]);
         __m128d a7 = _mm_loadu_pd(&this->betaPlog[j3][index3]);
-        tmp3v = _mm256_set_m128d(a7, a6);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp3v = _mm256_set_m128d(a7, a6);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp3v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a6), a7, 1);
             
 
         __m256d tmp4v = _mm256_setzero_pd();
         __m128d a8 = _mm_loadu_pd(&this->TaPlog[j0][index0]);
         __m128d a9 = _mm_loadu_pd(&this->TaPlog[j1][index1]);
-        tmp4v = _mm256_set_m128d(a9, a8);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp4v = _mm256_set_m128d(a9, a8);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp4v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a8), a9, 1);
             
         __m256d tmp5v = _mm256_setzero_pd();
         __m128d a10 = _mm_loadu_pd(&this->TaPlog[j2][index2]);
         __m128d a11 = _mm_loadu_pd(&this->TaPlog[j3][index3]);
-        tmp5v = _mm256_set_m128d(a11, a10);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp5v = _mm256_set_m128d(a11, a10);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp5v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a10), a11, 1);
             
             //a_logA0 a_logA1 b_logA0 b_logA1 
             //c_logA0 c_logA1 d_logA0 d_logA1 
@@ -156,7 +161,8 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
 
         __m128d a0 = _mm_loadu_pd(&this->logAPlog[j0][index0]);
         __m128d a1 = _mm_loadu_pd(&this->logAPlog[j1][index1]);
-        __m256d  tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //__m256d  tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        __m256d  tmp0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a0), a1, 1);
             // a_logA0 a_logA0 b_logA0 b_logA0
         __m256d logA0v = _mm256_shuffle_pd (tmp0v, tmp0v, 0b0000);
             // a_logA1 a_logA1 b_logA1 b_logA1
@@ -165,7 +171,8 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
 
         __m128d a2 = _mm_loadu_pd(&this->betaPlog[j0][index0]);
         __m128d a3 = _mm_loadu_pd(&this->betaPlog[j1][index1]);
-        __m256d  tmp1v = _mm256_set_m128d(a3, a2);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //__m256d  tmp1v = _mm256_set_m128d(a3, a2);//a_logA0 a_logA1 b_logA0 b_logA1 
+        __m256d  tmp1v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a2), a3, 1);
             // a_logA0 a_logA0 b_logA0 b_logA0
         __m256d beta0v = _mm256_shuffle_pd (tmp1v, tmp1v, 0b0000);
             // a_logA1 a_logA1 b_logA1 b_logA1
@@ -175,7 +182,9 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
 
         __m128d a4 = _mm_loadu_pd(&this->TaPlog[j0][index0]);
         __m128d a5 = _mm_loadu_pd(&this->TaPlog[j1][index1]);
-        __m256d  tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //__m256d  tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
+        __m256d  tmp2v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a4), a5, 1);
+
             // a_logA0 a_logA0 b_logA0 b_logA0
         __m256d Ta0v = _mm256_shuffle_pd (tmp2v, tmp2v, 0b0000);
             // a_logA1 a_logA1 b_logA1 b_logA1
@@ -248,34 +257,38 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
         __m256d tmp0v = _mm256_setzero_pd();
         __m128d a0 = _mm_loadu_pd(&this->logAPlog[j0][index0]);
         __m128d a1 = _mm_loadu_pd(&this->logAPlog[j1][index1]);
-        tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp0v = _mm256_set_m128d(a1, a0);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a0), a1, 1);
             
         __m256d tmp1v = _mm256_setzero_pd();
         __m128d a2 = _mm_loadu_pd(&this->logAPlog[j2][index2]);
         //__m128d a3 = _mm_loadu_pd(&this->logAPlog[j2][index2]);
-        tmp1v = _mm256_set_m128d(a2, a2);//c_logA0 c_logA1 d_logA0 d_logA1 
-            
+        //tmp1v = _mm256_set_m128d(a2, a2);//c_logA0 c_logA1 d_logA0 d_logA1 
+        tmp1v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a2), a2, 1);
 
         __m256d tmp2v = _mm256_setzero_pd();
         __m128d a4 = _mm_loadu_pd(&this->betaPlog[j0][index0]);
         __m128d a5 = _mm_loadu_pd(&this->betaPlog[j1][index1]);
-        tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp2v = _mm256_set_m128d(a5, a4);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp2v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a4), a5, 1);
             
         __m256d tmp3v = _mm256_setzero_pd();
         __m128d a6 = _mm_loadu_pd(&this->betaPlog[j2][index2]);
         //__m128d a7 = _mm_loadu_pd(&this->betaPlog[j2][index2]);
-        tmp3v = _mm256_set_m128d(a6, a6);//a_logA0 a_logA1 b_logA0 b_logA1 
-            
+        //tmp3v = _mm256_set_m128d(a6, a6);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp3v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a6), a6, 1);
 
         __m256d tmp4v = _mm256_setzero_pd();
         __m128d a8 = _mm_loadu_pd(&this->TaPlog[j0][index0]);
         __m128d a9 = _mm_loadu_pd(&this->TaPlog[j1][index1]);
-        tmp4v = _mm256_set_m128d(a9, a8);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp4v = _mm256_set_m128d(a9, a8);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp4v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a8), a9, 1);
             
         __m256d tmp5v = _mm256_setzero_pd();
         __m128d a10 = _mm_loadu_pd(&this->TaPlog[j2][index2]);
         //__m128d a11 = _mm_loadu_pd(&this->TaPlog[j3][index3]);
-        tmp5v = _mm256_set_m128d(a10, a10);//a_logA0 a_logA1 b_logA0 b_logA1 
+        //tmp5v = _mm256_set_m128d(a10, a10);//a_logA0 a_logA1 b_logA0 b_logA1 
+        tmp5v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (a10), a10, 1);
             
             //a_logA0 a_logA1 b_logA0 b_logA1 
             //c_logA0 c_logA1 d_logA0 d_logA1 

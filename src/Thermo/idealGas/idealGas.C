@@ -385,10 +385,24 @@ void FastChemistry::idealGas::JacobianThermoYT
         store128d(&concentration[i],Cv);
 
         __m128d Cp_ = load128d(&Cp[i]);
-        ArrCpM_ = _mm256_fmadd_pd(_mm256_zextpd128_pd256(Phi01v),_mm256_zextpd128_pd256(Cp_),ArrCpM_);
+        ArrCpM_ = _mm256_fmadd_pd
+                    (
+                        //_mm256_zextpd128_pd256(Phi01v),
+                        _mm256_insertf128_pd (_mm256_setzero_pd (), Phi01v, 0),
+                        //_mm256_zextpd128_pd256(Cp_),
+                        _mm256_insertf128_pd (_mm256_setzero_pd (), Cp_, 0),
+                        ArrCpM_
+                    );
 
         __m128d dCpdT_ = load128d(&dCpdT[i]);
-        ArrdCpMdT_ = _mm256_fmadd_pd(_mm256_zextpd128_pd256(Phi01v),_mm256_zextpd128_pd256(dCpdT_),ArrdCpMdT_);
+        ArrdCpMdT_ = _mm256_fmadd_pd
+                        (
+                            //_mm256_zextpd128_pd256(Phi01v),
+                            _mm256_insertf128_pd (_mm256_setzero_pd (), Phi01v, 0),
+                            //_mm256_zextpd128_pd256(dCpdT_),
+                            _mm256_insertf128_pd (_mm256_setzero_pd (), dCpdT_, 0),
+                            ArrdCpMdT_
+                        );
     }
     else if(remain==3)
     {
@@ -703,8 +717,10 @@ void FastChemistry::idealGas::DerivativeThermoYT
     else if(remain==2)
     {
         int i = this->nSpecies-2;
-        __m256d YTpv = _mm256_zextpd128_pd256(load128d(&Phi[i]));
-        __m256d invWv = _mm256_zextpd128_pd256(load128d(&this->invW[i+0]));
+        //__m256d YTpv = _mm256_zextpd128_pd256(load128d(&Phi[i]));
+        __m256d YTpv = _mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&Phi[i]), 0);
+        //__m256d invWv = _mm256_zextpd128_pd256(load128d(&this->invW[i+0]));
+        __m256d invWv = _mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&this->invW[i+0]), 0);
         rhoMv = _mm256_fmadd_pd(_mm256_mul_pd(YTpv,invWv),RuTByPv,rhoMv);
     }
     else if(remain==3)
@@ -853,8 +869,16 @@ void FastChemistry::idealGas::DerivativeThermoYT
         vCp = _mm_fmadd_pd(vCp,_mm256_castpd256_pd128(vT),A0);
         vCp = _mm_mul_pd(RuInvW,vCp);
         store128d(&Cp[i+0],vCp);
-        __m256d Yv = _mm256_zextpd128_pd256(load128d(&Phi[i+0]));
-        Cpmv = _mm256_fmadd_pd(Yv,_mm256_zextpd128_pd256(vCp),Cpmv);
+
+        //__m256d Yv = _mm256_zextpd128_pd256(load128d(&Phi[i+0]));
+        __m256d Yv = _mm256_insertf128_pd (_mm256_setzero_pd (), load128d(&Phi[i+0]), 0);
+        Cpmv = _mm256_fmadd_pd
+                (
+                    Yv,
+                    //_mm256_zextpd128_pd256(vCp),
+                    _mm256_insertf128_pd (_mm256_setzero_pd (), vCp, 0),
+                    Cpmv
+                );
 
         __m128d vHa = _mm_fmadd_pd(A4 ,_mm256_castpd256_pd128(vT)*0.2,A3*0.25);
         vHa = _mm_fmadd_pd(vHa,_mm256_castpd256_pd128(vT),A2*(1.0/3.0));

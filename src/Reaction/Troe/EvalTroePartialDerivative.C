@@ -282,7 +282,9 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm_add_pd(tmpPr,_mm_set1_pd(1e-100));
 
-            __m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
+            //__m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
+            __m256d r = _mm256_insertf128_pd (_mm256_castpd128_pd256 (_mm_max_pd(small,tmpPr)),_mm_max_pd(small,tmpPr), 1);
+            
             r = vec256_logd(r);
             __m128d r1 = _mm256_castpd256_pd128(r);
             tmplogPr = _mm_mul_pd(r1,_mm_set1_pd(invLog10));
@@ -315,7 +317,8 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             invFcent = _mm_div_pd(one128,tmp0);
             __m128d r0 = _mm_max_pd(Fcent,small);
 
-            __m256d r1 = _mm256_set_m128d(r0,r0);
+            //__m256d r1 = _mm256_set_m128d(r0,r0);
+            __m256d r1 = _mm256_insertf128_pd (_mm256_castpd128_pd256 (r0), r0, 1);
             r1 = vec256_logd(r1);
             __m128d r2 = _mm256_castpd256_pd128(r1);
             __m128d logFcent = _mm_mul_pd(r2,_mm_set1_pd(invLog10));
@@ -328,7 +331,8 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             invx3 = _mm_div_pd(one128,x3);
             x4 = _mm_mul_pd(logFcent,invx3);
             F = _mm_mul_pd(x4,logTen128);
-            __m256d F256 = _mm256_set_m128d(F,F);
+            //__m256d F256 = _mm256_set_m128d(F,F);
+            __m256d F256 = _mm256_insertf128_pd (_mm256_castpd128_pd256 (F), F, 1);
             F256 = vec256_expd(F256);
             F = _mm256_castpd256_pd128(F256);
         }
@@ -916,8 +920,9 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             tmpPr = _mm_mul_pd(_mm_mul_pd(M,K0),invKinf);
             __m128d small = _mm_set1_pd(FastChemistry::TroeLimiter);
             tmpPr = _mm_add_pd(tmpPr,_mm_set1_pd(1e-100));
-
-            __m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
+            tmpPr = _mm_max_pd(small,tmpPr);
+            //__m256d r = _mm256_set_m128d(_mm_max_pd(small,tmpPr),_mm_max_pd(small,tmpPr));
+            __m256d r = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpPr), tmpPr, 1);;
             r = vec256_logd(r);
             __m128d r1 = _mm256_castpd256_pd128(r);
             tmplogPr = _mm_mul_pd(r1,_mm_set1_pd(invLog10));
@@ -950,7 +955,8 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             invFcent = _mm_div_pd(one128,tmp0);
             __m128d r0 = _mm_max_pd(Fcent,small);
 
-            __m256d r1 = _mm256_set_m128d(r0,r0);
+            //__m256d r1 = _mm256_set_m128d(r0,r0);
+            __m256d r1 = _mm256_insertf128_pd (_mm256_castpd128_pd256 (r0), r0, 1);
             r1 = vec256_logd(r1);
             __m128d r2 = _mm256_castpd256_pd128(r1);
             __m128d logFcent = _mm_mul_pd(r2,_mm_set1_pd(invLog10));
@@ -963,7 +969,8 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             invx3 = _mm_div_pd(one128,x3);
             x4 = _mm_mul_pd(logFcent,invx3);
             F = _mm_mul_pd(x4,logTen128);
-            __m256d F256 = _mm256_set_m128d(F,F);
+            //__m256d F256 = _mm256_set_m128d(F,F);
+            __m256d F256 = _mm256_insertf128_pd (_mm256_castpd128_pd256 (F), F, 1);
             F256 = vec256_expd(F256);
             F = _mm256_castpd256_pd128(F256);
         }

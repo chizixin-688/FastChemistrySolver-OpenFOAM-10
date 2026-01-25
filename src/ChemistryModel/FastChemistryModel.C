@@ -151,7 +151,7 @@ Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
                     this->mesh().time().timeName(),
                     this->mesh(),
                     IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
+                    IOobject::NO_WRITE
                 ),
                 thermo.T().mesh(),
                 dimensionedScalar(dimMass/dimVolume/dimTime, 0)
@@ -314,7 +314,7 @@ void Foam::FastChemistryModel<UnusedThermo>::derivatives
     // Computing temperature and pressure, required by thermo and chemistry
     double RuT = gas->Ru*T;
     __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
-    TPRuT = vec256_logd(TPRuT);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
     const double invT = 1.0/T;
     const double logT = get_elem0(TPRuT);
     const double logP = get_elem1(TPRuT);
@@ -407,6 +407,7 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
     double* __restrict__ Jac
 ) const 
 {
+
     // Constrain mass fraction to valid range
     for(int i = 0; i < this->nSpecie();i++)
     {
@@ -419,11 +420,16 @@ void Foam::FastChemistryModel<UnusedThermo>::jacobian
     double T = Phi[this->nSpecie()];
     T = T<Tlowmin?Tlowmin:T;
     T = T>Thighmax?Thighmax:T;
+/*if(Phi[27]>1.5e-9)
+{
 
+Info<<li<<endl;
+std::exit(0);
+}*/
     // Compute temperature and pressure, required by thermo and chemistry
     double RuT = gas->Ru*T;
     __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
-    TPRuT = vec256_logd(TPRuT);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
     const double invT = 1.0/T;
     const double logT = get_elem0(TPRuT);
     const double logP = get_elem1(TPRuT);
@@ -566,7 +572,7 @@ Foam::FastChemistryModel<UnusedThermo>::tc() const
             // Computing temperature and pressure, required by thermo and chemistry
             double RuT = gas->Ru*Ti;
             __m256d TPRuT = _mm256_setr_pd(Ti,pi,RuT,1);
-            TPRuT = vec256_logd(TPRuT);
+            TPRuT = FastChemistry::vec256_logd(TPRuT);
             const double invT = 1.0/Ti;
             const double logT = get_elem0(TPRuT);
             const double logP = get_elem1(TPRuT);
@@ -709,7 +715,7 @@ void Foam::FastChemistryModel<UnusedThermo>::calculate()
         // Computing temperature and pressure, required by thermo and chemistry
         double RuT = gas->Ru*Ti;
         __m256d TPRuT = _mm256_setr_pd(Ti,pi,RuT,1);
-        TPRuT = vec256_logd(TPRuT);
+        TPRuT = FastChemistry::vec256_logd(TPRuT);
         const double invT = 1.0/Ti;
         const double logT = get_elem0(TPRuT);
         const double logP = get_elem1(TPRuT);

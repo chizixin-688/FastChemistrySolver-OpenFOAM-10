@@ -159,7 +159,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d Kinfv = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->Kf_[j+this->offset_kinf]);
-            Kinfv = _mm256_set_m128d(tmp,tmp);
+            //Kinfv = _mm256_set_m128d(tmp,tmp);
+            Kinfv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         __m256d invKinfv = _mm256_div_pd(onev,Kinfv);
@@ -167,13 +168,15 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d K0v = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->Kf_[j]);
-            K0v = _mm256_set_m128d(tmp,tmp);
+            //K0v = _mm256_set_m128d(tmp,tmp);
+            K0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         __m256d Mv = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->tmp_M[m]);
-            Mv = _mm256_set_m128d(tmp,tmp);
+            //Mv = _mm256_set_m128d(tmp,tmp);
+            Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         __m256d Prv = _mm256_mul_pd(K0v,Mv);
@@ -187,9 +190,12 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d expTcv = _mm256_setzero_pd();
         {
             __m128d tmp0 = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3]);
-            expbTv = _mm256_set_m128d(tmp0,tmp0);
+            //expbTv = _mm256_set_m128d(tmp0,tmp0);
+            expbTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp0), tmp0, 1);
+
             __m128d tmp1 = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI]);
-            expTcv = _mm256_set_m128d(tmp1,tmp1);
+            //expTcv = _mm256_set_m128d(tmp1,tmp1);
+            expTcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp1), tmp1, 1);
         }
 
         __m256d Xv = _mm256_fmadd_pd(logPrv,logPrv,onev);
@@ -198,7 +204,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d av = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->a_[i]);
-            av = _mm256_set_m128d(tmp,tmp);
+            //av = _mm256_set_m128d(tmp,tmp);
+            av = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         __m256d psiv = _mm256_fmadd_pd(av,expbTv,expTcv);
@@ -209,9 +216,12 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d ev = _mm256_setzero_pd();
         {
             __m128d tmp0 = _mm_loadu_pd(&this->d_[i]);
-            dv = _mm256_set_m128d(tmp0,tmp0);
+            //dv = _mm256_set_m128d(tmp0,tmp0);
+            dv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp0), tmp0, 1);
+
             __m128d tmp1 = _mm_loadu_pd(&this->e_[i]);
-            ev = _mm256_set_m128d(tmp1,tmp1);
+            //ev = _mm256_set_m128d(tmp1,tmp1);
+            ev = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp1), tmp1, 1);
         }
 
         __m256d elogTv = _mm256_mul_pd(ev,logTv);
@@ -455,7 +465,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d Kinfv = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->Kf_[j-Ikf[5]+Ikf[8]]);
-            Kinfv = _mm256_set_m128d(tmp,tmp);
+            //Kinfv = _mm256_set_m128d(tmp,tmp);
+            Kinfv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         //const double invKinf0 = 1.0/Kinf0;
@@ -467,7 +478,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d K0v = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->Kf_[j]);
-            K0v = _mm256_set_m128d(tmp,tmp);
+            //K0v = _mm256_set_m128d(tmp,tmp);
+            K0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         //const double M0 = tmp_M[m+0];
@@ -475,7 +487,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d Mv = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->tmp_M[m]);
-            Mv = _mm256_set_m128d(tmp,tmp);
+            //Mv = _mm256_set_m128d(tmp,tmp);
+            Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         //const double Pr0 = K00*M0*invKinf0; 
@@ -500,9 +513,12 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d expTcv = _mm256_setzero_pd();
         {
             __m128d tmp0 = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRIFO]);
-            expbTv = _mm256_set_m128d(tmp0,tmp0);
+            //expbTv = _mm256_set_m128d(tmp0,tmp0);
+            expbTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp0), tmp0, 1);
+
             __m128d tmp1 = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI+this->n_SRIFO]);
-            expTcv = _mm256_set_m128d(tmp1,tmp1);
+            //expTcv = _mm256_set_m128d(tmp1,tmp1);
+            expTcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp1), tmp1, 1);
         }
 
         //const double X0 = 1/(1 + (logPr0*logPr0));
@@ -515,7 +531,8 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d av = _mm256_setzero_pd();
         {
             __m128d tmp = _mm_loadu_pd(&this->a_[i+this->n_SRIFO]);
-            av = _mm256_set_m128d(tmp,tmp);
+            //av = _mm256_set_m128d(tmp,tmp);
+            av = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp), tmp, 1);
         }
 
         //const double psi0 = a0*expbT0 + expTc0;
@@ -535,9 +552,11 @@ void FastChemistry::OptReaction::evalSRIRateConstant()const noexcept
         __m256d ev = _mm256_setzero_pd();
         {
             __m128d tmp0 = _mm_loadu_pd(&this->d_[i+this->n_SRIFO]);
-            dv = _mm256_set_m128d(tmp0,tmp0);
+            //dv = _mm256_set_m128d(tmp0,tmp0);
+            dv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp0), tmp0, 1);
             __m128d tmp1 = _mm_loadu_pd(&this->e_[i+this->n_SRIFO]);
-            ev = _mm256_set_m128d(tmp1,tmp1);
+            //ev = _mm256_set_m128d(tmp1,tmp1);
+            ev = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmp1), tmp1, 1);
         }
 
         //const double F0 = d0*std::exp(X0*logPsi0+e0*logT);

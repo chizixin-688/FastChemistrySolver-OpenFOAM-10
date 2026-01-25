@@ -265,7 +265,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d Kinfv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->Kf_[j+this->offset_kinf]);
-            Kinfv = _mm256_set_m128d(tmpv,tmpv);
+            //Kinfv = _mm256_set_m128d(tmpv,tmpv);
+            Kinfv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double invKinf = 1.0/Kinf;
@@ -275,7 +276,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d K0v = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->Kf_[j]);
-            K0v = _mm256_set_m128d(tmpv,tmpv);
+            //K0v = _mm256_set_m128d(tmpv,tmpv);
+            K0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double M = tmp_M[m];
 
@@ -287,7 +289,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             __m256d Mv = _mm256_setzero_pd();
             {
                 __m128d tmpv = _mm_loadu_pd(&this->tmp_M[m]);
-                Mv = _mm256_set_m128d(tmpv,tmpv);
+                //Mv = _mm256_set_m128d(tmpv,tmpv);
+                Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
             }
             Prv = _mm256_mul_pd(Prv,Mv);
         }
@@ -303,14 +306,16 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d expbTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3]);
-            expbTv = _mm256_set_m128d(tmpv,tmpv);
+            //expbTv = _mm256_set_m128d(tmpv,tmpv);
+            expbTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double expTc = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI];
         __m256d expTcv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI]);
-            expTcv = _mm256_set_m128d(tmpv,tmpv);
+            //expTcv = _mm256_set_m128d(tmpv,tmpv);
+            expTcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double X = 1/(1 + (logPr*logPr));
@@ -321,7 +326,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d av = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->a_[i]);
-            av = _mm256_set_m128d(tmpv,tmpv);
+            //av = _mm256_set_m128d(tmpv,tmpv);
+            av = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double psi = a*expbT + expTc;
         __m256d psiv = _mm256_fmadd_pd(av,expbTv,expTcv);
@@ -332,13 +338,15 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->d_[i]);
-            dv = _mm256_set_m128d(tmpv,tmpv);
+            //dv = _mm256_set_m128d(tmpv,tmpv);
+            dv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double e = this->e_[i];
         __m256d ev = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->e_[i]);
-            ev = _mm256_set_m128d(tmpv,tmpv);
+            //ev = _mm256_set_m128d(tmpv,tmpv);
+            ev = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double logT = this->logT;
             //const double F = d*std::pow(psi, X)*std::pow(T, e);
@@ -352,13 +360,15 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d bv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->b_[i]);
-            bv = _mm256_set_m128d(tmpv,tmpv);
+            //bv = _mm256_set_m128d(tmpv,tmpv);
+            bv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double invc = this->invc_[i];
         __m256d invcv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->invc_[i]);
-            invcv = _mm256_set_m128d(tmpv,tmpv);
+            //invcv = _mm256_set_m128d(tmpv,tmpv);
+            invcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double invT = this->invT;
 
@@ -379,7 +389,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dK0dTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->dKfdT_[j]);
-            dK0dTv = _mm256_set_m128d(tmpv,tmpv);
+            //dK0dTv = _mm256_set_m128d(tmpv,tmpv);
+            dK0dTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double invOnePlusPr = 1.0/(1.0+Pr);
@@ -389,12 +400,14 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dKinfdTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->dKfdT_[j+this->offset_kinf]);
-            dKinfdTv = _mm256_set_m128d(tmpv,tmpv);
+            //dKinfdTv = _mm256_set_m128d(tmpv,tmpv);
+            dKinfdTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         __m256d Mv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_M[m]);
-            Mv = _mm256_set_m128d(tmpv,tmpv);
+            //Mv = _mm256_set_m128d(tmpv,tmpv);
+            Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
             //const double N  = invOnePlusPr*F*K0;
             __m256d Nv = _mm256_mul_pd(invOnePlusPrv,Fv);
             Nv = _mm256_mul_pd(Nv,K0v);
@@ -894,7 +907,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d Kinfv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->Kf_[j-Ikf[5]+Ikf[8]]);
-            Kinfv = _mm256_set_m128d(tmpv,tmpv);
+            //Kinfv = _mm256_set_m128d(tmpv,tmpv);
+            Kinfv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double invKinf = 1.0/Kinf;
@@ -904,7 +918,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d K0v = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->Kf_[j]);
-            K0v = _mm256_set_m128d(tmpv,tmpv);
+            //K0v = _mm256_set_m128d(tmpv,tmpv);
+            K0v = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double M = tmp_M[m];
 
@@ -916,7 +931,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             __m256d Mv = _mm256_setzero_pd();
             {
                 __m128d tmpv = _mm_loadu_pd(&this->tmp_M[m]);
-                Mv = _mm256_set_m128d(tmpv,tmpv);
+                //Mv = _mm256_set_m128d(tmpv,tmpv);
+                Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
             }
             Prv = _mm256_mul_pd(Prv,Mv);
         }
@@ -932,14 +948,16 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d expbTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRIFO]);
-            expbTv = _mm256_set_m128d(tmpv,tmpv);
+            //expbTv = _mm256_set_m128d(tmpv,tmpv);
+            expbTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double expTc = this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI];
         __m256d expTcv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*3+this->n_SRI+this->n_SRIFO]);
-            expTcv = _mm256_set_m128d(tmpv,tmpv);
+            //expTcv = _mm256_set_m128d(tmpv,tmpv);
+            expTcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double X = 1/(1 + (logPr*logPr));
@@ -950,7 +968,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d av = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->a_[i+this->n_SRIFO]);
-            av = _mm256_set_m128d(tmpv,tmpv);
+            //av = _mm256_set_m128d(tmpv,tmpv);
+            av = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double psi = a*expbT + expTc;
         __m256d psiv = _mm256_fmadd_pd(av,expbTv,expTcv);
@@ -961,13 +980,15 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->d_[i+this->n_SRIFO]);
-            dv = _mm256_set_m128d(tmpv,tmpv);
+            //dv = _mm256_set_m128d(tmpv,tmpv);
+            dv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double e = this->e_[i];
         __m256d ev = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->e_[i+this->n_SRIFO]);
-            ev = _mm256_set_m128d(tmpv,tmpv);
+            //ev = _mm256_set_m128d(tmpv,tmpv);
+            ev = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double logT = this->logT;
             //const double F = d*std::pow(psi, X)*std::pow(T, e);
@@ -981,13 +1002,15 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d bv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->b_[i+this->n_SRIFO]);
-            bv = _mm256_set_m128d(tmpv,tmpv);
+            //bv = _mm256_set_m128d(tmpv,tmpv);
+            bv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double invc = this->invc_[i];
         __m256d invcv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->invc_[i+this->n_SRIFO]);
-            invcv = _mm256_set_m128d(tmpv,tmpv);
+            //invcv = _mm256_set_m128d(tmpv,tmpv);
+            invcv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         //const double invT = this->invT;
 
@@ -1008,7 +1031,8 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dK0dTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->dKfdT_[j]);
-            dK0dTv = _mm256_set_m128d(tmpv,tmpv);
+            //dK0dTv = _mm256_set_m128d(tmpv,tmpv);
+            dK0dTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
 
         //const double invOnePlusPr = 1.0/(1.0+Pr);
@@ -1018,12 +1042,15 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         __m256d dKinfdTv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->dKfdT_[j+this->offset_kinf]);
-            dKinfdTv = _mm256_set_m128d(tmpv,tmpv);
+            //dKinfdTv = _mm256_set_m128d(tmpv,tmpv);
+            dKinfdTv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
         }
         __m256d Mv = _mm256_setzero_pd();
         {
             __m128d tmpv = _mm_loadu_pd(&this->tmp_M[m]);
-            Mv = _mm256_set_m128d(tmpv,tmpv);
+            //Mv = _mm256_set_m128d(tmpv,tmpv);
+            Mv = _mm256_insertf128_pd (_mm256_castpd128_pd256 (tmpv), tmpv, 1);
+
             //const double N  = invOnePlusPr*F*K0;
             __m256d Nv = _mm256_mul_pd(invOnePlusPrv,Fv);
             Nv = _mm256_mul_pd(Nv,K0v);
