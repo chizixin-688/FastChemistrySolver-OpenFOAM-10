@@ -7,9 +7,6 @@
       Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
-#ifndef CreateGasPhaseReactionFromFoamDict_H
-#define CreateGasPhaseReactionFromFoamDict_H
-
 //=============================================================================//
 
 //---------------------------------
@@ -27,6 +24,10 @@
 // 3. FastChemistry headers
 //---------------------------------
 #include "OptReaction.H"
+
+
+#ifndef CreateGasPhaseReactionFromFoamDict_H
+#define CreateGasPhaseReactionFromFoamDict_H
 
 //=============================================================================//
 

@@ -1,9 +1,10 @@
-#ifndef VEC_MATH_AVX2_H
-#define VEC_MATH_AVX2_H
-
 #include <immintrin.h>
 
 #include "Macro.H"
+#ifndef VEC_MATH_AVX2_H
+#define VEC_MATH_AVX2_H
+
+
 namespace FastChemistry
 {
     #if USE_LOCALFILE_

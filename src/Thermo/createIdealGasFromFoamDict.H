@@ -7,9 +7,6 @@
       Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
-#ifndef CreateIdealGasFromFoamDict_H
-#define CreateIdealGasFromFoamDict_H
-
 //=============================================================================//
 
 //---------------------------------
@@ -29,6 +26,9 @@
 #include "idealGas.H"
 
 //=============================================================================//
+
+#ifndef CreateIdealGasFromFoamDict_H
+#define CreateIdealGasFromFoamDict_H
 
 
 namespace FastChemistry
