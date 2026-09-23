@@ -21,21 +21,15 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-\*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*\
-  Description
-      Note that this implementation is not consistent with OpenFOAM-10 version. 
+Description
+      Note that this implementation is not consistent with OpenFOAM-10 version.
       But same with Imren's version
-
       Reference
-
-      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff 
+      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff
       ODE solvers for combustion CFD. Combustion and Flame 174 (2016) 1–15.
 
-
-  Author
-      Zixin Chi <chizixin@buaa.edu.cn>
+Author
+    Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
 //=============================================================================//
@@ -86,19 +80,19 @@ Foam::OptSeulex<ChemistryModel>::OptSeulex
     {
         throw std::bad_alloc();
     }
-    std::memset(this->y0_, 0, this->alignN);
+    std::memset(this->y0_, 0, this->alignN*sizeof(double));
 
     if (posix_memalign(reinterpret_cast<void**>(&this->ySequence_), 32, this->alignN*sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->ySequence_, 0, this->alignN);
+    std::memset(this->ySequence_, 0, this->alignN*sizeof(double));
 
     if (posix_memalign(reinterpret_cast<void**>(&this->scale_), 32, this->alignN*sizeof(double)))
     {
         throw std::bad_alloc();
     }
-    std::memset(this->scale_, 0, this->alignN);
+    std::memset(this->scale_, 0, this->alignN*sizeof(double));
 
     // The CPU time factors for the major parts of the algorithm
     const scalar cpuFunc = 1, cpuJac = 5, cpuLU = 1, cpuSolve = 1;
@@ -141,7 +135,6 @@ Foam::OptSeulex<ChemistryModel>::~OptSeulex()
     free(this->scale_);
 }
 
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
@@ -166,6 +159,8 @@ void Foam::OptSeulex<ChemistryModel>::solve
 ) const
 {
 
+    // Alias the shared solver scratch space (buffers owned by the
+    // chemistry model, see YTpWork / YTpYTpWork in FastChemistryModel.H).
     double* __restrict__ Phi0         = this->YTpWork[1];
     double* __restrict__ PhiTemp    = this->YTpWork[2];
     double* __restrict__ Cp         = this->YTpWork[3];
@@ -175,8 +170,8 @@ void Foam::OptSeulex<ChemistryModel>::solve
     double* __restrict__ k9         = this->YTpWork[9];
     double* __restrict__ k11         = this->YTpWork[11];
     double* __restrict__ Jac = this->YTpYTpWork[1];
-    double* __restrict__ a = this->YTpYTpWork[2];  
-     
+    double* __restrict__ a = this->YTpYTpWork[2];
+
     this->ODESolve
     (
         deltaT,
@@ -192,7 +187,7 @@ void Foam::OptSeulex<ChemistryModel>::solve
         k9,
         k11,
         Jac,
-        a        
+        a
     );
 }
 
@@ -215,6 +210,7 @@ void Foam::OptSeulex<ChemistryModel>::ODESolve
     double* __restrict__ a
 ) const
 {
+    // Adaptive integration from x = 0 to xEnd using the shared buffers.
     stepState step(dxTry);
     scalar x = 0;
 
@@ -235,8 +231,8 @@ void Foam::OptSeulex<ChemistryModel>::ODESolve
         // Integrate as far as possible up to step.dxTry
         SeulexSolve
         (
-            x, 
-            li, 
+            x,
+            li,
             step,
             p,
             Phi0,
@@ -296,12 +292,15 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
     double* __restrict__ dy_,
     double* __restrict__ dydx_,
     double* __restrict__ k9,
-    double* __restrict__ k11,    
+    double* __restrict__ k11,
     double* __restrict__ Jy,
-    double* __restrict__ a  
+    double* __restrict__ a
 ) const
 {
 
+    // One accepted macro-step of the extrapolation scheme.  temp_[*] and
+    // dxOpt_[*] track the per-row errors and optimal step sizes, and kTarg_
+    // is the current extrapolation order.
     temp_[0] = great;
     scalar dx = step.dxTry;
     for(label i = 0; i < this->n_;i++)
@@ -321,21 +320,59 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
         kTarg_ = max(1, min(kMaxx_ - 1, int(this->logTol)));
     }
 
-
     //forAll(scale_, i)
     //{
     //    scale_[i] = absTol_ + relTol_*mag(y[i]);
     //}
-    for(label i = 0; i<this->n_;i++)
+    if(this->massFraction==true)
     {
-        k11[i] = absTol_ + relTol_*mag(Phi[i]);
+        for(label i = 0; i<this->n_;i++)
+        {
+            k11[i] = absTol_ + relTol_*mag(Phi[i]);
+        }
+    }
+    else
+    {
+        // The state variables are mole numbers (NT), convert them to mass
+        // fraction so that the convergence tolerance has the same meaning
+        // as in the mass-fraction case
+        double mtot = 0;
+        for(label i = 0; i<this->nSpecie();i++)
+        {
+            mtot += Phi[i]*this->gas->W[i];
+        }
+        double invmtot = 1.0/mtot;
+        for(label i = 0; i<this->nSpecie();i++)
+        {
+            k11[i] = absTol_ + relTol_*mag(Phi[i]*this->gas->W[i]*invmtot);
+        }
+        {
+            label i = this->nSpecie();
+            k11[i] = absTol_ + relTol_*mag(Phi[i]);
+        }
     }
 
+    // k11 now holds the per-component error tolerance absTol_ + relTol_*|y|
+    // (the mole-number basis converts the state to mass fractions first so
+    // that the tolerance has the same meaning in both bases).
     bool jacUpdated = false;
 
+    // Refresh the Jacobian when the Newton convergence monitor theta_ has
+    // grown past jacRedo_ (theta_ is updated inside seul for k <= 1).
     if (theta_ > jacRedo_)
     {
-        this->jacobian(x, li, p, Phi,  k9, Jy);
+        //this->jacobian(x, li, p, Phi,  k9, Jy);
+        if(this->massFraction==true)
+        {
+            double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+            double* __restrict__ dcdY      = this->YTpYTpWork[2];
+            this->getddYTdtdYT(x,li,p,this->YTpWork[5],Phi,k9,Cp,Ha,dy_,dydx_,this->YTpWork[10],this->YTpWork[8],ddNdtByVdcT,dcdY,Jy);
+        }
+        else
+        {
+            double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+            this->getddNTdtdNT(x,li,p,this->YTpWork[5],Phi,k9,Cp,Ha,dy_,dydx_,ddNdtByVdcT,Jy);
+        }
         jacUpdated = true;
     }
 
@@ -343,6 +380,9 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
     scalar dxNew = mag(dx);
     bool firstk = true;
 
+    // Extrapolation loop: for each subdivision count k = 0..kTarg_+1 run the
+    // underlying Euler scheme, extrapolate the table column and test the
+    // error; failed rows shrink dx and restart the loop.
     while (firstk || step.reject)
     {
         dx = step.forward ? dxNew : -dxNew;
@@ -355,13 +395,13 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
         {
             bool success = seul
             (
-                x, 
-                y0_, 
-                li, 
-                dx, 
+                x,
+                y0_,
+                li,
+                dx,
                 k,
                 p,
-                ySequence_, 
+                ySequence_,
                 PhiTemp_,
                 Cp,
                 Ha,
@@ -369,7 +409,7 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
                 dydx_,
                 k11,
                 Jy,
-                a    
+                a
             );
 
             if (!success)
@@ -389,8 +429,8 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
             }
             else
             {
-                
-                for(label i = 0; i < this->n_;i++)                
+
+                for(label i = 0; i < this->n_;i++)
                 {
                     table_[k-1][i] = ySequence_[i];
                 }
@@ -400,15 +440,40 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
             {
                 extrapolate(k, table_, Phi);
                 scalar err = 0;
-                //forAll(scale_, i) 
+                //forAll(scale_, i)
                 //{
                 //    scale_[i] = absTol_ + relTol_*mag(y0_[i]);
                 //    err += sqr((y[i] - table_(0, i))/scale_[i]);
                 //}
-                for(label i = 0; i<this->n_;i++)
+                if(this->massFraction==true)
                 {
-                    k11[i] = absTol_ + relTol_*mag(y0_[i]);
-                    err += sqr((Phi[i] - table_(0, i))/k11[i]);                    
+                    for(label i = 0; i<this->n_;i++)
+                    {
+                        k11[i] = absTol_ + relTol_*mag(y0_[i]);
+                        err += sqr((Phi[i] - table_(0, i))/k11[i]);
+                    }
+                }
+                else
+                {
+                    // The state variables are mole numbers (NT), convert them
+                    // to mass fraction so that the convergence tolerance has
+                    // the same meaning as in the mass-fraction case
+                    double mtot = 0;
+                    for(label i = 0; i<this->nSpecie();i++)
+                    {
+                        mtot += y0_[i]*this->gas->W[i];
+                    }
+                    double invmtot = 1.0/mtot;
+                    for(label i = 0; i<this->nSpecie();i++)
+                    {
+                        k11[i] = absTol_ + relTol_*mag(y0_[i]*this->gas->W[i]*invmtot);
+                        err += sqr((Phi[i] - table_(0, i))*this->gas->W[i]*invmtot/k11[i]);
+                    }
+                    {
+                        label i = this->nSpecie();
+                        k11[i] = absTol_ + relTol_*mag(y0_[i]);
+                        err += sqr((Phi[i] - table_(0, i))/k11[i]);
+                    }
                 }
                 err = sqrt(err/this->n_);
                 if (err > 1/small || (k > 1 && err >= errOld))
@@ -504,7 +569,18 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
                 theta_ = 2.0*jacRedo_;
                 if (theta_ > jacRedo_ && !jacUpdated)
                 {
-                    this->jacobian(x, li, p, Phi,  k9, Jy);
+                    //this->jacobian(x, li, p, Phi,  k9, Jy);
+                    if(this->massFraction==true)
+                    {
+                        double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+                        double* __restrict__ dcdY      = this->YTpYTpWork[2];
+                        this->getddYTdtdYT(x,li,p,this->YTpWork[5],Phi,k9,Cp,Ha,dy_,dydx_,this->YTpWork[10],this->YTpWork[8],ddNdtByVdcT,dcdY,Jy);
+                    }
+                    else
+                    {
+                        double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+                        this->getddNTdtdNT(x,li,p,this->YTpWork[5],Phi,k9,Cp,Ha,dy_,dydx_,ddNdtByVdcT,Jy);
+                    }
                     jacUpdated = true;
                 }
             }
@@ -516,6 +592,8 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
     step.dxDid = dx;
     x += dx;
 
+    // Step accepted - choose the order kopt and the next step size for the
+    // following step from the stored per-row error estimates temp_[*].
     label kopt;
     if (k == 1)
     {
@@ -532,7 +610,7 @@ void Foam::OptSeulex<ChemistryModel>::SeulexSolve
         {
             kopt = min(k + 1, kMaxx_ - 1);
         }
-    } 
+    }
     else
     {
         kopt = k - 1;
@@ -592,12 +670,14 @@ bool Foam::OptSeulex<ChemistryModel>::seul
     double* __restrict__ Ha,
     double* __restrict__ dy_,
     double* __restrict__ dydx_,
-    double* __restrict__ k11,     
+    double* __restrict__ k11,
     double* __restrict__ Jac,
-    double* __restrict__ a        
+    double* __restrict__ a
 ) const
 {
 
+    // Row k of the extrapolation table: linearly implicit Euler method with
+    // nSeq_[k] sub-steps of length dxTot/nSeq_[k].
     unsigned int nSteps = nSeq_[k];
     scalar dx = dxTot/nSteps;
     scalar invdx = nSteps/dxTot;
@@ -628,54 +708,96 @@ bool Foam::OptSeulex<ChemistryModel>::seul
     }
 
     {
+    // Factor the (constant) iteration matrix once and reuse it for all the
+    // sub-steps of this row.
         LU.Block4LUDecompose();
     }
 
-
-
     scalar xnew = x0 + dx;
 
-    this->derivatives(xnew, li, p, y0, dy_, Cp, Ha);
+    if(this->massFraction==true)
+    {
+        this->getdYTdt(xnew, li, p, y0, dy_, this->YTpWork[5], Cp, Ha);
+    }
+    else
+    {
+        this->getdNTdt(xnew, li, p, y0, dy_, this->YTpWork[5], Cp, Ha);
+    }
 
     {
         LU.xSolve(dy_);
     }
 
-    for(label i = 0; i < this->n_;i++) 
+    for(label i = 0; i < this->n_;i++)
     {
+    // Linearly implicit Euler sweep: yTemp_ accumulates the sub-step
+    // solution, starting from the previous sub-step value y0.
         yTemp_[i] = y0[i];
-    }    
+    }
     for (unsigned int nn=1; nn<nSteps; nn++)
     {
-        for(label i = 0; i < this->n_;i++) 
+        for(label i = 0; i < this->n_;i++)
         {
             yTemp_[i] += dy_[i];
         }
-
 
         xnew += dx;
 
         if (nn == 1 && k<=1)
         {
-            scalar dy1 = 0;
-            for (label i=0; i<this->n_; i++) 
+            // Convert the Newton correction to the mass fraction basis so
+            // that the convergence estimate is consistent with the tolerance
+            // computed from the mass fraction (see SeulexSolve)
+            double mtot = 0;
+            double invmtot = 0.0;
+            if(this->massFraction==true)
             {
-                dy1 += sqr(dy_[i]/k11[i]);
+                for(label i = 0; i<this->nSpecie();i++)
+                {
+                    mtot += y0[i]*this->gas->W[i];
+                }
+                invmtot = 1.0/mtot;
+            }
+
+            if(this->massFraction==true)
+            {
+                for(label i = 0; i<this->nSpecie();i++)
+                {
+                    this->scale_[i] = dy_[i]*this->gas->W[i]*invmtot;
+                }
+                this->scale_[this->nSpecie()] = dy_[this->nSpecie()];
+            }
+            else
+            {
+                for(label i = 0; i<this->n_;i++)
+                {
+                    this->scale_[i] = dy_[i];
+                }
+            }
+
+            scalar dy1 = 0;
+            for (label i=0; i<this->n_; i++)
+            {
+                dy1 += sqr(this->scale_[i]/k11[i]);
             }
             dy1 = sqrt(dy1);
 
             //odes_.derivatives(x0 + dx, yTemp_, li, dydx_);
-            this->derivatives(x0 + dx, li, p, yTemp_, dydx_, Cp, Ha);
+            if(this->massFraction==true)
+            {
+                this->getdYTdt(x0 + dx, li, p, yTemp_, dydx_, this->YTpWork[5], Cp, Ha);
+            }
+            else
+            {
+                this->getdNTdt(x0 + dx, li, p, yTemp_, dydx_, this->YTpWork[5], Cp, Ha);
+            }
 
-            for (label i=0; i<this->n_; i++) 
+            for (label i=0; i<this->n_; i++)
             {
                 dy_[i] = dydx_[i] - dy_[i]*invdx;
             }
 
-            
             LU.xSolve(dy_);
-            
-            
 
             // This form from the original paper is unreliable
             // step size underflow for some cases
@@ -686,33 +808,55 @@ bool Foam::OptSeulex<ChemistryModel>::seul
 
             scalar dy2 = 0.0;
 
-	        for (label i=0; i<this->n_; i++)
-	        {
-	            if (mag(dy_[i]) > sqrt(vGreat) )
-                { 
-                    dy2 = vGreat; 
+            if(this->massFraction==true)
+            {
+                for(label i = 0; i<this->nSpecie();i++)
+                {
+                    this->scale_[i] = dy_[i]*this->gas->W[i]*invmtot;
+                }
+                this->scale_[this->nSpecie()] = dy_[this->nSpecie()];
+            }
+            else
+            {
+                for(label i = 0; i<this->n_;i++)
+                {
+                    this->scale_[i] = dy_[i];
+                }
+            }
+
+            for (label i=0; i<this->n_; i++)
+            {
+                if (mag(this->scale_[i]) > sqrt(vGreat) )
+                {
+                    dy2 = vGreat;
                     break;
                 }
-		        dy2 += sqr(dy_[i]/k11[i]);
-	        }
+                dy2 += sqr(this->scale_[i]/k11[i]);
+            }
 
-	    	dy2 = sqrt(dy2);
-		    theta_ = dy2/max(1.0, dy1 + small);
-		    if (theta_ > 1.0 ) 
-	    	{
-		        return false;
-	    	}
+            dy2 = sqrt(dy2);
+            theta_ = dy2/max(1.0, dy1 + small);
+            if (theta_ > 1.0 )
+            {
+                return false;
+            }
         }
 
-
-        this->derivatives(xnew, li, p, yTemp_, dy_, Cp, Ha);
+        if(this->massFraction==true)
+        {
+            this->getdYTdt(xnew, li, p, yTemp_, dy_, this->YTpWork[5], Cp, Ha);
+        }
+        else
+        {
+            this->getdNTdt(xnew, li, p, yTemp_, dy_, this->YTpWork[5], Cp, Ha);
+        }
 
         {
             LU.xSolve(dy_);
         }
     }
 
-    for (label i=0; i<this->n_; i++) 
+    for (label i=0; i<this->n_; i++)
     {
         ySequence[i] = yTemp_[i] + dy_[i];
     }
@@ -720,8 +864,6 @@ bool Foam::OptSeulex<ChemistryModel>::seul
     return true;
 
 }
-
-
 
 template<class ChemistryModel>
 void Foam::OptSeulex<ChemistryModel>::extrapolate
@@ -731,6 +873,8 @@ void Foam::OptSeulex<ChemistryModel>::extrapolate
     double* y
 ) const
 {
+    // Polynomial extrapolation of the table column to zero step size using
+    // the precomputed extrapolation coefficients coeff_(k, j).
     for (int j=k-1; j>0; j--)
     {
         for (label i=0; i<this->n_; i++)
@@ -740,11 +884,11 @@ void Foam::OptSeulex<ChemistryModel>::extrapolate
         }
     }
 
-    for (label i=0; i<this->n_; i++) 
+    for (label i=0; i<this->n_; i++)
     {
         y[i] = table(0, i) + coeff_(k, 0)*(table(0, i) - y[i]);
     }
 }
 
-
 // ************************************************************************* //
+

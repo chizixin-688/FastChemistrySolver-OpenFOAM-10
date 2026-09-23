@@ -1,7 +1,22 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Header file for ideal gas objects. Contains class declarations 
-      and function prototypes related to ideal gas.
+      Header file for the ideal gas object (class idealGas).
+
+      The class stores the NASA / Janaf 7-coefficient polynomial fits of all
+      species (high / low temperature ranges) and provides the thermo
+      properties required by the chemical solver:
+        - Cp, Ha, standard Gibbs energy (-Gstd/(Ru*T)) and their temperature
+          derivatives,
+        - molar concentrations and mixture density / mole weight / volume,
+        - the Jacobian (Y-T and N-T formulations) and derivative (dPhidt)
+          thermo quantities.
+
+      All kernels are implemented with AVX-2 (256-bit, 4 species per group)
+      SIMD code and read the coefficients directly from the SoA (column-major)
+      storage LCoeffsSoA / HCoeffsSoA. Temperature regime selection:
+        - T <= TcommonMin  -> all species use the low-temperature fit
+        - T >= TcommonMax  -> all species use the high-temperature fit
+        - otherwise        -> per-species selection via vblendvpd (mixed)
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -93,10 +108,22 @@ public:
             mutable double TlowMin;
 
             // Store the maximum value of Tlow of all species.
+            mutable double TlowMax;
+
+            // Store the minimum value of Thigh of all species.
+            mutable double ThighMin;
+
+            // Store the maximum value of Thigh of all species.
             mutable double ThighMax;
 
-            // Pointer to point the coefficients of all species.
-            mutable std::vector<std::array<double,7>*> PtrCoeffs;
+            // SoA (structure-of-arrays) coefficient storage.
+            // Column-major layout: LCoeffsSoA[j][i] = LCoeffs[i][j].
+            // Every segment holds alignSpecies (a multiple of 4) doubles and is
+            // 64-byte aligned, so 256-bit aligned loads are always safe.
+            mutable double* bufferSoA;              // 64-byte aligned, 15*alignSpecies doubles
+            mutable double* LCoeffsSoA[7];          // low-temperature coefficients, column-major
+            mutable double* HCoeffsSoA[7];          // high-temperature coefficients, column-major
+            mutable double* TcommonSoA;             // per-species crossover temperature
 
         // Thermodynamic parameter
 
@@ -152,6 +179,19 @@ public:
             // mixture moleweight [kg/kmol]
             mutable double Mw;
 
+            // mixture total volume [m^3]
+            mutable double V;
+
+            // 1.0/V [1/m^3]
+            mutable double invV;
+
+            mutable double invp;
+
+            mutable double invNtot;
+
+            mutable double Ntot;
+
+            mutable double invRuT;
 public:
 
     // Member Functions
@@ -161,9 +201,6 @@ public:
             //void readThermodynamicsInformation(const dictionary& physicalDict);
 
         // Member functions for chemistry
-
-            // Pointing the janaf coefficient using the given temperature.
-            inline void setPtrCoeffs (const double T) const;
 
             // Compute the thermodynamic parameters required by chemical Jacobian matrix
             // d(dPhidt)dPhi. Phi=[Y0 Y1 Y2 ... YNs T]
@@ -199,6 +236,20 @@ public:
                 double* __restrict__ WiByrhoM
             ) const;
 
+            void JacobianThermoNT
+            (
+                double p,
+                double T,
+                double* __restrict__ Phi,
+                double* __restrict__ c,
+                double* __restrict__ negGstdByRT,
+                double* __restrict__ negGstdByRT2,
+                double* __restrict__ dBdT,
+                double* __restrict__ dcpdT,
+                double* __restrict__ cp,
+                double* __restrict__ ha
+            ) const;
+
             // Compute the thermodynamic parameters required by chemical derivative
             // (dPhidt). Phi=[Y0 Y1 Y2 ... YNs T]
             // Phi:             Array for all species mass fraction and temperature
@@ -222,31 +273,28 @@ public:
             ) const;
 
 
-            // Compute the thermodynamic variable required by chemistry derivatives
-            // dPhidt. Phi=[Y0 Y1 Y2 ... YNs T]
+            // Compute the thermodynamic parameters required by chemical derivative
+            // (dPhidt). Phi=[N0 N1 N2 ... NNs T]
+            // Phi:             Array for all species mass fraction and temperature
+            // c:               Species concentration.                  [kmol/m^3]
+            // negGstdByRT:     (-Gstd/(Ru*T)).                         [dimLess]
+            // Gstd:            Standard Gibbs free energy.             [J/kmol]
             // Cp:              Specific heat capacity at constant 
             //                  pressure.                               [J/kg/k]
             // Ha:              Absolute enthalpy.                      [J/kg]
             // negGstdByRT:     (-Gstd/(Ru*T)).                         [dimLess]
-            /*void CpHaNegGstdByRT
-            (
-                double T,
-                double* __restrict__ Cp,
-                double* __restrict__ Ha,
-                double* __restrict__ negGstdByRT
-            )const;*/
-
-            // Compute the thermodynamic variable required by chemistry derivatives
-            // dPhidt. Phi=[Y0 Y1 Y2 ... YNs T]
-            // rhoM:            Mixture density                         [kg/m^3]
-            // c:               Species concentration                   [kmol/m^3]
-            /*void rhoMc
+            void DerivativeThermoNT
             (
                 double T,
                 const double p,
                 double* __restrict__ Phi,
-                double* __restrict__ c
-            )const;*/
+                double* __restrict__ c,
+                double* __restrict__ Cp,
+                double* __restrict__ Ha,
+                double* __restrict__ negGstdByRT,
+                double* __restrict__ negGstdByRT2
+            ) const;
+
 
             // Compute the thermodynamic variable required by chemistry time scale
             // Tc
@@ -265,21 +313,6 @@ public:
             {
                 return this->invT;
             }
-
-    // SIMD inline function
-
-            // s = v0 + v1 + v2 + v3
-            inline double hsum4(__m256d v) const;
-            inline __m256d hsum4x4(__m256d sum0, __m256d sum1,__m256d sum2, __m256d sum3) const;
-            inline void transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3)const;
-        
-            inline double get_elem0(__m256d vec) const;
-
-            inline double get_elem1(__m256d vec) const;
-
-            inline double get_elem2(__m256d vec) const;
-
-            inline double get_elem3(__m256d vec) const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1,9 +1,23 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing mass fraction based jacobian matrix using molar concentration 
-      based matrix
-      Computing partial derivatives of dTdt w.r.t mass fraction and temperature
-      the tail is 7.  
+      Mass-fraction-based Jacobian: temperature row of d(dT/dt)/d(Y,T).
+
+      The species Jacobian block d(dY_j/dt)/dY_i and the temperature column
+      d(dY_j/dt)/dT are assumed to be already assembled in Jac.  This routine
+      fills the last row (row Ns, Ns = number of species):
+
+          Jac[Ns][i] = -[ sum_j Ha_j*Jac[j][i] + Cp_i*dTdt ] / CpM
+          Jac[Ns][Ns] = -[ sum_i (Cp_i*dY_i/dt + Ha_i*d(dY_i/dt)/dT)
+                            + dCpMdT*dTdt ] / CpM
+
+      with  dTdt = -sum_j Ha_j*dY_j/dt / CpM,  CpM = Cp[Ns] the mixture heat
+      capacity and dCpMdT = dCpdT[Ns] its temperature derivative.  dTdt is
+      also stored in dPhidt[Ns].
+
+      This variant (suffix 7) is specialised for nSpecie() % 8 == 7: the
+      8-wide SIMD blocks cover Ns-7 species and the remaining seven columns
+      and rows ("tail") are handled by a 4-wide block plus a 3-lane block
+      (the unused fourth lane is masked to zero).
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -19,7 +33,7 @@
 //---------------------------------
 // 2. SIMD / AVX2 headers
 //---------------------------------
-#include <immintrin.h>  
+#include <immintrin.h>
 
 //=============================================================================//
 
@@ -29,14 +43,15 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
 (
     const double* __restrict__ Cp,
     const double* __restrict__ dCpdT,
-    const double* __restrict__ Ha,      
-    double* __restrict__ dPhidt,  
+    const double* __restrict__ Ha,
+    double* __restrict__ dPhidt,
     double* __restrict__ Jac
 ) const noexcept
 {
     const double& CpM = Cp[this->nSpecie()];
     const double& dCpMdT = dCpdT[this->nSpecie()];
     const double invCpM = 1.0/CpM;
+    // ---- dT/dt = -sum_i Ha_i*dY_i/dt / CpM ----
     __m256d dTdtv = _mm256_setzero_pd();
     for (int i=0; i<this->nSpecie()-7; i=i+8)
     {
@@ -56,12 +71,12 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
         dPhi46dtv = _mm256_blend_pd(dPhi46dtv, _mm256_setzero_pd(), 0b1000);
         dTdtv = _mm256_fmadd_pd(negHai46v,dPhi46dtv,dTdtv);
     }
-    double dTdt = hsum4(dTdtv);   
+    double dTdt = hsum4(dTdtv);
 
     dTdt *= invCpM;
 
-    __m256d invCpMv = _mm256_set1_pd(invCpM);//2
-    __m256d negdTdtv = _mm256_set1_pd(-dTdt);//3
+    __m256d invCpMv  = _mm256_set1_pd(invCpM);   // 1/CpM broadcast
+    __m256d negdTdtv = _mm256_set1_pd(-dTdt);    // -dTdt broadcast
 
     dPhidt[this->nSpecie()] = dTdt;
     double& ddTdtdT = Jac[this->nSpecie() *(alignN)+ this->nSpecie()];
@@ -120,7 +135,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
             __m256d ddYj7dtdYi03v = load256d(&Jac[(j+7)*(alignN)+ (i+0)]);
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj7dtdYi03v,negHaj7v,ddTdtdYi03v);
             __m256d ddYj7dtdYi47v = load256d(&Jac[(j+7)*(alignN)+ (i+4)]);
-            ddTdtdYi47v = _mm256_fmadd_pd(ddYj7dtdYi47v,negHaj7v,ddTdtdYi47v);             
+            ddTdtdYi47v = _mm256_fmadd_pd(ddYj7dtdYi47v,negHaj7v,ddTdtdYi47v);
         }
         {
             int j = this->nSpecie()-7;
@@ -193,12 +208,12 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
         ddTdtdTv = _mm256_fmadd_pd(dYi47dtv,load256d(&Cp[i+4]),ddTdtdTv);
         ddTdtdTv = _mm256_fmadd_pd(ddYi47dtdTv,load256d(&Ha[i+4]),ddTdtdTv);
     }
+    // ---- tail: last seven columns (species Ns-7 .. Ns-1) ----
     {
-        // 
         int i = this->nSpecie()-7;
 
-        __m256d ddTdtdYi03v = _mm256_setzero_pd();
-        __m256d ddTdtdYi46v = _mm256_setzero_pd();//[a,b,c,0]
+        __m256d ddTdtdYi03v = _mm256_setzero_pd();    // columns i..i+3
+        __m256d ddTdtdYi46v = _mm256_setzero_pd();    // columns i+4..i+6 (low 3 lanes)
         for (int j=0; j<this->nSpecie()-7; j=j+8)
         {
             __m256d negHaj0v = _mm256_set1_pd(-Ha[j+0]);
@@ -255,7 +270,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj7dtdYi03v,negHaj7v,ddTdtdYi03v);
             __m256d ddYj7dtdYi46v = load256d(&Jac[(j+7)*(alignN)+ (i+4)]);
             ddYj7dtdYi46v =  _mm256_blend_pd(ddYj7dtdYi46v,_mm256_setzero_pd(),0b1000);
-            ddTdtdYi46v = _mm256_fmadd_pd(ddYj7dtdYi46v,negHaj7v,ddTdtdYi46v);             
+            ddTdtdYi46v = _mm256_fmadd_pd(ddYj7dtdYi46v,negHaj7v,ddTdtdYi46v);
         }
         {
             int j = this->nSpecie()-7;
@@ -307,7 +322,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
             ddTdtdYi03v = _mm256_fmadd_pd(ddYj6dtdYi03v,negHaj6v,ddTdtdYi03v);
             __m256d ddYj6dtdYi46v = load256d(&Jac[(j+6)*(alignN)+ (i+4)]);
             ddYj6dtdYi46v =  _mm256_blend_pd(ddYj6dtdYi46v,_mm256_setzero_pd(),0b1000);
-            ddTdtdYi46v = _mm256_fmadd_pd(ddYj6dtdYi46v,negHaj6v,ddTdtdYi46v);   
+            ddTdtdYi46v = _mm256_fmadd_pd(ddYj6dtdYi46v,negHaj6v,ddTdtdYi46v);
         }
         __m256d Cpi03v = load256d(&Cp[i+0]);
         ddTdtdYi03v = _mm256_fmadd_pd(Cpi03v,negdTdtv,ddTdtdYi03v);
@@ -335,7 +350,8 @@ void Foam::FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7
         __m256d Hai46v = _mm256_blend_pd(load256d(&Ha[i+4]),_mm256_setzero_pd(),0b1000);
         ddTdtdTv = _mm256_fmadd_pd(ddYi46dtdTv,Hai46v,ddTdtdTv);
     }
+    // d(dTdt)/dT = -( numerator + dCpMdT*dTdt ) / CpM
     ddTdtdT = ddTdtdT - hsum4(ddTdtdTv);
-    ddTdtdT -= dTdt*dCpMdT; 
+    ddTdtdT -= dTdt*dCpMdT;
     ddTdtdT *= invCpM;
 }

@@ -124,10 +124,10 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
             //double k3 = Kf03*std::exp(weight3*logk1k03);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
-        double kfc = this->get_elem1(kfv);
-        double kfd = this->get_elem3(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
+        double kfc = get1(kfv);
+        double kfd = get3(kfv);
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
         this->Kf_[j2+this->Ikf[6]] = kfc;
@@ -146,10 +146,10 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         dKfdTv = _mm256_fmadd_pd(dKfdTv,weightv,beta0Ta0invTv);
         __m256d KfinvTv = _mm256_mul_pd(kfv,invTv);
         dKfdTv = _mm256_mul_pd(dKfdTv,KfinvTv);
-        double dkfdTa = this->get_elem0(dKfdTv);
-        double dkfdTb = this->get_elem2(dKfdTv);
-        double dkfdTc = this->get_elem1(dKfdTv);
-        double dkfdTd = this->get_elem3(dKfdTv);
+        double dkfdTa = get0(dKfdTv);
+        double dkfdTb = get2(dKfdTv);
+        double dkfdTc = get1(dKfdTv);
+        double dkfdTd = get3(dKfdTv);
         this->dKfdT_[j0+this->Ikf[6]] = dkfdTa;
         this->dKfdT_[j1+this->Ikf[6]] = dkfdTb;
         this->dKfdT_[j2+this->Ikf[6]] = dkfdTc;
@@ -240,8 +240,8 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         logk1k0v = vec256_expd(logk1k0v);
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
 
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
@@ -251,8 +251,8 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         dKfdTv = _mm256_fmadd_pd(dKfdTv,weightv,beta0Ta0invTv);
         __m256d KfinvTv = _mm256_mul_pd(kfv,invTv);
         dKfdTv = _mm256_mul_pd(dKfdTv,KfinvTv);
-        double dkfdTa = this->get_elem0(dKfdTv);
-        double dkfdTb = this->get_elem2(dKfdTv);
+        double dkfdTa = get0(dKfdTv);
+        double dkfdTb = get2(dKfdTv);
 
         this->dKfdT_[j0+this->Ikf[6]] = dkfdTa;
         this->dKfdT_[j1+this->Ikf[6]] = dkfdTb;
@@ -355,9 +355,9 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
             //double k3 = Kf03*std::exp(weight3*logk1k03);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
-        double kfc = this->get_elem1(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
+        double kfc = get1(kfv);
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
         this->Kf_[j2+this->Ikf[6]] = kfc;
@@ -367,9 +367,9 @@ void FastChemistry::OptReaction::evalPlogPartialDerivative()const noexcept
         dKfdTv = _mm256_fmadd_pd(dKfdTv,weightv,beta0Ta0invTv);
         __m256d KfinvTv = _mm256_mul_pd(kfv,invTv);
         dKfdTv = _mm256_mul_pd(dKfdTv,KfinvTv);
-        double dkfdTa = this->get_elem0(dKfdTv);
-        double dkfdTb = this->get_elem2(dKfdTv);
-        double dkfdTc = this->get_elem1(dKfdTv);
+        double dkfdTa = get0(dKfdTv);
+        double dkfdTb = get2(dKfdTv);
+        double dkfdTc = get1(dKfdTv);
         this->dKfdT_[j0+this->Ikf[6]] = dkfdTa;
         this->dKfdT_[j1+this->Ikf[6]] = dkfdTb;
         this->dKfdT_[j2+this->Ikf[6]] = dkfdTc;

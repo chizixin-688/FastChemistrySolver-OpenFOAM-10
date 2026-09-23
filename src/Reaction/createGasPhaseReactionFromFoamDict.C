@@ -12,14 +12,14 @@
 // 1. FastChemistry headers
 //---------------------------------
 #include "createGasPhaseReactionFromFoamDict.H"
-
+#include <set>
 //=============================================================================//
 
 
 namespace FastChemistry
 {
 
-void readReactionInfo
+void readElementaryReactionInfo
 (
     std::vector<unsigned int>& inputLhsIndex,
     std::vector<unsigned int>& inputRhsIndex,
@@ -32,7 +32,7 @@ void readReactionInfo
     inputRhsIndex.clear();
 
     Foam::string reactionName = nthreaction.lookup("reaction");
-    reaction->reactionTable_.push_back(reactionName);    
+    reaction->reactionEquation_.push_back(reactionName);    
     std::string stdReactionName(reactionName);
 
     std::istringstream iss(stdReactionName);
@@ -178,7 +178,7 @@ void readReactionInfo
     inputRhsReactionOrder.clear();
 
     string reactionName = nthreaction.lookup("reaction");
-    reaction->reactionTable_.push_back(reactionName);    
+    reaction->reactionEquation_.push_back(reactionName);    
     std::string stdReactionName(reactionName);
 
     std::istringstream iss(stdReactionName);
@@ -321,6 +321,53 @@ void readReactionInfo
 
 
 
+void validateThirdBodyEfficiencies
+(
+    const Foam::List<Foam::Tuple2<Foam::word, Foam::scalar>>& coeffs,
+    const Foam::hashedWordList& speciesTable,
+    const Foam::word& reactionKey,
+    const char* what
+)
+{
+    const Foam::label nS = speciesTable.size();
+
+    if (coeffs.size() != static_cast<Foam::label>(nS))
+    {
+        FatalErrorInFunction
+            << "Reaction \"" << reactionKey << "\" (" << what << "): "
+            << "the third-body efficiency list must enumerate every species. "
+            << "Number of listed entries = " << coeffs.size()
+            << ", number of species = " << nS << "."
+            << exit(FatalError);
+    }
+
+    std::vector<Foam::label> seen(nS, 0);
+    for (const auto& item : coeffs)
+    {
+        const Foam::label l = speciesTable[item.first()];
+        if (l < 0 || l >= nS)
+        {
+            FatalErrorInFunction
+                << "Reaction \"" << reactionKey << "\" (" << what << "): "
+                << "unknown species \"" << item.first()
+                << "\" in the third-body efficiency list."
+                << exit(FatalError);
+        }
+        seen[l] = 1;
+    }
+    for (Foam::label i = 0; i < nS; ++i)
+    {
+        if (seen[i] == 0)
+        {
+            FatalErrorInFunction
+                << "Reaction \"" << reactionKey << "\" (" << what << "): "
+                << "missing third-body efficiency entry for species index "
+                << i << " (every species must be listed explicitly)."
+                << exit(FatalError);
+        }
+    }
+}
+
 bool checkInteger
 (
     const dictionary& nthreaction
@@ -449,7 +496,7 @@ bool checkInteger
         {
             reactionOrderStr = reactionOrderStr.substr(1);
             double val = std::stod(reactionOrderStr);
-            if (fabs(val - round(val) > 2.22e-16))
+            if (fabs(val - round(val)) > 2.22e-16)
             {
                 isInteger = false;// Reaction order is not 1.0
             }
@@ -474,6 +521,7 @@ void createGasPhaseReactionFromFoamDict
     {
         gasPhaseReaction->speciesTable_[i] = speciesTable[i];
     }
+
 
     const dictionary& reactions(chemistryDict.subDict("reactions"));
 
@@ -706,7 +754,7 @@ void createGasPhaseReactionFromFoamDict
 
                 if(isInteger==true)
                 {
-                    FastChemistry::readReactionInfo
+                    FastChemistry::readElementaryReactionInfo
                     (
                         gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                         gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -767,7 +815,7 @@ void createGasPhaseReactionFromFoamDict
 
                 if(isInteger==true)
                 {
-                    FastChemistry::readReactionInfo
+                    FastChemistry::readElementaryReactionInfo
                     (
                         gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                         gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -797,8 +845,10 @@ void createGasPhaseReactionFromFoamDict
         }
     }
 
-
-    auto j = gasPhaseReaction->Ikf[9];
+    // Index of reverse rate constant part of non equilibrium reaction,
+    //  these reactions uses Arrhenius model instead of equilibrium
+    //  constant for reverse rate constant
+    auto NERidx = gasPhaseReaction->Ikf[9];
     forAllConstIter(dictionary, reactions, iter)
     {
         const word& key = iter().keyword();
@@ -818,12 +868,12 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->beta[iArrhenius] = forwardDict.lookup<scalar>("beta");
             gasPhaseReaction->Ta[iArrhenius] = forwardDict.lookup<scalar>("Ta");
 
-            gasPhaseReaction->A[j] = reverseDict.lookup<scalar>("A");       
-            gasPhaseReaction->beta[j] = reverseDict.lookup<scalar>("beta");
-            gasPhaseReaction->Ta[j] = reverseDict.lookup<scalar>("Ta");
+            gasPhaseReaction->A[NERidx] = reverseDict.lookup<scalar>("A");       
+            gasPhaseReaction->beta[NERidx] = reverseDict.lookup<scalar>("beta");
+            gasPhaseReaction->Ta[NERidx] = reverseDict.lookup<scalar>("Ta");
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -848,11 +898,12 @@ void createGasPhaseReactionFromFoamDict
                 );                
                     gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
-            iArrhenius++;j++;
+            iArrhenius++;NERidx++;
         }
     }
 
-    unsigned int k = 0;
+    // Index of third body factor
+    unsigned int TBFidx = 0;
     forAllConstIter(dictionary, reactions, iter)
     {
         const word& key = iter().keyword();
@@ -873,22 +924,24 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->beta[iArrhenius] = forwardDict.lookup<scalar>("beta");
             gasPhaseReaction->Ta[iArrhenius] = forwardDict.lookup<scalar>("Ta");
 
-            gasPhaseReaction->A[j] = reverseDict.lookup<scalar>("A");        
-            gasPhaseReaction->beta[j] = reverseDict.lookup<scalar>("beta");
-            gasPhaseReaction->Ta[j] = reverseDict.lookup<scalar>("Ta");     
+            gasPhaseReaction->A[NERidx] = reverseDict.lookup<scalar>("A");        
+            gasPhaseReaction->beta[NERidx] = reverseDict.lookup<scalar>("beta");
+            gasPhaseReaction->Ta[NERidx] = reverseDict.lookup<scalar>("Ta");     
 
             List<Tuple2<word, scalar>> forwardCoeffs(forwardDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(forwardCoeffs.size());
+            validateThirdBodyEfficiencies(forwardCoeffs, speciesTable, key, "third-body forward efficiencies");
+            ThirdBodyFactor[TBFidx].resize(forwardCoeffs.size());
             forAll(forwardCoeffs, n)
             {
                 const int l = speciesTable[(forwardCoeffs[n].first())];
                 const scalar ThirdBodyFactor_n = forwardCoeffs[n].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_n;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_n;
             }
             
             List<Tuple2<word, scalar>> reverseCoeffs(reverseDict.lookup("coeffs"));
+            validateThirdBodyEfficiencies(reverseCoeffs, speciesTable, key, "third-body reverse efficiencies");
 
-            auto begin = k + gasPhaseReaction->Itbr[4];
+            auto begin = TBFidx + gasPhaseReaction->Itbr[4];
             
 
             ThirdBodyFactor[begin].resize(reverseCoeffs.size());
@@ -900,7 +953,7 @@ void createGasPhaseReactionFromFoamDict
             }
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -928,20 +981,20 @@ void createGasPhaseReactionFromFoamDict
 
             // raiseError if reverse ThirdBodyFactor and forward ThirdBodyFactor;
             // is not same
-            for(size_t i=0; i<ThirdBodyFactor[k].size();i++)
+            for(size_t i=0; i<ThirdBodyFactor[TBFidx].size();i++)
             {
-                if(ThirdBodyFactor[k][i]!=ThirdBodyFactor[begin][i])
+                if(ThirdBodyFactor[TBFidx][i]!=ThirdBodyFactor[begin][i])
                 {
                     Info<<"************FastChemistry Error************ "<<endl;
                     Info<<"different third body factor for forward part "<<endl;
                     Info<<"and reverse part is not allowed, if you need, "<<endl;
                     Info<<"split this reaction into two irreversible "<<endl;
                     Info<<"reactions. The invalid reaction is: "<<endl;
-                    Info<<gasPhaseReaction->reactionTable_[iArrhenius]<<endl;
+                    Info<<gasPhaseReaction->reactionEquation_[iArrhenius]<<endl;
                     FatalErrorInFunction<<exit(FatalError);
                 }
             }
-            iArrhenius++;j++;k++;
+            iArrhenius++;NERidx++;TBFidx++;
         }
     }
 
@@ -968,16 +1021,17 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[iArrhenius] = reactDict.lookup<scalar>("Ta");
 
             List<Tuple2<word, scalar>> coeffs(reactDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1002,7 +1056,7 @@ void createGasPhaseReactionFromFoamDict
                 );
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
-            iArrhenius++;k++;
+            iArrhenius++;TBFidx++;
         }
     }
 
@@ -1027,6 +1081,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
 
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict =
             reactDict.subDict("thirdBodyEfficiencies");
     
@@ -1040,19 +1101,20 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = (kInfDict.lookup<scalar>("Ta")) ;            
     
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
     
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
             gasPhaseReaction->LindemannFO.push_back(iArrhenius);
 
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1077,7 +1139,7 @@ void createGasPhaseReactionFromFoamDict
                 );
                     gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
-            iArrhenius++;k++;
+            iArrhenius++;TBFidx++;
        }
     }
 
@@ -1100,6 +1162,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
             const dictionary& FDict = reactDict.subDict("F");
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict =
             reactDict.subDict("thirdBodyEfficiencies");
     
@@ -1113,13 +1182,14 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = (kInfDict.lookup<scalar>("Ta")) ;            
     
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
     
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
 
             gasPhaseReaction->TroeFO.push_back(iArrhenius);
@@ -1129,7 +1199,7 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Tsss_.push_back(FDict.lookup<scalar>("Tsss"));
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1154,7 +1224,7 @@ void createGasPhaseReactionFromFoamDict
                 );
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
-            iArrhenius++;k++;
+            iArrhenius++;TBFidx++;
        }
     }
 
@@ -1177,6 +1247,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
             const dictionary& FDict = reactDict.subDict("F");
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict =
             reactDict.subDict("thirdBodyEfficiencies");
     
@@ -1190,13 +1267,14 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = (kInfDict.lookup<scalar>("Ta")) ;            
     
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
     
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
             
             gasPhaseReaction->SRIFO.push_back(iArrhenius);
@@ -1208,7 +1286,7 @@ void createGasPhaseReactionFromFoamDict
             
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1233,7 +1311,7 @@ void createGasPhaseReactionFromFoamDict
                 );
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
-            iArrhenius++;k++;
+            iArrhenius++;TBFidx++;
        }
     }
 
@@ -1257,6 +1335,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
 
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict = 
             reactDict.subDict("thirdBodyEfficiencies");
 
@@ -1270,18 +1355,19 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = kInfDict.lookup<scalar>("Ta");
 
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
             gasPhaseReaction->LindemannCA.push_back(iArrhenius);
 
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1307,7 +1393,7 @@ void createGasPhaseReactionFromFoamDict
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
             iArrhenius++;
-            k++;
+            TBFidx++;
         }
 
     }
@@ -1333,6 +1419,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
             const dictionary& FDict = reactDict.subDict("F");
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict = 
             reactDict.subDict("thirdBodyEfficiencies");
 
@@ -1346,12 +1439,13 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = kInfDict.lookup<scalar>("Ta");
 
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
 
             gasPhaseReaction->TroeCA.push_back(iArrhenius);
@@ -1361,7 +1455,7 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Tsss_.push_back(FDict.lookup<scalar>("Tsss"));                
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1387,7 +1481,7 @@ void createGasPhaseReactionFromFoamDict
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
             iArrhenius++;
-            k++;
+            TBFidx++;
         }
     }    
 
@@ -1412,6 +1506,13 @@ void createGasPhaseReactionFromFoamDict
             const dictionary& k0Dict = reactDict.subDict("k0");
             const dictionary& kInfDict = reactDict.subDict("kInf");
             const dictionary& FDict = reactDict.subDict("F");
+            if (!reactDict.found("thirdBodyEfficiencies"))
+            {
+                FatalErrorInFunction
+                    << "Reaction \"" << key << "\": required dictionary entry "
+                    << "thirdBodyEfficiencies is missing."
+                    << exit(FatalError);
+            }
             const dictionary& thirdBodyEfficienciesDict = 
             reactDict.subDict("thirdBodyEfficiencies");
 
@@ -1425,12 +1526,13 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->Ta[begin] = kInfDict.lookup<scalar>("Ta");
 
             List<Tuple2<word, scalar>> coeffs(thirdBodyEfficienciesDict.lookup("coeffs"));
-            ThirdBodyFactor[k].resize(coeffs.size());
+            validateThirdBodyEfficiencies(coeffs, speciesTable, key, "third-body reaction");
+            ThirdBodyFactor[TBFidx].resize(coeffs.size());
             forAll(coeffs, m)
             {
                 const int l = speciesTable[(coeffs[m].first())];
                 const scalar ThirdBodyFactor_m = coeffs[m].second();
-                ThirdBodyFactor[k][l] = ThirdBodyFactor_m;
+                ThirdBodyFactor[TBFidx][l] = ThirdBodyFactor_m;
             }
             gasPhaseReaction->SRICA.push_back(iArrhenius);
             gasPhaseReaction->a_.push_back(FDict.lookup<scalar>("a"));    
@@ -1440,7 +1542,7 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->e_.push_back(FDict.lookup<scalar>("e"));
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1466,7 +1568,7 @@ void createGasPhaseReactionFromFoamDict
                 gasPhaseReaction->isGlobal[iArrhenius] = 1;                
             }
             iArrhenius++;
-            k++;
+            TBFidx++;
         }
     }
 
@@ -1497,7 +1599,6 @@ void createGasPhaseReactionFromFoamDict
         memset(gasPhaseReaction->ThirdBodyFactor1D, 0, totalSize);
 
         auto& ThirdBodyFactor1Dref = gasPhaseReaction->ThirdBodyFactor1D;
-        gasPhaseReaction->TBFRowPtr.resize(ThirdBodyFactor.size());
         unsigned int nCols = gasPhaseReaction->AlignSpecies;
         for(unsigned int i = 0; i < ThirdBodyFactor.size();i++)
         {
@@ -1505,75 +1606,8 @@ void createGasPhaseReactionFromFoamDict
             {
                 ThirdBodyFactor1Dref[i*nCols+J] = ThirdBodyFactor[i][J];
             }
-            gasPhaseReaction->TBFRowPtr[i] = &ThirdBodyFactor1Dref[i*nCols];
         }
 
-        {
-            std::size_t remain = ThirdBodyFactor.size()%4;
-
-            std::size_t totalSize = (ThirdBodyFactor.size()-remain)*
-            gasPhaseReaction->AlignSpecies*sizeof(double);
-            if 
-            (
-                posix_memalign
-                (
-                    reinterpret_cast<void**>(&gasPhaseReaction->TBF1Dpacked), 
-                    32, 
-                    totalSize
-                )
-            )
-            {
-                throw std::bad_alloc();
-            }
-            memset(gasPhaseReaction->TBF1Dpacked, 0, totalSize);
-
-            auto& TBF1DP = gasPhaseReaction->TBF1Dpacked;
-            auto& TBF1D = gasPhaseReaction->ThirdBodyFactor1D;
-            unsigned int alignSps = gasPhaseReaction->AlignSpecies;
-            unsigned int k = 0;
-            for(std::size_t i=0; i<ThirdBodyFactor.size()-remain; i=i+4)
-            {
-                for(unsigned int j=0; j<alignSps; j=j+4)
-                {
-                    auto r0 = _mm256_loadu_pd(&TBF1D[(i+0)*alignSps+j]);
-                    auto r1 = _mm256_loadu_pd(&TBF1D[(i+1)*alignSps+j]);
-                    auto r2 = _mm256_loadu_pd(&TBF1D[(i+2)*alignSps+j]);
-                    auto r3 = _mm256_loadu_pd(&TBF1D[(i+3)*alignSps+j]);
-
-                    _mm256_storeu_pd(&TBF1DP[k+0],r0);
-                    _mm256_storeu_pd(&TBF1DP[k+4],r1);
-                    _mm256_storeu_pd(&TBF1DP[k+8],r2);
-                    _mm256_storeu_pd(&TBF1DP[k+12],r3);
-                    k=k+16;
-                }
-            }
-
-            /*auto& TBF1Dref = gasPhaseReaction->ThirdBodyFactor1D;
-            for(unsigned int i=0; i<ThirdBodyFactor.size(); i++)
-            {
-                for(unsigned int j=0; j<gasPhaseReaction->nSpecies-1; j++)
-                {
-                    std::cout<<ThirdBodyFactor[i][j]<<" ";
-                }
-                unsigned int j=gasPhaseReaction->nSpecies-1;
-                std::cout<<ThirdBodyFactor[i][j]<<std::endl;
-            }*/
-
-            //std::cout<<" "<<std::endl;
-            /*k = 0;
-            for(std::size_t i=0; i<ThirdBodyFactor.size()-remain; i=i+4)
-            {
-                for(unsigned int j=0; j<gasPhaseReaction->nSpecies; j++)
-                {
-                    std::cout<<TBF1DPacked[k+0]<<" ";
-                    std::cout<<TBF1DPacked[k+1]<<" ";
-                    std::cout<<TBF1DPacked[k+2]<<" ";
-                    std::cout<<TBF1DPacked[k+3]<<std::endl;
-                    k=k+4;
-                }
-            }*/
-            //std::exit(0);
-        }
 
     }
 
@@ -1626,9 +1660,9 @@ void createGasPhaseReactionFromFoamDict
                 gasPhaseReaction->APlog[a][i] = PlogData[i][1];
                 if(PlogData[i][1]<=0)
                 {
-                    std::cout<<"Pre-factor A should be larger "<<
-                    "than zero for Plog reaction"<<std::endl;
-                    std::exit(0);
+                    FatalErrorInFunction<< "Pre-factor A should be larger "
+                        << "than zero for Plog reaction"
+                        << exit(FatalError);
                 }
                 gasPhaseReaction->logAPlog[a][i] = std::log(gasPhaseReaction->APlog[a][i]);
                 gasPhaseReaction->betaPlog[a][i] = PlogData[i][2];
@@ -1643,7 +1677,7 @@ void createGasPhaseReactionFromFoamDict
             }
             if(isInteger==true)
             {
-                FastChemistry::readReactionInfo
+                FastChemistry::readElementaryReactionInfo
                 (
                     gasPhaseReaction->lhsSpeciesIndex[iArrhenius],
                     gasPhaseReaction->rhsSpeciesIndex[iArrhenius],
@@ -1835,461 +1869,601 @@ void createGasPhaseReactionFromFoamDict
 
         if(lhsNumber==1 && rhsNumber==1)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->rhsSpeciesIndex[i][0];
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction11index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D11RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D11RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
-                {
-                    gasPhaseReaction->thirdBodyEnhancedReaction11index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                }
+                    gasPhaseReaction->RR11AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR11AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR11AllIndex.push_back(sp1);
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction11index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D11IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D11IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
-                {
-                    gasPhaseReaction->thirdBodyEnhancedReaction11index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                }
+                    gasPhaseReaction->IR11AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR11AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR11AllIndex.push_back(sp1);
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction11index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D11NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D11NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
-                {
-                    gasPhaseReaction->thirdBodyEnhancedReaction11index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D11TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                }
+                gasPhaseReaction->NER11AllIndex.push_back(static_cast<unsigned int>(i));
+                gasPhaseReaction->NER11AllIndex.push_back(sp0);
+                gasPhaseReaction->NER11AllIndex.push_back(sp1);
             }
         }
         else if(lhsNumber==1 && rhsNumber==2)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp2 = gasPhaseReaction->rhsSpeciesIndex[i][1];
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction12index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D12RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction12index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->RR12DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR12DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR12DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->RR12AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR12AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR12AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR12AllIndex.push_back(sp2);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction12index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D12IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction12index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->IR12DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR12DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR12DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->IR12AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR12AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR12AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR12AllIndex.push_back(sp2);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction12index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D12NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D12NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction12index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D12TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->NER12DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER12DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER12DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->NER12AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER12AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER12AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER12AllIndex.push_back(sp2);
                 }
             }
         }
         else if(lhsNumber==1 && rhsNumber==3)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp2 = gasPhaseReaction->rhsSpeciesIndex[i][1];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][2];
+            if(sp1==sp2&&sp2==sp3)
+            {
+                FatalErrorInFunction<< "unsupport reaction type:"
+                    << "A=B+B+B" << exit(FatalError);
+            }
+
+
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction13index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D13RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D13RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction13index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp1);
+                }
+                else if(sp1==sp3)
+                {
+                    gasPhaseReaction->RR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp1);
+                }
+                else if(sp2==sp3)
+                {
+                    gasPhaseReaction->RR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR13DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->RR13AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR13AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR13AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR13AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR13AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction13index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D13IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D13IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction13index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp1);
+                }
+                else if(sp1==sp3)
+                {
+                    gasPhaseReaction->IR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp1);
+                }
+                else if(sp2==sp3)
+                {
+                    gasPhaseReaction->IR13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR13DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->IR13AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR13AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR13AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR13AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR13AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction13index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D13NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D13NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D13NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(sp1==sp2)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction13index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D13TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp1);
+                }
+                else if(sp1==sp3)
+                {
+                    gasPhaseReaction->NER13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp1);
+                }
+                else if(sp2==sp3)
+                {
+                    gasPhaseReaction->NER13DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER13DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->NER13AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER13AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER13AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER13AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER13AllIndex.push_back(sp3);
                 }
             }
         }
         else if(lhsNumber==2 && rhsNumber==1)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2};
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction21index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D21RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D21RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D21RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<3)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction21index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->RR21DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR21DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR21DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->RR21AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR21AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR21AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR21AllIndex.push_back(sp2);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction21index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D21IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D21IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D21IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<3)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction21index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->IR21DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR21DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR21DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->IR21AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR21AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR21AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR21AllIndex.push_back(sp2);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction21index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D21NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D21NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D21NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<3)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction21index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D21TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->NER21DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER21DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER21DupAllIndex.push_back(sp2);
+                }
+                else
+                {
+                    gasPhaseReaction->NER21AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER21AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER21AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER21AllIndex.push_back(sp2);
                 }
             }
         }
         else if(lhsNumber==2 && rhsNumber==2)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][1];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2, sp3};
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction22index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D22RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D22RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D22RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D22RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction22index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->RR22DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR22DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR22DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR22DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR22DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->RR22AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR22AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR22AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR22AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR22AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction22index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D22IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D22IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D22IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D22IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction22index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->IR22DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR22DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR22DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR22DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR22DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->IR22AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR22AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR22AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR22AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR22AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction22index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D22NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D22NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D22NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D22NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction22index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D22TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->NER22DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER22DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER22DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER22DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER22DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->NER22AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER22AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER22AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER22AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER22AllIndex.push_back(sp3);
                 }
             }
         }
         else if(lhsNumber==2 && rhsNumber==3)
         {
+
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][1];
+            unsigned int sp4 = gasPhaseReaction->rhsSpeciesIndex[i][2];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2, sp3, sp4};
+
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction23index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D23RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D23RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D23RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction23index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->RR23DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR23DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR23DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR23DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR23DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->RR23DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->RR23AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR23AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR23AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR23AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR23AllIndex.push_back(sp3);
+                    gasPhaseReaction->RR23AllIndex.push_back(sp4);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction23index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D23IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D23IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D23IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction23index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->IR23DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR23DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR23DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR23DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR23DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->IR23DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->IR23AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR23AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR23AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR23AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR23AllIndex.push_back(sp3);
+                    gasPhaseReaction->IR23AllIndex.push_back(sp4);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction23index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D23NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D23NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D23NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D23NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction23index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D23TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->NER23DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER23DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER23DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER23DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER23DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->NER23DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->NER23AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER23AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER23AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER23AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER23AllIndex.push_back(sp3);
+                    gasPhaseReaction->NER23AllIndex.push_back(sp4);
                 }
             }
         }
         else if(lhsNumber==3 && rhsNumber==1)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->lhsSpeciesIndex[i][2];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2, sp3};
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction31index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D31RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D31RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D31RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D31RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction31index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->RR31DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR31DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR31DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR31DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR31DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->RR31AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR31AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR31AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR31AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR31AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction31index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D31IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D31IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D31IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D31IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction31index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->IR31DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR31DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR31DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR31DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR31DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->IR31AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR31AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR31AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR31AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR31AllIndex.push_back(sp3);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction31index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D31NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D31NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D31NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D31NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<4)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction31index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D31TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
+                    gasPhaseReaction->NER31DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER31DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER31DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER31DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER31DupAllIndex.push_back(sp3);
+                }
+                else
+                {
+                    gasPhaseReaction->NER31AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER31AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER31AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER31AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER31AllIndex.push_back(sp3);
                 }
             }
+
         }
         else if(lhsNumber==3 && rhsNumber==2)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->lhsSpeciesIndex[i][2];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp4 = gasPhaseReaction->rhsSpeciesIndex[i][1];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2, sp3, sp4};
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction32index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D32RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D32RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D32RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D32RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D32RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction32index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->RR32DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR32DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR32DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR32DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR32DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->RR32DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->RR32AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR32AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR32AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR32AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR32AllIndex.push_back(sp3);
+                    gasPhaseReaction->RR32AllIndex.push_back(sp4);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction32index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D32IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D32IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D32IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D32IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D32IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction32index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->IR32DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR32DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR32DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR32DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR32DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->IR32DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->IR32AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR32AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR32AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR32AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR32AllIndex.push_back(sp3);
+                    gasPhaseReaction->IR32AllIndex.push_back(sp4);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction32index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D32NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D32NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D32NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D32NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D32NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<5)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction32index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D32TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
+                    gasPhaseReaction->NER32DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER32DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER32DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER32DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER32DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->NER32DupAllIndex.push_back(sp4);
+                }
+                else
+                {
+                    gasPhaseReaction->NER32AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER32AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER32AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER32AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER32AllIndex.push_back(sp3);
+                    gasPhaseReaction->NER32AllIndex.push_back(sp4);
                 }
             }
 
         }
         else if(lhsNumber==3 && rhsNumber==3)
         {
+            unsigned int sp0 = gasPhaseReaction->lhsSpeciesIndex[i][0];
+            unsigned int sp1 = gasPhaseReaction->lhsSpeciesIndex[i][1];
+            unsigned int sp2 = gasPhaseReaction->lhsSpeciesIndex[i][2];
+            unsigned int sp3 = gasPhaseReaction->rhsSpeciesIndex[i][0];
+            unsigned int sp4 = gasPhaseReaction->rhsSpeciesIndex[i][1];
+            unsigned int sp5 = gasPhaseReaction->rhsSpeciesIndex[i][2];
+            std::set<unsigned int> numbers = {sp0, sp1, sp2, sp3, sp4, sp5};
+
             if(gasPhaseReaction->isIrreversible[i]==0)
             {
-                gasPhaseReaction->reversibleReaction33index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D33RR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<6)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction33index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp4);
+                    gasPhaseReaction->RR33DupAllIndex.push_back(sp5);
+                }
+                else
+                {
+                    gasPhaseReaction->RR33AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->RR33AllIndex.push_back(sp0);
+                    gasPhaseReaction->RR33AllIndex.push_back(sp1);
+                    gasPhaseReaction->RR33AllIndex.push_back(sp2);
+                    gasPhaseReaction->RR33AllIndex.push_back(sp3);
+                    gasPhaseReaction->RR33AllIndex.push_back(sp4);
+                    gasPhaseReaction->RR33AllIndex.push_back(sp5);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==1)
             {
-                gasPhaseReaction->irreversibleReaction33index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D33IR.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[3] && i <gasPhaseReaction->Ikf[6])
+                if(numbers.size()<6)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction33index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp4);
+                    gasPhaseReaction->IR33DupAllIndex.push_back(sp5);
+                }
+                else
+                {
+                    gasPhaseReaction->IR33AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->IR33AllIndex.push_back(sp0);
+                    gasPhaseReaction->IR33AllIndex.push_back(sp1);
+                    gasPhaseReaction->IR33AllIndex.push_back(sp2);
+                    gasPhaseReaction->IR33AllIndex.push_back(sp3);
+                    gasPhaseReaction->IR33AllIndex.push_back(sp4);
+                    gasPhaseReaction->IR33AllIndex.push_back(sp5);
                 }
             }
             else if(gasPhaseReaction->isIrreversible[i]==2)
             {
-                gasPhaseReaction->nonEquilibriumReaction33index.push_back(static_cast<unsigned int>(i));
-                gasPhaseReaction->lhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                gasPhaseReaction->lhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                gasPhaseReaction->lhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                gasPhaseReaction->rhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                gasPhaseReaction->rhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                gasPhaseReaction->rhsSpeciesIndex1D33NER.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
-                if(i>=gasPhaseReaction->Ikf[2] && i <gasPhaseReaction->Ikf[3])
+                if(numbers.size()<6)
                 {
-                    gasPhaseReaction->thirdBodyEnhancedReaction33index.push_back(static_cast<unsigned int>(i));
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->lhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->lhsSpeciesIndex[i][2]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][0]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][1]);
-                    gasPhaseReaction->rhsSpeciesIndex1D33TBE.push_back(gasPhaseReaction->rhsSpeciesIndex[i][2]);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp0);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp1);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp2);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp3);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp4);
+                    gasPhaseReaction->NER33DupAllIndex.push_back(sp5);
+                }
+                else
+                {
+                    gasPhaseReaction->NER33AllIndex.push_back(static_cast<unsigned int>(i));
+                    gasPhaseReaction->NER33AllIndex.push_back(sp0);
+                    gasPhaseReaction->NER33AllIndex.push_back(sp1);
+                    gasPhaseReaction->NER33AllIndex.push_back(sp2);
+                    gasPhaseReaction->NER33AllIndex.push_back(sp3);
+                    gasPhaseReaction->NER33AllIndex.push_back(sp4);
+                    gasPhaseReaction->NER33AllIndex.push_back(sp5);
                 }
             }
         }
@@ -2310,144 +2484,207 @@ void createGasPhaseReactionFromFoamDict
             gasPhaseReaction->RFptr.push_back(&OptReaction::RFGI);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JFGI);
         }
-        if(gasPhaseReaction->reversibleReaction11index.size()>0)
+        if(gasPhaseReaction->RR11AllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF11RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF11RR);
         }
-        if(gasPhaseReaction->irreversibleReaction11index.size()>0)
+        if(gasPhaseReaction->IR11AllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF11IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF11IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction11index.size()>0)
+        if(gasPhaseReaction->NER11AllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF11NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF11NER);
         }
-        if(gasPhaseReaction->reversibleReaction12index.size()>0)
+        if(gasPhaseReaction->RR12AllIndex.size()>0||gasPhaseReaction->RR12DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF12RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF12RR);
         }
-        if(gasPhaseReaction->irreversibleReaction12index.size()>0)
+        if(gasPhaseReaction->IR12AllIndex.size()>0||gasPhaseReaction->IR12DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF12IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF12IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction12index.size()>0)
+        if(gasPhaseReaction->NER12AllIndex.size()>0||gasPhaseReaction->NER12DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF12NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF12NER);
         }
-        if(gasPhaseReaction->reversibleReaction13index.size()>0)
+        if(gasPhaseReaction->RR13AllIndex.size()>0||gasPhaseReaction->RR13DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF13RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF13RR);
         }
-        if(gasPhaseReaction->irreversibleReaction13index.size()>0)
+        if(gasPhaseReaction->IR13AllIndex.size()>0||gasPhaseReaction->IR13DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF13IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF13IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction13index.size()>0)
+        if(gasPhaseReaction->NER13AllIndex.size()>0||gasPhaseReaction->NER13DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF13NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF13NER);
         }
-        if(gasPhaseReaction->reversibleReaction21index.size()>0)
+        if(gasPhaseReaction->RR21AllIndex.size()>0||gasPhaseReaction->RR21DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF21RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF21RR);
         }
-        if(gasPhaseReaction->irreversibleReaction21index.size()>0)
+        if(gasPhaseReaction->IR21AllIndex.size()>0||gasPhaseReaction->IR21DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF21IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF21IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction21index.size()>0)
+        if(gasPhaseReaction->NER21AllIndex.size()>0||gasPhaseReaction->NER21DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF21NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF21NER);
         }
-        if(gasPhaseReaction->reversibleReaction22index.size()>0)
+        if(gasPhaseReaction->RR22AllIndex.size()>0||gasPhaseReaction->RR22DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF22RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF22RR);
         }
-        if(gasPhaseReaction->irreversibleReaction22index.size()>0)
+        if(gasPhaseReaction->IR22AllIndex.size()>0||gasPhaseReaction->IR22DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF22IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF22IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction22index.size()>0)
+        if(gasPhaseReaction->NER22AllIndex.size()>0||gasPhaseReaction->NER22DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF22NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF22NER);
         }
-        if(gasPhaseReaction->reversibleReaction23index.size()>0)
+        if(gasPhaseReaction->RR23AllIndex.size()>0||gasPhaseReaction->RR23DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF23RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF23RR);
         }
-        if(gasPhaseReaction->irreversibleReaction23index.size()>0)
+        if(gasPhaseReaction->IR23AllIndex.size()>0||gasPhaseReaction->IR23DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF23IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF23IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction23index.size()>0)
+        if(gasPhaseReaction->NER23AllIndex.size()>0||gasPhaseReaction->NER23DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF23NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF23NER);
         }
 
-        if(gasPhaseReaction->reversibleReaction31index.size()>0)
+        if(gasPhaseReaction->RR31AllIndex.size()>0||gasPhaseReaction->RR31DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF31RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF31RR);
         }
-        if(gasPhaseReaction->irreversibleReaction31index.size()>0)
+        if(gasPhaseReaction->IR31AllIndex.size()>0||gasPhaseReaction->IR31DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF31IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF31IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction31index.size()>0)
+        if(gasPhaseReaction->NER31AllIndex.size()>0||gasPhaseReaction->NER31DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF31NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF31NER);
         }
 
-        if(gasPhaseReaction->reversibleReaction32index.size()>0)
+        if(gasPhaseReaction->RR32AllIndex.size()>0||gasPhaseReaction->RR32DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF32RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF32RR);
         }
-        if(gasPhaseReaction->irreversibleReaction32index.size()>0)
+        if(gasPhaseReaction->IR32AllIndex.size()>0||gasPhaseReaction->IR32DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF32IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF32IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction32index.size()>0)
+        if(gasPhaseReaction->NER32AllIndex.size()>0||gasPhaseReaction->NER32DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF32NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF32NER);
         }
-        if(gasPhaseReaction->reversibleReaction33index.size()>0)
+        if(gasPhaseReaction->RR33AllIndex.size()>0||gasPhaseReaction->RR33DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF33RR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF33RR);
         }
-        if(gasPhaseReaction->irreversibleReaction33index.size()>0)
+        if(gasPhaseReaction->IR33AllIndex.size()>0||gasPhaseReaction->IR33DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF33IR);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF33IR);
         }
-        if(gasPhaseReaction->nonEquilibriumReaction33index.size()>0)
+        if(gasPhaseReaction->NER33AllIndex.size()>0||gasPhaseReaction->NER33DupAllIndex.size()>0)
         {
             gasPhaseReaction->RFptr.push_back(&OptReaction::RF33NER);
             gasPhaseReaction->JFptr.push_back(&OptReaction::JF33NER);
         }
     }
+
+
+    gasPhaseReaction->RR11Size = static_cast<unsigned int>(gasPhaseReaction->RR11AllIndex.size()/3);
+    gasPhaseReaction->IR11Size = static_cast<unsigned int>(gasPhaseReaction->IR11AllIndex.size()/3);
+    gasPhaseReaction->NER11Size = static_cast<unsigned int>(gasPhaseReaction->NER11AllIndex.size()/3);
+
+    gasPhaseReaction->RR12Size = static_cast<unsigned int>(gasPhaseReaction->RR12AllIndex.size()/4);
+    gasPhaseReaction->RR12DupSize = static_cast<unsigned int>(gasPhaseReaction->RR12DupAllIndex.size()/3);
+    gasPhaseReaction->IR12Size = static_cast<unsigned int>(gasPhaseReaction->IR12AllIndex.size()/4);
+    gasPhaseReaction->IR12DupSize = static_cast<unsigned int>(gasPhaseReaction->IR12DupAllIndex.size()/3);
+    gasPhaseReaction->NER12Size = static_cast<unsigned int>(gasPhaseReaction->NER12AllIndex.size()/4);
+    gasPhaseReaction->NER12DupSize = static_cast<unsigned int>(gasPhaseReaction->NER12DupAllIndex.size()/3);
+
+    gasPhaseReaction->RR13Size = static_cast<unsigned int>(gasPhaseReaction->RR13AllIndex.size()/5);
+    gasPhaseReaction->RR13DupSize = static_cast<unsigned int>(gasPhaseReaction->RR13DupAllIndex.size()/4);
+    gasPhaseReaction->IR13Size = static_cast<unsigned int>(gasPhaseReaction->IR13AllIndex.size()/5);
+    gasPhaseReaction->IR13DupSize = static_cast<unsigned int>(gasPhaseReaction->IR13DupAllIndex.size()/4);
+    gasPhaseReaction->NER13Size = static_cast<unsigned int>(gasPhaseReaction->NER13AllIndex.size()/5);
+    gasPhaseReaction->NER13DupSize = static_cast<unsigned int>(gasPhaseReaction->NER13DupAllIndex.size()/4);
+
+    gasPhaseReaction->RR21Size = static_cast<unsigned int>(gasPhaseReaction->RR21AllIndex.size()/4);
+    gasPhaseReaction->RR21DupSize = static_cast<unsigned int>(gasPhaseReaction->RR21DupAllIndex.size()/3);
+    gasPhaseReaction->IR21Size = static_cast<unsigned int>(gasPhaseReaction->IR21AllIndex.size()/4);
+    gasPhaseReaction->IR21DupSize = static_cast<unsigned int>(gasPhaseReaction->IR21DupAllIndex.size()/3);
+    gasPhaseReaction->NER21Size = static_cast<unsigned int>(gasPhaseReaction->NER21AllIndex.size()/4);
+    gasPhaseReaction->NER21DupSize = static_cast<unsigned int>(gasPhaseReaction->NER21DupAllIndex.size()/3);
+
+    gasPhaseReaction->RR22Size = static_cast<unsigned int>(gasPhaseReaction->RR22AllIndex.size()/5);
+    gasPhaseReaction->RR22DupSize = static_cast<unsigned int>(gasPhaseReaction->RR22DupAllIndex.size()/5);
+    gasPhaseReaction->IR22Size = static_cast<unsigned int>(gasPhaseReaction->IR22AllIndex.size()/5);
+    gasPhaseReaction->IR22DupSize = static_cast<unsigned int>(gasPhaseReaction->IR22DupAllIndex.size()/5);
+    gasPhaseReaction->NER22Size = static_cast<unsigned int>(gasPhaseReaction->NER22AllIndex.size()/5);
+    gasPhaseReaction->NER22DupSize = static_cast<unsigned int>(gasPhaseReaction->NER22DupAllIndex.size()/5);
+
+    gasPhaseReaction->RR23Size = static_cast<unsigned int>(gasPhaseReaction->RR23AllIndex.size()/6);
+    gasPhaseReaction->RR23DupSize = static_cast<unsigned int>(gasPhaseReaction->RR23DupAllIndex.size()/6);
+    gasPhaseReaction->IR23Size = static_cast<unsigned int>(gasPhaseReaction->IR23AllIndex.size()/6);
+    gasPhaseReaction->IR23DupSize = static_cast<unsigned int>(gasPhaseReaction->IR23DupAllIndex.size()/6);
+    gasPhaseReaction->NER23Size = static_cast<unsigned int>(gasPhaseReaction->NER23AllIndex.size()/6);
+    gasPhaseReaction->NER23DupSize = static_cast<unsigned int>(gasPhaseReaction->NER23DupAllIndex.size()/6);
+
+    gasPhaseReaction->RR32Size = static_cast<unsigned int>(gasPhaseReaction->RR32AllIndex.size()/6);
+    gasPhaseReaction->RR32DupSize = static_cast<unsigned int>(gasPhaseReaction->RR32DupAllIndex.size()/6);
+    gasPhaseReaction->IR32Size = static_cast<unsigned int>(gasPhaseReaction->IR32AllIndex.size()/6);
+    gasPhaseReaction->IR32DupSize = static_cast<unsigned int>(gasPhaseReaction->IR32DupAllIndex.size()/6);
+    gasPhaseReaction->NER32Size = static_cast<unsigned int>(gasPhaseReaction->NER32AllIndex.size()/6);
+    gasPhaseReaction->NER32DupSize = static_cast<unsigned int>(gasPhaseReaction->NER32DupAllIndex.size()/6);
+
+    gasPhaseReaction->RR31Size = static_cast<unsigned int>(gasPhaseReaction->RR31AllIndex.size()/5);
+    gasPhaseReaction->RR31DupSize = static_cast<unsigned int>(gasPhaseReaction->RR31DupAllIndex.size()/5);
+    gasPhaseReaction->IR31Size = static_cast<unsigned int>(gasPhaseReaction->IR31AllIndex.size()/5);
+    gasPhaseReaction->IR31DupSize = static_cast<unsigned int>(gasPhaseReaction->IR31DupAllIndex.size()/5);
+    gasPhaseReaction->NER31Size = static_cast<unsigned int>(gasPhaseReaction->NER31AllIndex.size()/5);
+    gasPhaseReaction->NER31DupSize = static_cast<unsigned int>(gasPhaseReaction->NER31DupAllIndex.size()/5);
+
+    gasPhaseReaction->RR33Size = static_cast<unsigned int>(gasPhaseReaction->RR33AllIndex.size()/7);
+    gasPhaseReaction->RR33DupSize = static_cast<unsigned int>(gasPhaseReaction->RR33DupAllIndex.size()/7);
+    gasPhaseReaction->IR33Size = static_cast<unsigned int>(gasPhaseReaction->IR33AllIndex.size()/7);
+    gasPhaseReaction->IR33DupSize = static_cast<unsigned int>(gasPhaseReaction->IR33DupAllIndex.size()/7);
+    gasPhaseReaction->NER33Size = static_cast<unsigned int>(gasPhaseReaction->NER33AllIndex.size()/7);
+    gasPhaseReaction->NER33DupSize = static_cast<unsigned int>(gasPhaseReaction->NER33DupAllIndex.size()/7);
+
+
 
     /*********************************************************************************************/
 

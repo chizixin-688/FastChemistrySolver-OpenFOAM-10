@@ -44,18 +44,13 @@ Description
     for small step-size but less stable for large step-size.
 
     The L-Stable scheme constants are provided commented-out in Rosenbrock34.C
-    
+
 SourceFiles
     OptRosenbrock34.C
 
-\*---------------------------------------------------------------------------*/
+Author
+    Zixin Chi <chizixin@buaa.edu.cn>
 
-/*---------------------------------------------------------------------------*\
-  Description
-      Header file for Rosenbrock34 algorithm
-
-  Author
-      Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
 //=============================================================================//
@@ -86,7 +81,7 @@ SourceFiles
 
 namespace Foam
 {
-
+using namespace FastChemistry;
 /*---------------------------------------------------------------------------*\
                         Class OptRosenbrock34 Declaration
 \*---------------------------------------------------------------------------*/
@@ -98,10 +93,11 @@ class OptRosenbrock34
 {
     // Private Data
 
+        //- State of the adaptive time stepping (current try step
+        //  size and whether the current step is the last one)
     class stepState
     {
         public:
-
 
         double dxTry;
         bool last;
@@ -116,7 +112,7 @@ class OptRosenbrock34
         dictionary coeffsDict_;
 
     // ODE solver
-    
+
         //- Absolute convergence tolerance per step
         const double absTol_;
 
@@ -173,17 +169,15 @@ class OptRosenbrock34
         constexpr static const double d2= -3.0/2.0;
         constexpr static const double d3= 605.0/250.0;
         constexpr static const double d4= 29.0/250.0;
-        
-    // Rosenbrock
+
+    // Linear-solver engine (LU factorisation of the iteration matrices)
 
         mutable FastChemistry::LUsolver LU;
-
 
 public:
 
     //- Runtime type information
     TypeName("OptRosenbrock34");
-
 
     // Constructors
 
@@ -192,7 +186,6 @@ public:
 
     //- Destructor
     virtual ~OptRosenbrock34();
-
 
     // Member Functions
 
@@ -233,7 +226,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
+        ) const;
 
     // adaptive solver
 
@@ -253,8 +246,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
-
+        ) const;
 
         double Rosenbrock34Solve
         (
@@ -273,7 +265,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
+        ) const;
 
         //- Return the normalised scalar error
         inline double normaliseError
@@ -281,10 +273,9 @@ public:
             const double* __restrict__ Phi0,
             const double* __restrict__ Phi,
             const double* __restrict__ err
-        )const;        
+        ) const;
 
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -301,3 +292,4 @@ public:
 #endif
 
 // ************************************************************************* //
+

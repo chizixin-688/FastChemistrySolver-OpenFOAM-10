@@ -23,14 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------*\
-  Description
-      Inplementation for Rosenbrock34 algorithm
-
-  Author
-      Zixin Chi <chizixin@buaa.edu.cn>
-\*---------------------------------------------------------------------------*/
-
 //=============================================================================//
 
 //---------------------------------
@@ -52,10 +44,9 @@ License
 //---------------------------------
 // 4. SIMD / AVX2 headers
 //---------------------------------
-#include <immintrin.h>  
+#include <immintrin.h>
 
 //=============================================================================//
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -80,7 +71,6 @@ template<class ChemistryModel>
 Foam::OptRosenbrock34<ChemistryModel>::~OptRosenbrock34()
 {}
 
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
@@ -104,6 +94,8 @@ void Foam::OptRosenbrock34<ChemistryModel>::solve
     double& __restrict__ subDeltaT
 ) const
 {
+    // Alias the shared solver scratch space (buffers owned by the
+    // chemistry model, see YTpWork / YTpYTpWork in FastChemistryModel.H).
     double* __restrict__ Phi0     = this->YTpWork[1];
     double* __restrict__ PhiTemp  = this->YTpWork[2];
     double* __restrict__ k1     = this->YTpWork[3];
@@ -130,7 +122,7 @@ void Foam::OptRosenbrock34<ChemistryModel>::solve
         err,
         dydx,
         dfdx,
-        Jac    
+        Jac
     );
 }
 
@@ -171,7 +163,6 @@ void Foam::OptRosenbrock34<ChemistryModel>::ODESolve
 
         // Integrate as far as possible up to step.dxTry
         //solve(x, y, li, step);
-
 
         adaptiveSolve
         (
@@ -230,6 +221,8 @@ void Foam::OptRosenbrock34<ChemistryModel>::adaptiveSolve
 {
 
     double dx = dxTry;
+    // Error controller: reject/retry while Err > 1, otherwise accept the
+    // step and propose the next step size.
     double Err = 0.0;
     double invdx = 1.0/dx;
 
@@ -312,9 +305,22 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
     double* __restrict__ Jac
 ) const
 {
-    
-    this->jacobian(x0, li, p, Phi0,  dfdx, Jac);
-    
+
+    //this->jacobian(x0, li, p, Phi0,  dfdx, Jac);
+
+    // Select the state variable: mass fraction (Y) or mole number (NT)
+    if(this->massFraction==true)
+    {
+        double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+        double* __restrict__ dcdY      = this->YTpYTpWork[2];
+        this->getddYTdtdYT(x0,li,p,k1,Phi0,dfdx,k4,err,k2,k3,dydx,this->YTpWork[10],ddNdtByVdcT,dcdY,Jac);
+    }
+    else
+    {
+        double* __restrict__ ddNdtByVdcT = this->YTpYTpWork[0];
+        this->getddNTdtdNT(x0,li,p,k1,Phi0,dfdx,k4,err,k2,k3,ddNdtByVdcT,Jac);
+    }
+
     {
         const unsigned int NN = this->alignN*this->n_;
         unsigned int  remain = NN%16;
@@ -340,8 +346,10 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
         Jac[i*this->alignN+i] += invdx*Invgamma;
     }
 
+    // Factor the iteration matrix  M = I/(gamma*dx) - J  once per step
+    // (the Jacobian is negated and the diagonal shifted just above).
     LU.Block4LUDecompose();
-    
+
     //const unsigned int remain = n_%4;
 
     // compute k1
@@ -357,7 +365,7 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
     }
 
     LU.xSolve(k1);
-    
+
     {
         __m256d a21v = _mm256_set1_pd(a21);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
@@ -369,9 +377,14 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
         }
     }
 
-
-
-    this->derivatives(x0 + c2*dx, li, p, PhiTemp, dydx, k3, k4);
+    if(this->massFraction==true)
+    {
+        this->getdYTdt(x0 + c2*dx, li, p, PhiTemp, dydx, k2, k3, k4);
+    }
+    else
+    {
+        this->getdNTdt(x0 + c2*dx, li, p, PhiTemp, dydx, k2, k3, k4);
+    }
 
     {
         double dxd2 = dx*d2;
@@ -388,9 +401,10 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
             __m256d k2v = _mm256_fmadd_pd(dxd2v,dfdxv,dydxv);
             k2v = _mm256_fmadd_pd(c21invdxv,k1v,k2v);
             store256d(&k2[i],k2v);
-        } 
+        }
     }
 
+    // ---- stage 2: solve M*k2 = rhs2 ----
     LU.xSolve(k2);
 
     {
@@ -404,11 +418,18 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
             __m256d yTempv = _mm256_fmadd_pd(a31v,k1v,y0v);
             yTempv = _mm256_fmadd_pd(a32v,k2v,yTempv);
             store256d(&PhiTemp[i],yTempv);
-        }   
+        }
     }
 
-    this->derivatives(x0 + c2*dx, li, p, PhiTemp, dydx, k3, k4);
-    
+    if(this->massFraction==true)
+    {
+        this->getdYTdt(x0 + c2*dx, li, p, PhiTemp, dydx, k3, k4, err);
+    }
+    else
+    {
+        this->getdNTdt(x0 + c2*dx, li, p, PhiTemp, dydx, k3, k4, err);
+    }
+
     {
         double dxd3 = dx*d3;
         double c31invdx = c31*invdx;
@@ -426,14 +447,11 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
             k3v = _mm256_fmadd_pd(c31invdxv,k1v,k3v);
             k3v = _mm256_fmadd_pd(c32invdxv,k2v,k3v);
             store256d(&k3[i],k3v);
-        }          
+        }
     }
 
-
-
+    // ---- stage 3: solve M*k3 = rhs3 ----
     LU.xSolve(k3);
-    
-
 
     {
         double dxd4 = dx*d4;
@@ -457,12 +475,11 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
             k4v = _mm256_fmadd_pd(c42invdxv,k2v,k4v);
             k4v = _mm256_fmadd_pd(c43invdxv,k3v,k4v);
             store256d(&k4[i],k4v);
-        }      
+        }
     }
 
-
+    // ---- stage 4: solve M*k4 = rhs4 ----
     LU.xSolve(k4);
-    
 
     {
         __m256d b1v = _mm256_set1_pd(b1);
@@ -471,7 +488,7 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
         __m256d b4v = _mm256_set1_pd(b4);
         __m256d e1v = _mm256_set1_pd(e1);
         __m256d e2v = _mm256_set1_pd(e2);
-        __m256d e4v = _mm256_set1_pd(e4);        
+        __m256d e4v = _mm256_set1_pd(e4);
         for(unsigned int i = 0 ;i < this->alignN;i=i+4)
         {
             __m256d y0v = load256d(&Phi0[i]);
@@ -491,10 +508,11 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
 
             store256d(&PhiTemp[i],yTempv);
             store256d(&err[i],errv);
-        }         
+        }
     }
 
     double maxErr = 0;
+    if(this->massFraction==true)
     {
         __m256d maxErrv = _mm256_setzero_pd();
         __m256d absTolv = _mm256_set1_pd(absTol_);
@@ -516,16 +534,68 @@ Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::Rosenbrock34Solve
             maxErrv = _mm256_max_pd(maxErrv,errByTolv);
         }
 
-        __m128d low128  = _mm256_castpd256_pd128(maxErrv);           
-        __m128d high128 = _mm256_extractf128_pd(maxErrv, 1);          
-        __m128d max128  = _mm_max_pd(low128, high128);            
+        __m128d low128  = _mm256_castpd256_pd128(maxErrv);
+        __m128d high128 = _mm256_extractf128_pd(maxErrv, 1);
+        __m128d max128  = _mm_max_pd(low128, high128);
 
-        __m128d shuffled = _mm_shuffle_pd(max128, max128, 0x1);   
-        __m128d finalMax = _mm_max_sd(max128, shuffled);          
+        __m128d shuffled = _mm_shuffle_pd(max128, max128, 0x1);
+        __m128d finalMax = _mm_max_sd(max128, shuffled);
 
-        maxErr = _mm_cvtsd_f64(finalMax);    
+        maxErr = _mm_cvtsd_f64(finalMax);
     }
+    else
+    {
+        // The state variables are mole numbers (NT), convert them to mass
+        // fraction so that the convergence tolerance has the same meaning
+        // as in the mass-fraction case
+        double mtot = 0;
+        for(int i = 0 ;i <this->nSpecie();i=i+1)
+        {
+            mtot += Phi0[i]*this->gas->W[i];
+        }
+        double invmtot = 1.0/mtot;
+        for(int i = 0 ;i <this->nSpecie();i=i+1)
+        {
+            k1[i] = Phi0[i]*this->gas->W[i]*invmtot;
+            k2[i] = PhiTemp[i]*this->gas->W[i]*invmtot;
+            k3[i] = err[i]*this->gas->W[i]*invmtot;
+        }
+        {
+            int i = this->nSpecie();
+            k1[i] = Phi0[i];
+            k2[i] = PhiTemp[i];
+            k3[i] = err[i];
+        }
 
+        __m256d maxErrv = _mm256_setzero_pd();
+        __m256d absTolv = _mm256_set1_pd(absTol_);
+        __m256d relTolv = _mm256_set1_pd(relTol_);
+        for(unsigned int i = 0 ;i < this->alignN;i=i+4)
+        {
+            __m256d y0v = load256d(&k1[i]);
+            __m256d yTempv = load256d(&k2[i]);
+            __m256d errv = load256d(&k3[i]);
+            __m256d signMask = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
+            __m256d abserrv = _mm256_andnot_pd(signMask, errv);
+            __m256d absy0v = _mm256_andnot_pd(signMask, y0v);
+            __m256d absyTempv  = _mm256_andnot_pd(signMask, yTempv);
+
+            __m256d maxY = _mm256_max_pd(absyTempv,absy0v);
+            __m256d tolv = _mm256_fmadd_pd(relTolv,maxY,absTolv);
+
+            __m256d errByTolv = _mm256_div_pd(abserrv,tolv);
+            maxErrv = _mm256_max_pd(maxErrv,errByTolv);
+        }
+
+        __m128d low128  = _mm256_castpd256_pd128(maxErrv);
+        __m128d high128 = _mm256_extractf128_pd(maxErrv, 1);
+        __m128d max128  = _mm_max_pd(low128, high128);
+
+        __m128d shuffled = _mm_shuffle_pd(max128, max128, 0x1);
+        __m128d finalMax = _mm_max_sd(max128, shuffled);
+
+        maxErr = _mm_cvtsd_f64(finalMax);
+    }
 
     return maxErr;
 }
@@ -540,11 +610,42 @@ inline Foam::scalar Foam::OptRosenbrock34<ChemistryModel>::normaliseError
 {
     // Calculate the maximum error
     scalar maxErr = 0.0;
-    for(unsigned int i = 0 ;i < this->alignN;i++)
+    if(this->massFraction==true)
     {
-        scalar tol = absTol_ + relTol_*std::max(std::fabs(Phi0[i]), std::fabs(Phi[i]));
-        maxErr = std::max(maxErr, std::fabs(err[i])/tol);
+        for(unsigned int i = 0 ;i < this->alignN;i++)
+        {
+            scalar tol = absTol_ + relTol_*std::max(std::fabs(Phi0[i]), std::fabs(Phi[i]));
+            maxErr = std::max(maxErr, std::fabs(err[i])/tol);
+        }
+    }
+    else
+    {
+        // The state variables are mole numbers (NT), convert them to mass
+        // fraction so that the convergence tolerance has the same meaning
+        // as in the mass-fraction case
+        double mtot = 0;
+        for(int i = 0 ;i <this->nSpecie();i=i+1)
+        {
+            mtot += Phi0[i]*this->gas->W[i];
+        }
+        double invmtot = 1.0/mtot;
+        for(int i = 0 ;i <this->nSpecie();i=i+1)
+        {
+            scalar tol = absTol_
+                + relTol_*std::max
+                (
+                    std::fabs(Phi0[i]*this->gas->W[i]*invmtot),
+                    std::fabs(Phi[i]*this->gas->W[i]*invmtot)
+                );
+            maxErr = std::max(maxErr, std::fabs(err[i]*this->gas->W[i]*invmtot)/tol);
+        }
+        {
+            int i = this->nSpecie();
+            scalar tol = absTol_ + relTol_*std::max(std::fabs(Phi0[i]), std::fabs(Phi[i]));
+            maxErr = std::max(maxErr, std::fabs(err[i])/tol);
+        }
     }
     return maxErr;
 }
 // ************************************************************************* //
+

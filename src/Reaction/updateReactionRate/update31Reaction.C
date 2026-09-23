@@ -1,12 +1,19 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing the molar concentration reaction rate. The function 
-      is used for three-one reaction, e.g. A+A+A=B. A+B+C=D 
-      
-      RR:  reversible reaction
-      IR:  irreversible reaction reverse rate constant is zero
-      NER: non-equilibrium reaction, reverse rate constant is computed using
-           Arrhenius form instead of equilibrium rate constant
+      Update the net rates of production (dNdtByV) for three-reactant /
+      one-product (3-1) reactions, e.g. A + A + A -> B and A + B + C -> D.
+
+      RR : reversible reaction; the reverse rate constant is obtained from
+           the equilibrium constant
+      IR : irreversible reaction; the reverse rate constant is zero
+      NER: non-equilibrium reaction; the reverse rate constant is computed
+           with the Arrhenius form instead of the equilibrium constant
+
+  Functions
+      RF31RR : reversible 3-1 reactions, incl. duplicate reactants (A+A+A=B)
+      RF31IR : irreversible 3-1 reactions, incl. duplicate reactants (A+A+A=B)
+      RF31NER: non-equilibrium 3-1 reactions
+
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
@@ -14,70 +21,16 @@
 //=============================================================================//
 
 //---------------------------------
-// 1. FastChemistry headers
+// 1. Standard C++ library headers
+//---------------------------------
+#include <algorithm>
+
+//---------------------------------
+// 2. FastChemistry headers
 //---------------------------------
 #include "OptReaction.H"
 
 //=============================================================================//
-
-
-/*void 
-FastChemistry::OptReaction::update31Reaction
-(
-    const double* __restrict__ c,
-    double*  __restrict__ dNdtByV,
-    const double*  __restrict__ ExpNegGbyRT
-)const noexcept
-{
-    std::size_t end = reaction31index.size();
-    //std::size_t remain = end%4;
-
-    std::size_t lhsIndex = 0;
-    std::size_t rhsIndex = 0;
-    
-    for(std::size_t i=0; i<end; i++)
-    {
-        const unsigned int KfIndex = this->reaction31index[i];
-
-        const unsigned int sl0 = lhsSpeciesIndex1D31[lhsIndex+0];
-        const unsigned int sl1 = lhsSpeciesIndex1D31[lhsIndex+1];
-        const unsigned int sl2 = lhsSpeciesIndex1D31[lhsIndex+2];
-
-        const unsigned int sr0 = rhsSpeciesIndex1D31[rhsIndex+0];
-
-
-        double Kr = 0;
-        double Kf = Kf_[KfIndex];
-        if(this->isIrreversible[KfIndex]==0)
-        {
-            const double Kp = (ExpNegGbyRT[sr0])/(ExpNegGbyRT[sl0]*ExpNegGbyRT[sl1]*ExpNegGbyRT[sl2]);
-            double Kc = Kp*this->Pow_pByRT_SumVki[0];
-            Kc = std::max(Kc,KcLimiter);
-            Kr = Kf/Kc;         
-        }
-        else if(this->isIrreversible[KfIndex]==2)
-        {
-            unsigned int l = KfIndex - this->Ikf[1] + this->Ikf[9];
-            Kr = this->Kf_[l];
-        }
-
-        const double CF = c[sl0]*c[sl1]*c[sl2];
-        const double CR = c[sr0];
-        const double q = (Kf*CF) - (Kr*CR);
-
-        dNdtByV[sl0] = dNdtByV[sl0] - q;
-        dNdtByV[sl1] = dNdtByV[sl1] - q;
-        dNdtByV[sl2] = dNdtByV[sl2] - q;
-
-        dNdtByV[sr0] = dNdtByV[sr0] + q;
-
-
-        lhsIndex = lhsIndex + 3;
-        rhsIndex = rhsIndex + 1;
-
-    }
-}*/
-
 
 void 
 FastChemistry::OptReaction::RF31RR
@@ -87,386 +40,471 @@ FastChemistry::OptReaction::RF31RR
     const double*  __restrict__ ExpNegGbyRT
 )const noexcept
 {
-    std::size_t end = reversibleReaction31index.size();
-    std::size_t remain = end%4;
-
-    std::size_t lhsIndex = 0;
-    std::size_t rhsIndex = 0;
-    
-    for(std::size_t k=0; k<end-remain; k=k+4)
+    const double PowPByRTSumVki = this->Pow_pByRT_SumVki[4];
+    const double invKcLimiter = FastChemistry::invKcLimiter;
+    std::size_t endRR31 = this->RR31Size;
+    std::size_t remainRR31 = endRR31%4;
+    for(std::size_t k=0; k<endRR31-remainRR31; k=k+4)
     {
-        const unsigned int i0 = this->reversibleReaction31index[k+0];
+        // ========== Reaction block k+0 (a) ==========
 
-        const unsigned int sl0a = lhsSpeciesIndex1D31RR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31RR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31RR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31RR[rhsIndex+0];
-
-
+        const unsigned int i0 = this->RR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31AllIndex[(k+0)*5+4];
         double Kr0 = 0;
-        double Kf0 = Kf_[i0];
-
-        
-        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[0];
-        //Kc0 = std::max(Kc0,KcLimiter);
-        //Kr0 = Kf0/Kc0;
-
-        const double invKp0 = (invNegGstdByRT[sr0a]*ExpNegGbyRT[sl0a])*
-            (ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        double invKc0 = invKp0*this->Pow_pByRT_SumVki[4];
-        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
         Kr0 = Kf0*invKc0;
-
-        
-
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        // ========== Reaction block k+1 (b) ==========
 
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-        
-        const unsigned int i1 = this->reversibleReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31RR[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31RR[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31RR[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31RR[rhsIndex+1];
-
-
+        const unsigned int i1 = this->RR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31AllIndex[(k+1)*5+4];
         double Kr1 = 0;
-        double Kf1 = Kf_[i1];
-
-        
-        //const double Kp1 = (ExpNegGbyRT[sr0b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        //double Kc1 = Kp1*this->Pow_pByRT_SumVki[0];
-        //Kc1 = std::max(Kc1,KcLimiter);
-        //Kr1 = Kf1/Kc1;
-
-        const double invKp1 = (invNegGstdByRT[sr0b]*ExpNegGbyRT[sl0b])*
-            (ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        double invKc1 = invKp1*this->Pow_pByRT_SumVki[4];
-        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
         Kr1 = Kf1*invKc1;
-
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
 
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        // ========== Reaction block k+2 (c) ==========
 
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->reversibleReaction31index[k+2];
-
-        const unsigned int sl0c = lhsSpeciesIndex1D31RR[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31RR[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31RR[lhsIndex+8];
-
-        const unsigned int sr0c = rhsSpeciesIndex1D31RR[rhsIndex+2];
-
-
+        const unsigned int i2 = this->RR31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->RR31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->RR31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->RR31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->RR31AllIndex[(k+2)*5+4];
         double Kr2 = 0;
-        double Kf2 = Kf_[i2];
-
-        
-        //const double Kp2 = (ExpNegGbyRT[sr0c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c]);
-        //double Kc2 = Kp2*this->Pow_pByRT_SumVki[0];
-        //Kc2 = std::max(Kc2,KcLimiter);
-        //Kr2 = Kf2/Kc2;
-        
-        const double invKp2 = (invNegGstdByRT[sr0c]*ExpNegGbyRT[sl0c])*
-            (ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c]);
-        double invKc2 = invKp2*this->Pow_pByRT_SumVki[4];
-        invKc2 = std::min(invKc2,FastChemistry::invKcLimiter);
+        const double Kf2 = Kf_[i2];
+        double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c])*
+            (invNegGstdByRT[sr0c])*PowPByRTSumVki;
+        invKc2 = std::min(invKc2, invKcLimiter);
         Kr2 = Kf2*invKc2;
-        
-
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
         const double CR2 = c[sr0c];
         const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
 
-        dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
-        dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
-        dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
+        // ========== Reaction block k+3 (d) ==========
 
-        dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
-        
-        
-        const unsigned int i3 = this->reversibleReaction31index[k+3];
-
-        const unsigned int sl0d = lhsSpeciesIndex1D31RR[lhsIndex+9];
-        const unsigned int sl1d = lhsSpeciesIndex1D31RR[lhsIndex+10];
-        const unsigned int sl2d = lhsSpeciesIndex1D31RR[lhsIndex+11];
-
-        const unsigned int sr0d = rhsSpeciesIndex1D31RR[rhsIndex+3];
-
-
+        const unsigned int i3 = this->RR31AllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->RR31AllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->RR31AllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->RR31AllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->RR31AllIndex[(k+3)*5+4];
         double Kr3 = 0;
-        double Kf3 = Kf_[i3];
-
-        
-        //const double Kp3 = (ExpNegGbyRT[sr0d])/(ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]*ExpNegGbyRT[sl2d]);
-        //double Kc3 = Kp3*this->Pow_pByRT_SumVki[0];
-        //Kc3 = std::max(Kc3,KcLimiter);
-        //Kr3 = Kf3/Kc3;
-        const double invKp3 = (invNegGstdByRT[sr0d]*ExpNegGbyRT[sl0d])*
-            (ExpNegGbyRT[sl1d]*ExpNegGbyRT[sl2d]);
-        double invKc3 = invKp3*this->Pow_pByRT_SumVki[4];
-        invKc3 = std::min(invKc3,FastChemistry::invKcLimiter);
+        const double Kf3 = Kf_[i3];
+        double invKc3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]*ExpNegGbyRT[sl2d])*
+            (invNegGstdByRT[sr0d])*PowPByRTSumVki;
+        invKc3 = std::min(invKc3, invKcLimiter);
         Kr3 = Kf3*invKc3;
-
         const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
         const double CR3 = c[sr0d];
         const double q3 = (Kf3*CF3) - (Kr3*CR3);
-
-        dNdtByV[sl0d] = dNdtByV[sl0d] - q3;
-        dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
-        dNdtByV[sl2d] = dNdtByV[sl2d] - q3;
-
-        dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
-        
-
-        lhsIndex = lhsIndex + 12;
-        rhsIndex = rhsIndex + 4;
+        const double omega_sl0d_increment = dNdtByV[sl0d] - q3;
+        const double omega_sl1d_increment = dNdtByV[sl1d] - q3;
+        const double omega_sl2d_increment = dNdtByV[sl2d] - q3;
+        const double omega_sr0d_increment = dNdtByV[sr0d] + q3;
+        dNdtByV[sl0d] = omega_sl0d_increment;
+        dNdtByV[sl1d] = omega_sl1d_increment;
+        dNdtByV[sl2d] = omega_sl2d_increment;
+        dNdtByV[sr0d] = omega_sr0d_increment;
     }
-    if(remain==1)
+    if(remainRR31==1)
     {
-        std::size_t k = end-1;
-        const unsigned int i0 = this->reversibleReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31RR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31RR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31RR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31RR[rhsIndex+0];
-
-
+        std::size_t k = endRR31-1;
+        const unsigned int i0 = this->RR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31AllIndex[(k+0)*5+4];
         double Kr0 = 0;
-        double Kf0 = Kf_[i0];
-
-        
-        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[0];
-        //Kc0 = std::max(Kc0,KcLimiter);
-        //Kr0 = Kf0/Kc0;
-        const double invKp0 = (invNegGstdByRT[sr0a]*ExpNegGbyRT[sl0a])*
-            (ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        double invKc0 = invKp0*this->Pow_pByRT_SumVki[4];
-        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
         Kr0 = Kf0*invKc0;
-
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
-
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-
-        lhsIndex = lhsIndex + 3;
-        rhsIndex = rhsIndex + 1;
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
     }
-    else if(remain==2)
+    else if(remainRR31==2)
     {
-        std::size_t k = end-2;
-        const unsigned int i0 = this->reversibleReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31RR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31RR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31RR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31RR[rhsIndex+0];
-
-
+        std::size_t k = endRR31-2;
+        const unsigned int i0 = this->RR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31AllIndex[(k+0)*5+4];
         double Kr0 = 0;
-        double Kf0 = Kf_[i0];
-
-        
-        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[0];
-        //Kc0 = std::max(Kc0,KcLimiter);
-        //Kr0 = Kf0/Kc0;
-        
-        const double invKp0 = (invNegGstdByRT[sr0a]*ExpNegGbyRT[sl0a])*
-            (ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        double invKc0 = invKp0*this->Pow_pByRT_SumVki[4];
-        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
         Kr0 = Kf0*invKc0;
-
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-        
-        const unsigned int i1 = this->reversibleReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31RR[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31RR[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31RR[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31RR[rhsIndex+1];
-
-
+        const unsigned int i1 = this->RR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31AllIndex[(k+1)*5+4];
         double Kr1 = 0;
-        double Kf1 = Kf_[i1];
-
-        
-        //const double Kp1 = (ExpNegGbyRT[sr0b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        //double Kc1 = Kp1*this->Pow_pByRT_SumVki[0];
-        //Kc1 = std::max(Kc1,KcLimiter);
-        //Kr1 = Kf1/Kc1;
-
-        const double invKp1 = (invNegGstdByRT[sr0b]*ExpNegGbyRT[sl0b])*
-            (ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        double invKc1 = invKp1*this->Pow_pByRT_SumVki[4];
-        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
         Kr1 = Kf1*invKc1;
-
-
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
-
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-    
-
-        lhsIndex = lhsIndex + 6;
-        rhsIndex = rhsIndex + 2;
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
     }
-    else if(remain==3)
+    else if(remainRR31==3)
     {
-        std::size_t k = end-3;
-        const unsigned int i0 = this->reversibleReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31RR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31RR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31RR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31RR[rhsIndex+0];
-
-
+        std::size_t k = endRR31-3;
+        const unsigned int i0 = this->RR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31AllIndex[(k+0)*5+4];
         double Kr0 = 0;
-        double Kf0 = Kf_[i0];
-
-        
-        //const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        //double Kc0 = Kp0*this->Pow_pByRT_SumVki[0];
-        //Kc0 = std::max(Kc0,KcLimiter);
-        //Kr0 = Kf0/Kc0;
-
-        const double invKp0 = (invNegGstdByRT[sr0a]*ExpNegGbyRT[sl0a])*
-            (ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        double invKc0 = invKp0*this->Pow_pByRT_SumVki[4];
-        invKc0 = std::min(invKc0,FastChemistry::invKcLimiter);
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
         Kr0 = Kf0*invKc0;
-
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-        
-        const unsigned int i1 = this->reversibleReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31RR[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31RR[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31RR[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31RR[rhsIndex+1];
-
-
+        const unsigned int i1 = this->RR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31AllIndex[(k+1)*5+4];
         double Kr1 = 0;
-        double Kf1 = Kf_[i1];
-
-        
-        //const double Kp1 = (ExpNegGbyRT[sr0b])/(ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        //double Kc1 = Kp1*this->Pow_pByRT_SumVki[0];
-        //Kc1 = std::max(Kc1,KcLimiter);
-        //Kr1 = Kf1/Kc1;
-        
-        const double invKp1 = (invNegGstdByRT[sr0b]*ExpNegGbyRT[sl0b])*
-            (ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b]);
-        double invKc1 = invKp1*this->Pow_pByRT_SumVki[4];
-        invKc1 = std::min(invKc1,FastChemistry::invKcLimiter);
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
         Kr1 = Kf1*invKc1;
-
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
 
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->reversibleReaction31index[k+2];
-
-        const unsigned int sl0c = lhsSpeciesIndex1D31RR[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31RR[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31RR[lhsIndex+8];
-
-        const unsigned int sr0c = rhsSpeciesIndex1D31RR[rhsIndex+2];
-
-
+        const unsigned int i2 = this->RR31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->RR31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->RR31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->RR31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->RR31AllIndex[(k+2)*5+4];
         double Kr2 = 0;
-        double Kf2 = Kf_[i2];
-
-        
-        //const double Kp2 = (ExpNegGbyRT[sr0c])/(ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c]);
-        //double Kc2 = Kp2*this->Pow_pByRT_SumVki[0];
-        //Kc2 = std::max(Kc2,KcLimiter);
-        //Kr2 = Kf2/Kc2;
-        
-        const double invKp2 = (invNegGstdByRT[sr0c]*ExpNegGbyRT[sl0c])*
-            (ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c]);
-        double invKc2 = invKp2*this->Pow_pByRT_SumVki[4];
-        invKc2 = std::min(invKc2,FastChemistry::invKcLimiter);
+        const double Kf2 = Kf_[i2];
+        double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c])*
+            (invNegGstdByRT[sr0c])*PowPByRTSumVki;
+        invKc2 = std::min(invKc2, invKcLimiter);
         Kr2 = Kf2*invKc2;
-        
-
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
         const double CR2 = c[sr0c];
         const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
+    }
+    {
+    std::size_t endRR31Dup = this->RR31DupSize;
+    std::size_t remainRR31Dup = endRR31Dup%4;
+    for(std::size_t k=0; k<endRR31Dup-remainRR31Dup; k=k+4)
+    {
+        // ========== Reaction block k+0 (a) ==========
 
+        const unsigned int i0 = this->RR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
+        Kr0 = Kf0*invKc0;
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        // ========== Reaction block k+1 (b) ==========
+
+        const unsigned int i1 = this->RR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
+        Kr1 = Kf1*invKc1;
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+
+        // ========== Reaction block k+2 (c) ==========
+
+        const unsigned int i2 = this->RR31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->RR31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->RR31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->RR31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->RR31DupAllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
+        double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c])*
+            (invNegGstdByRT[sr0c])*PowPByRTSumVki;
+        invKc2 = std::min(invKc2, invKcLimiter);
+        Kr2 = Kf2*invKc2;
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double CR2 = c[sr0c];
+        const double q2 = (Kf2*CF2) - (Kr2*CR2);
         dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
         dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
         dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
-
         dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
-    
-        lhsIndex = lhsIndex + 9;
-        rhsIndex = rhsIndex + 3;
+
+        // ========== Reaction block k+3 (d) ==========
+
+        const unsigned int i3 = this->RR31DupAllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->RR31DupAllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->RR31DupAllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->RR31DupAllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->RR31DupAllIndex[(k+3)*5+4];
+        double Kr3 = 0;
+        const double Kf3 = Kf_[i3];
+        double invKc3 = (ExpNegGbyRT[sl0d]*ExpNegGbyRT[sl1d]*ExpNegGbyRT[sl2d])*
+            (invNegGstdByRT[sr0d])*PowPByRTSumVki;
+        invKc3 = std::min(invKc3, invKcLimiter);
+        Kr3 = Kf3*invKc3;
+        const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
+        const double CR3 = c[sr0d];
+        const double q3 = (Kf3*CF3) - (Kr3*CR3);
+        dNdtByV[sl0d] = dNdtByV[sl0d] - q3;
+        dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
+        dNdtByV[sl2d] = dNdtByV[sl2d] - q3;
+        dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
+    }
+    if(remainRR31Dup==1)
+    {
+        std::size_t k = endRR31Dup-1;
+        const unsigned int i0 = this->RR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
+        Kr0 = Kf0*invKc0;
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+    }
+    else if(remainRR31Dup==2)
+    {
+        std::size_t k = endRR31Dup-2;
+        const unsigned int i0 = this->RR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
+        Kr0 = Kf0*invKc0;
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        const unsigned int i1 = this->RR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
+        Kr1 = Kf1*invKc1;
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+    }
+    else if(remainRR31Dup==3)
+    {
+        std::size_t k = endRR31Dup-3;
+        const unsigned int i0 = this->RR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->RR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->RR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->RR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->RR31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        double invKc0 = (ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a])*
+            (invNegGstdByRT[sr0a])*PowPByRTSumVki;
+        invKc0 = std::min(invKc0, invKcLimiter);
+        Kr0 = Kf0*invKc0;
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        const unsigned int i1 = this->RR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->RR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->RR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->RR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->RR31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        double invKc1 = (ExpNegGbyRT[sl0b]*ExpNegGbyRT[sl1b]*ExpNegGbyRT[sl2b])*
+            (invNegGstdByRT[sr0b])*PowPByRTSumVki;
+        invKc1 = std::min(invKc1, invKcLimiter);
+        Kr1 = Kf1*invKc1;
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+
+        const unsigned int i2 = this->RR31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->RR31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->RR31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->RR31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->RR31DupAllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
+        double invKc2 = (ExpNegGbyRT[sl0c]*ExpNegGbyRT[sl1c]*ExpNegGbyRT[sl2c])*
+            (invNegGstdByRT[sr0c])*PowPByRTSumVki;
+        invKc2 = std::min(invKc2, invKcLimiter);
+        Kr2 = Kf2*invKc2;
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double CR2 = c[sr0c];
+        const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
+        dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
+        dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
+        dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
+    }
     }
 }
 
@@ -479,265 +517,351 @@ FastChemistry::OptReaction::RF31IR
     const double*  __restrict__ ExpNegGbyRT
 )const noexcept
 {
-    std::size_t end = irreversibleReaction31index.size();
-    std::size_t remain = end%4;
-
-    std::size_t lhsIndex = 0;
-    std::size_t rhsIndex = 0;
-    
-    for(std::size_t k=0; k<end-remain; k=k+4)
+    std::size_t endIR31 = this->IR31Size;
+    std::size_t remainIR31 = endIR31%4;
+    for(std::size_t k=0; k<endIR31-remainIR31; k=k+4)
     {
-        const unsigned int i0 = this->irreversibleReaction31index[k+0];
+        // ========== Reaction block k+0 (a) ==========
 
-        const unsigned int sl0a = lhsSpeciesIndex1D31IR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31IR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31IR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31IR[rhsIndex+0];
-
-
-        double Kf0 = Kf_[i0];
-
+        const unsigned int i0 = this->IR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31AllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
-        const double q0 = (Kf0*CF0) ;
+        const double q0 = (Kf0*CF0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
+        // ========== Reaction block k+1 (b) ==========
+
+        const unsigned int i1 = this->IR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31AllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double q1 = (Kf1*CF1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
+
+        // ========== Reaction block k+2 (c) ==========
+
+        const unsigned int i2 = this->IR31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->IR31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->IR31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->IR31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->IR31AllIndex[(k+2)*5+4];
+        const double Kf2 = Kf_[i2];
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double q2 = (Kf2*CF2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
+
+        // ========== Reaction block k+3 (d) ==========
+
+        const unsigned int i3 = this->IR31AllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->IR31AllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->IR31AllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->IR31AllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->IR31AllIndex[(k+3)*5+4];
+        const double Kf3 = Kf_[i3];
+        const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
+        const double q3 = (Kf3*CF3);
+        const double omega_sl0d_increment = dNdtByV[sl0d] - q3;
+        const double omega_sl1d_increment = dNdtByV[sl1d] - q3;
+        const double omega_sl2d_increment = dNdtByV[sl2d] - q3;
+        const double omega_sr0d_increment = dNdtByV[sr0d] + q3;
+        dNdtByV[sl0d] = omega_sl0d_increment;
+        dNdtByV[sl1d] = omega_sl1d_increment;
+        dNdtByV[sl2d] = omega_sl2d_increment;
+        dNdtByV[sr0d] = omega_sr0d_increment;
+    }
+    if(remainIR31==1)
+    {
+        std::size_t k = endIR31-1;
+        const unsigned int i0 = this->IR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31AllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double q0 = (Kf0*CF0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
+    }
+    else if(remainIR31==2)
+    {
+        std::size_t k = endIR31-2;
+        const unsigned int i0 = this->IR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31AllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double q0 = (Kf0*CF0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
+
+        const unsigned int i1 = this->IR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31AllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double q1 = (Kf1*CF1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
+    }
+    else if(remainIR31==3)
+    {
+        std::size_t k = endIR31-3;
+        const unsigned int i0 = this->IR31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31AllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double q0 = (Kf0*CF0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
+
+        const unsigned int i1 = this->IR31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31AllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double q1 = (Kf1*CF1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
+
+        const unsigned int i2 = this->IR31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->IR31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->IR31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->IR31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->IR31AllIndex[(k+2)*5+4];
+        const double Kf2 = Kf_[i2];
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double q2 = (Kf2*CF2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
+    }
+    {
+    std::size_t endIR31Dup = this->IR31DupSize;
+    std::size_t remainIR31Dup = endIR31Dup%4;
+    for(std::size_t k=0; k<endIR31Dup-remainIR31Dup; k=k+4)
+    {
+        // ========== Reaction block k+0 (a) ==========
+
+        const unsigned int i0 = this->IR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31DupAllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double q0 = (Kf0*CF0);
         dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
         dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
         dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
         dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
 
-        
-        const unsigned int i1 = this->irreversibleReaction31index[k+1];
+        // ========== Reaction block k+1 (b) ==========
 
-        const unsigned int sl0b = lhsSpeciesIndex1D31IR[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31IR[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31IR[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31IR[rhsIndex+1];
-
-
-
-        double Kf1 = Kf_[i1];
-        
+        const unsigned int i1 = this->IR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31DupAllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
-
         const double q1 = (Kf1*CF1);
-
         dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
         dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
         dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
         dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->irreversibleReaction31index[k+2];
 
-        const unsigned int sl0c = lhsSpeciesIndex1D31IR[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31IR[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31IR[lhsIndex+8];
+        // ========== Reaction block k+2 (c) ==========
 
-        const unsigned int sr0c = rhsSpeciesIndex1D31IR[rhsIndex+2];
-
-
-
-        double Kf2 = Kf_[i2];
-
+        const unsigned int i2 = this->IR31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->IR31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->IR31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->IR31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->IR31DupAllIndex[(k+2)*5+4];
+        const double Kf2 = Kf_[i2];
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
-
         const double q2 = (Kf2*CF2);
-
         dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
         dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
         dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
-
         dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
-        
-        
-        const unsigned int i3 = this->irreversibleReaction31index[k+3];
 
-        const unsigned int sl0d = lhsSpeciesIndex1D31IR[lhsIndex+9];
-        const unsigned int sl1d = lhsSpeciesIndex1D31IR[lhsIndex+10];
-        const unsigned int sl2d = lhsSpeciesIndex1D31IR[lhsIndex+11];
+        // ========== Reaction block k+3 (d) ==========
 
-        const unsigned int sr0d = rhsSpeciesIndex1D31IR[rhsIndex+3];
-
-
-
-        double Kf3 = Kf_[i3];
-
+        const unsigned int i3 = this->IR31DupAllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->IR31DupAllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->IR31DupAllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->IR31DupAllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->IR31DupAllIndex[(k+3)*5+4];
+        const double Kf3 = Kf_[i3];
         const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
-
         const double q3 = (Kf3*CF3);
-
         dNdtByV[sl0d] = dNdtByV[sl0d] - q3;
         dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
         dNdtByV[sl2d] = dNdtByV[sl2d] - q3;
-
         dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
-        
-
-        lhsIndex = lhsIndex + 12;
-        rhsIndex = rhsIndex + 4;
     }
-    if(remain==1)
+    if(remainIR31Dup==1)
     {
-        std::size_t k = end-1;
-        const unsigned int i0 = this->irreversibleReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31IR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31IR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31IR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31IR[rhsIndex+0];
-
-        double Kf0 = Kf_[i0];
-
+        std::size_t k = endIR31Dup-1;
+        const unsigned int i0 = this->IR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31DupAllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
-
         const double q0 = (Kf0*CF0);
-
         dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
         dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
         dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
         dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-
-        lhsIndex = lhsIndex + 3;
-        rhsIndex = rhsIndex + 1;
     }
-    else if(remain==2)
+    else if(remainIR31Dup==2)
     {
-        std::size_t k = end-2;
-        const unsigned int i0 = this->irreversibleReaction31index[k+1];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31IR[lhsIndex+3];
-        const unsigned int sl1a = lhsSpeciesIndex1D31IR[lhsIndex+4];
-        const unsigned int sl2a = lhsSpeciesIndex1D31IR[lhsIndex+5];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31IR[rhsIndex+1];
-
-
-        double Kf0 = Kf_[i0];
-
+        std::size_t k = endIR31Dup-2;
+        const unsigned int i0 = this->IR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31DupAllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
-
-        const double q0 = (Kf0*CF0) ;
-
+        const double q0 = (Kf0*CF0);
         dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
         dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
         dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
         dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
 
-        
-        const unsigned int i1 = this->irreversibleReaction31index[k+2];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31IR[lhsIndex+6];
-        const unsigned int sl1b = lhsSpeciesIndex1D31IR[lhsIndex+7];
-        const unsigned int sl2b = lhsSpeciesIndex1D31IR[lhsIndex+8];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31IR[rhsIndex+2];
-
-        double Kf1 = Kf_[i1];
-
-
+        const unsigned int i1 = this->IR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31DupAllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
-
         const double q1 = (Kf1*CF1);
-
         dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
         dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
         dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
         dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-    
-
-        lhsIndex = lhsIndex + 6;
-        rhsIndex = rhsIndex + 2;
     }
-    else if(remain==3)
+    else if(remainIR31Dup==3)
     {
-        std::size_t k = end-3;
-        const unsigned int i0 = this->irreversibleReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31IR[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31IR[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31IR[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31IR[rhsIndex+0];
-
-
-        double Kr0 = 0;
-        double Kf0 = Kf_[i0];
-
-        
-        const double Kp0 = (ExpNegGbyRT[sr0a])/(ExpNegGbyRT[sl0a]*ExpNegGbyRT[sl1a]*ExpNegGbyRT[sl2a]);
-        double Kc0 = Kp0*this->Pow_pByRT_SumVki[0];
-        Kc0 = std::max(Kc0,KcLimiter);
-        Kr0 = Kf0/Kc0;
-        
-
+        std::size_t k = endIR31Dup-3;
+        const unsigned int i0 = this->IR31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->IR31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->IR31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->IR31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->IR31DupAllIndex[(k+0)*5+4];
+        const double Kf0 = Kf_[i0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
-        const double CR0 = c[sr0a];
-        const double q0 = (Kf0*CF0) - (Kr0*CR0);
-
+        const double q0 = (Kf0*CF0);
         dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
         dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
         dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
         dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
 
-        
-        const unsigned int i1 = this->irreversibleReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31IR[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31IR[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31IR[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31IR[rhsIndex+1];
-
-
-        double Kf1 = Kf_[i1];
-
+        const unsigned int i1 = this->IR31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->IR31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->IR31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->IR31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->IR31DupAllIndex[(k+1)*5+4];
+        const double Kf1 = Kf_[i1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
-
         const double q1 = (Kf1*CF1);
-
         dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
         dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
         dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
         dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->irreversibleReaction31index[k+2];
 
-        const unsigned int sl0c = lhsSpeciesIndex1D31IR[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31IR[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31IR[lhsIndex+8];
-
-        const unsigned int sr0c = rhsSpeciesIndex1D31IR[rhsIndex+2];
-
-
-        double Kf2 = Kf_[i2];
-
+        const unsigned int i2 = this->IR31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->IR31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->IR31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->IR31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->IR31DupAllIndex[(k+2)*5+4];
+        const double Kf2 = Kf_[i2];
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
-
         const double q2 = (Kf2*CF2);
-
         dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
         dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
         dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
-
         dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
-    
-        lhsIndex = lhsIndex + 9;
-        rhsIndex = rhsIndex + 3;
+    }
     }
 }
-
 
 
 void 
@@ -748,273 +872,428 @@ FastChemistry::OptReaction::RF31NER
     const double*  __restrict__ ExpNegGbyRT
 )const noexcept
 {
-    std::size_t end = nonEquilibriumReaction31index.size();
-    std::size_t remain = end%4;
-
-    std::size_t lhsIndex = 0;
-    std::size_t rhsIndex = 0;
-    
-    for(std::size_t k=0; k<end-remain; k=k+4)
+    std::size_t endNER31 = this->NER31Size;
+    std::size_t remainNER31 = endNER31%4;
+    for(std::size_t k=0; k<endNER31-remainNER31; k=k+4)
     {
-        const unsigned int i0 = this->nonEquilibriumReaction31index[k+0];
+        // ========== Reaction block k+0 (a) ==========
 
-        const unsigned int sl0a = lhsSpeciesIndex1D31NER[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31NER[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31NER[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31NER[rhsIndex+0];
-
-        double Kf0 = Kf_[i0];
-
+        const unsigned int i0 = this->NER31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31AllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
         unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
-        double Kr0 = this->Kf_[l0];
-
+        Kr0 = this->Kf_[l0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        // ========== Reaction block k+1 (b) ==========
 
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-        
-        const unsigned int i1 = this->nonEquilibriumReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31NER[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31NER[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31NER[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31NER[rhsIndex+1];
-
-        double Kf1 = Kf_[i1];
-
+        const unsigned int i1 = this->NER31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31AllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
         unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
-        double Kr1 = this->Kf_[l1];
-
+        Kr1 = this->Kf_[l1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
 
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        // ========== Reaction block k+2 (c) ==========
 
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->nonEquilibriumReaction31index[k+2];
-
-        const unsigned int sl0c = lhsSpeciesIndex1D31NER[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31NER[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31NER[lhsIndex+8];
-
-        const unsigned int sr0c = rhsSpeciesIndex1D31NER[rhsIndex+2];
-
-        double Kf2 = Kf_[i2];
-
+        const unsigned int i2 = this->NER31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->NER31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->NER31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->NER31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->NER31AllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
         unsigned int l2 = i2 - this->Ikf[1] + this->Ikf[9];
-        double Kr2 = this->Kf_[l2];
-
+        Kr2 = this->Kf_[l2];
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
         const double CR2 = c[sr0c];
         const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
 
-        dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
-        dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
-        dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
+        // ========== Reaction block k+3 (d) ==========
 
-        dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
-        
-        
-        const unsigned int i3 = this->nonEquilibriumReaction31index[k+3];
-
-        const unsigned int sl0d = lhsSpeciesIndex1D31NER[lhsIndex+9];
-        const unsigned int sl1d = lhsSpeciesIndex1D31NER[lhsIndex+10];
-        const unsigned int sl2d = lhsSpeciesIndex1D31NER[lhsIndex+11];
-
-        const unsigned int sr0d = rhsSpeciesIndex1D31NER[rhsIndex+3];
-
-        double Kf3 = Kf_[i3];
-
+        const unsigned int i3 = this->NER31AllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->NER31AllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->NER31AllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->NER31AllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->NER31AllIndex[(k+3)*5+4];
+        double Kr3 = 0;
+        const double Kf3 = Kf_[i3];
         unsigned int l3 = i3 - this->Ikf[1] + this->Ikf[9];
-        double Kr3 = this->Kf_[l3];
-
+        Kr3 = this->Kf_[l3];
         const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
         const double CR3 = c[sr0d];
         const double q3 = (Kf3*CF3) - (Kr3*CR3);
-
-        dNdtByV[sl0d] = dNdtByV[sl0d] - q3;
-        dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
-        dNdtByV[sl2d] = dNdtByV[sl2d] - q3;
-
-        dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
-        
-
-
-        lhsIndex = lhsIndex + 12;
-        rhsIndex = rhsIndex + 4;
-
+        const double omega_sl0d_increment = dNdtByV[sl0d] - q3;
+        const double omega_sl1d_increment = dNdtByV[sl1d] - q3;
+        const double omega_sl2d_increment = dNdtByV[sl2d] - q3;
+        const double omega_sr0d_increment = dNdtByV[sr0d] + q3;
+        dNdtByV[sl0d] = omega_sl0d_increment;
+        dNdtByV[sl1d] = omega_sl1d_increment;
+        dNdtByV[sl2d] = omega_sl2d_increment;
+        dNdtByV[sr0d] = omega_sr0d_increment;
     }
-    if(remain==1)
+    if(remainNER31==1)
     {
-        std::size_t k = end-1;
-        const unsigned int i0 = this->nonEquilibriumReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31NER[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31NER[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31NER[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31NER[rhsIndex+0];
-
-        double Kf0 = Kf_[i0];
-
+        std::size_t k = endNER31-1;
+        const unsigned int i0 = this->NER31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31AllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
         unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
-        double Kr0 = this->Kf_[l0];
-
+        Kr0 = this->Kf_[l0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
-
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-
-        lhsIndex = lhsIndex + 3;
-        rhsIndex = rhsIndex + 1;
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
     }
-    else if(remain==2)
+    else if(remainNER31==2)
     {
-        std::size_t k = end-2;
-        const unsigned int i0 = this->nonEquilibriumReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31NER[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31NER[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31NER[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31NER[rhsIndex+0];
-
-        double Kf0 = Kf_[i0];
-
+        std::size_t k = endNER31-2;
+        const unsigned int i0 = this->NER31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31AllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
         unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
-        double Kr0 = this->Kf_[l0];
-
+        Kr0 = this->Kf_[l0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-        
-        const unsigned int i1 = this->nonEquilibriumReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31NER[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31NER[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31NER[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31NER[rhsIndex+1];
-
-        double Kf1 = Kf_[i1];
-
+        const unsigned int i1 = this->NER31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31AllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
         unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
-        double Kr1 = this->Kf_[l1];
-
+        Kr1 = this->Kf_[l1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
-
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-
-        lhsIndex = lhsIndex + 6;
-        rhsIndex = rhsIndex + 2;
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
     }
-    else if(remain==3)
+    else if(remainNER31==3)
     {
-        std::size_t k = end-3;
-        const unsigned int i0 = this->nonEquilibriumReaction31index[k+0];
-
-        const unsigned int sl0a = lhsSpeciesIndex1D31NER[lhsIndex+0];
-        const unsigned int sl1a = lhsSpeciesIndex1D31NER[lhsIndex+1];
-        const unsigned int sl2a = lhsSpeciesIndex1D31NER[lhsIndex+2];
-
-        const unsigned int sr0a = rhsSpeciesIndex1D31NER[rhsIndex+0];
-
-
-
-        double Kf0 = Kf_[i0];
-
+        std::size_t k = endNER31-3;
+        const unsigned int i0 = this->NER31AllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31AllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31AllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31AllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31AllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
         unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
-        double Kr0 = this->Kf_[l0];
-
+        Kr0 = this->Kf_[l0];
         const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
         const double CR0 = c[sr0a];
         const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        const double omega_sl0a_increment = dNdtByV[sl0a] - q0;
+        const double omega_sl1a_increment = dNdtByV[sl1a] - q0;
+        const double omega_sl2a_increment = dNdtByV[sl2a] - q0;
+        const double omega_sr0a_increment = dNdtByV[sr0a] + q0;
+        dNdtByV[sl0a] = omega_sl0a_increment;
+        dNdtByV[sl1a] = omega_sl1a_increment;
+        dNdtByV[sl2a] = omega_sl2a_increment;
+        dNdtByV[sr0a] = omega_sr0a_increment;
 
-        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
-        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
-        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
-
-        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
-        
-        const unsigned int i1 = this->nonEquilibriumReaction31index[k+1];
-
-        const unsigned int sl0b = lhsSpeciesIndex1D31NER[lhsIndex+3];
-        const unsigned int sl1b = lhsSpeciesIndex1D31NER[lhsIndex+4];
-        const unsigned int sl2b = lhsSpeciesIndex1D31NER[lhsIndex+5];
-
-        const unsigned int sr0b = rhsSpeciesIndex1D31NER[rhsIndex+1];
-
-        double Kf1 = Kf_[i1];
-
+        const unsigned int i1 = this->NER31AllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31AllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31AllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31AllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31AllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
         unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
-        double  Kr1 = this->Kf_[l1];
-
+        Kr1 = this->Kf_[l1];
         const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
         const double CR1 = c[sr0b];
         const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        const double omega_sl0b_increment = dNdtByV[sl0b] - q1;
+        const double omega_sl1b_increment = dNdtByV[sl1b] - q1;
+        const double omega_sl2b_increment = dNdtByV[sl2b] - q1;
+        const double omega_sr0b_increment = dNdtByV[sr0b] + q1;
+        dNdtByV[sl0b] = omega_sl0b_increment;
+        dNdtByV[sl1b] = omega_sl1b_increment;
+        dNdtByV[sl2b] = omega_sl2b_increment;
+        dNdtByV[sr0b] = omega_sr0b_increment;
 
-        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
-        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
-        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
-
-        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
-        
-        
-        const unsigned int i2 = this->nonEquilibriumReaction31index[k+2];
-
-        const unsigned int sl0c = lhsSpeciesIndex1D31NER[lhsIndex+6];
-        const unsigned int sl1c = lhsSpeciesIndex1D31NER[lhsIndex+7];
-        const unsigned int sl2c = lhsSpeciesIndex1D31NER[lhsIndex+8];
-
-        const unsigned int sr0c = rhsSpeciesIndex1D31NER[rhsIndex+2];
-
-
-
-        double Kf2 = Kf_[i2];
-
+        const unsigned int i2 = this->NER31AllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->NER31AllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->NER31AllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->NER31AllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->NER31AllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
         unsigned int l2 = i2 - this->Ikf[1] + this->Ikf[9];
-        double Kr2 = this->Kf_[l2];
-
+        Kr2 = this->Kf_[l2];
         const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
         const double CR2 = c[sr0c];
         const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        const double omega_sl0c_increment = dNdtByV[sl0c] - q2;
+        const double omega_sl1c_increment = dNdtByV[sl1c] - q2;
+        const double omega_sl2c_increment = dNdtByV[sl2c] - q2;
+        const double omega_sr0c_increment = dNdtByV[sr0c] + q2;
+        dNdtByV[sl0c] = omega_sl0c_increment;
+        dNdtByV[sl1c] = omega_sl1c_increment;
+        dNdtByV[sl2c] = omega_sl2c_increment;
+        dNdtByV[sr0c] = omega_sr0c_increment;
+    }
+    {
+    std::size_t endNER31Dup = this->NER31DupSize;
+    std::size_t remainNER31Dup = endNER31Dup%4;
+    for(std::size_t k=0; k<endNER31Dup-remainNER31Dup; k=k+4)
+    {
+        // ========== Reaction block k+0 (a) ==========
 
+        const unsigned int i0 = this->NER31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr0 = this->Kf_[l0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        // ========== Reaction block k+1 (b) ==========
+
+        const unsigned int i1 = this->NER31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
+        Kr1 = this->Kf_[l1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+
+        // ========== Reaction block k+2 (c) ==========
+
+        const unsigned int i2 = this->NER31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->NER31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->NER31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->NER31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->NER31DupAllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
+        unsigned int l2 = i2 - this->Ikf[1] + this->Ikf[9];
+        Kr2 = this->Kf_[l2];
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double CR2 = c[sr0c];
+        const double q2 = (Kf2*CF2) - (Kr2*CR2);
         dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
         dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
         dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
-
         dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
 
-        lhsIndex = lhsIndex + 9;
-        rhsIndex = rhsIndex + 3;
+        // ========== Reaction block k+3 (d) ==========
+
+        const unsigned int i3 = this->NER31DupAllIndex[(k+3)*5+0];
+        const unsigned int sl0d = this->NER31DupAllIndex[(k+3)*5+1];
+        const unsigned int sl1d = this->NER31DupAllIndex[(k+3)*5+2];
+        const unsigned int sl2d = this->NER31DupAllIndex[(k+3)*5+3];
+        const unsigned int sr0d = this->NER31DupAllIndex[(k+3)*5+4];
+        double Kr3 = 0;
+        const double Kf3 = Kf_[i3];
+        unsigned int l3 = i3 - this->Ikf[1] + this->Ikf[9];
+        Kr3 = this->Kf_[l3];
+        const double CF3 = c[sl0d]*c[sl1d]*c[sl2d];
+        const double CR3 = c[sr0d];
+        const double q3 = (Kf3*CF3) - (Kr3*CR3);
+        dNdtByV[sl0d] = dNdtByV[sl0d] - q3;
+        dNdtByV[sl1d] = dNdtByV[sl1d] - q3;
+        dNdtByV[sl2d] = dNdtByV[sl2d] - q3;
+        dNdtByV[sr0d] = dNdtByV[sr0d] + q3;
+    }
+    if(remainNER31Dup==1)
+    {
+        std::size_t k = endNER31Dup-1;
+        const unsigned int i0 = this->NER31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr0 = this->Kf_[l0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+    }
+    else if(remainNER31Dup==2)
+    {
+        std::size_t k = endNER31Dup-2;
+        const unsigned int i0 = this->NER31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr0 = this->Kf_[l0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        const unsigned int i1 = this->NER31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
+        Kr1 = this->Kf_[l1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+    }
+    else if(remainNER31Dup==3)
+    {
+        std::size_t k = endNER31Dup-3;
+        const unsigned int i0 = this->NER31DupAllIndex[(k+0)*5+0];
+        const unsigned int sl0a = this->NER31DupAllIndex[(k+0)*5+1];
+        const unsigned int sl1a = this->NER31DupAllIndex[(k+0)*5+2];
+        const unsigned int sl2a = this->NER31DupAllIndex[(k+0)*5+3];
+        const unsigned int sr0a = this->NER31DupAllIndex[(k+0)*5+4];
+        double Kr0 = 0;
+        const double Kf0 = Kf_[i0];
+        unsigned int l0 = i0 - this->Ikf[1] + this->Ikf[9];
+        Kr0 = this->Kf_[l0];
+        const double CF0 = c[sl0a]*c[sl1a]*c[sl2a];
+        const double CR0 = c[sr0a];
+        const double q0 = (Kf0*CF0) - (Kr0*CR0);
+        dNdtByV[sl0a] = dNdtByV[sl0a] - q0;
+        dNdtByV[sl1a] = dNdtByV[sl1a] - q0;
+        dNdtByV[sl2a] = dNdtByV[sl2a] - q0;
+        dNdtByV[sr0a] = dNdtByV[sr0a] + q0;
+
+        const unsigned int i1 = this->NER31DupAllIndex[(k+1)*5+0];
+        const unsigned int sl0b = this->NER31DupAllIndex[(k+1)*5+1];
+        const unsigned int sl1b = this->NER31DupAllIndex[(k+1)*5+2];
+        const unsigned int sl2b = this->NER31DupAllIndex[(k+1)*5+3];
+        const unsigned int sr0b = this->NER31DupAllIndex[(k+1)*5+4];
+        double Kr1 = 0;
+        const double Kf1 = Kf_[i1];
+        unsigned int l1 = i1 - this->Ikf[1] + this->Ikf[9];
+        Kr1 = this->Kf_[l1];
+        const double CF1 = c[sl0b]*c[sl1b]*c[sl2b];
+        const double CR1 = c[sr0b];
+        const double q1 = (Kf1*CF1) - (Kr1*CR1);
+        dNdtByV[sl0b] = dNdtByV[sl0b] - q1;
+        dNdtByV[sl1b] = dNdtByV[sl1b] - q1;
+        dNdtByV[sl2b] = dNdtByV[sl2b] - q1;
+        dNdtByV[sr0b] = dNdtByV[sr0b] + q1;
+
+        const unsigned int i2 = this->NER31DupAllIndex[(k+2)*5+0];
+        const unsigned int sl0c = this->NER31DupAllIndex[(k+2)*5+1];
+        const unsigned int sl1c = this->NER31DupAllIndex[(k+2)*5+2];
+        const unsigned int sl2c = this->NER31DupAllIndex[(k+2)*5+3];
+        const unsigned int sr0c = this->NER31DupAllIndex[(k+2)*5+4];
+        double Kr2 = 0;
+        const double Kf2 = Kf_[i2];
+        unsigned int l2 = i2 - this->Ikf[1] + this->Ikf[9];
+        Kr2 = this->Kf_[l2];
+        const double CF2 = c[sl0c]*c[sl1c]*c[sl2c];
+        const double CR2 = c[sr0c];
+        const double q2 = (Kf2*CF2) - (Kr2*CR2);
+        dNdtByV[sl0c] = dNdtByV[sl0c] - q2;
+        dNdtByV[sl1c] = dNdtByV[sl1c] - q2;
+        dNdtByV[sl2c] = dNdtByV[sl2c] - q2;
+        dNdtByV[sr0c] = dNdtByV[sr0c] + q2;
+    }
     }
 }

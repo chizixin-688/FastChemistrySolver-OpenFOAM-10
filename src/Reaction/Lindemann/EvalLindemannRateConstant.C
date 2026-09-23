@@ -38,7 +38,6 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
         const unsigned int i = this->n_LindemannFO-1;
         const unsigned int j = this->LindemannFO[i];
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
-        //const unsigned int k = j - this->Ikf[4];
         const double Kinf = this->Kf_[j+this->offset_kinf];
         double M = this->tmp_M[m];     
         const double K0 = this->Kf_[j];
@@ -50,10 +49,7 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
     {
         const unsigned int i = this->n_LindemannFO-2;
         const unsigned int j0 = this->LindemannFO[i+0]+0;
-        //const unsigned int j1 = this->LindemannFO[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
-        //const unsigned int k0 = j0 - this->Ikf[4];
-        //const unsigned int k1 = j1 - this->Ikf[4];
         __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
         __m128d M = _mm_loadu_pd(&this->tmp_M[m0]);
         __m128d K0 = _mm_loadu_pd(&this->Kf_[j0]);
@@ -72,9 +68,6 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
         const unsigned int m0 = j0 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m1 = j1 - this->Ikf[4] + this->Itbr[2];
         const unsigned int m2 = j2 - this->Ikf[4] + this->Itbr[2];
-        //const unsigned int k0 = j0 - this->Ikf[4];
-        //const unsigned int k1 = j1 - this->Ikf[4];
-        //const unsigned int k2 = j2 - this->Ikf[4];
         const double Kinf0 = this->Kf_[j0+this->offset_kinf];
         const double Kinf1 = this->Kf_[j1+this->offset_kinf];
         const double Kinf2 = this->Kf_[j2+this->offset_kinf];
@@ -94,9 +87,9 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
         __m256d N = _mm256_div_pd(K0,_mm256_add_pd(Pr,one));
 
         __m256d Kf = _mm256_mul_pd(M,N);
-        this->Kf_[j0] = get_elem0(Kf);
-        this->Kf_[j1] = get_elem1(Kf);
-        this->Kf_[j2] = get_elem2(Kf);
+        this->Kf_[j0] = get0(Kf);
+        this->Kf_[j1] = get1(Kf);
+        this->Kf_[j2] = get2(Kf);
     }
 
     unsigned int remainCA = this->n_LindemannCA%4;
@@ -129,7 +122,6 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
     {
         const unsigned int i = this->n_LindemannCA-2;
         const unsigned int j0 = this->LindemannCA[i+0]+0;
-        //const unsigned int j1 = this->LindemannCA[i+0]+1;
         const unsigned int m0 = j0 - this->Ikf[5] + this->Itbr[3];
 
         __m128d Kinf = _mm_loadu_pd(&this->Kf_[j0+this->offset_kinf]);
@@ -171,8 +163,8 @@ void FastChemistry::OptReaction::evalLindemannRateConstant()const noexcept
         __m256d N = _mm256_div_pd(K0,_mm256_add_pd(Pr,one));
 
         __m256d Kf = (N);
-        this->Kf_[j0] = get_elem0(Kf);
-        this->Kf_[j1] = get_elem1(Kf);
-        this->Kf_[j2] = get_elem2(Kf);
+        this->Kf_[j0] = get0(Kf);
+        this->Kf_[j1] = get1(Kf);
+        this->Kf_[j2] = get2(Kf);
     }
 }

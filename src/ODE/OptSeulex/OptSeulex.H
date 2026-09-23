@@ -35,25 +35,21 @@ Description
         Stiff and Differential-Algebraic Problems, second edition",
         Springer-Verlag, Berlin.
     \endverbatim
-    
-SourceFiles
-    OptSeulex.C
 
-\*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*\
-  Description
       Header file for Seulex algorithm, note that this implementation is not
       consistent with OpenFOAM-10 version. But same with Imren's version
 
       Reference
 
-      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff 
+      [1] A. Imren, D. C. Haworth. On the merits of extrapolation-based stiff
       ODE solvers for combustion CFD. Combustion and Flame 174 (2016) 1–15.
 
+SourceFiles
+    OptSeulex.C
 
-  Author
-      Zixin Chi <chizixin@buaa.edu.cn>
+Author
+    Zixin Chi <chizixin@buaa.edu.cn>
+
 \*---------------------------------------------------------------------------*/
 
 //=============================================================================//
@@ -85,7 +81,7 @@ SourceFiles
 
 namespace Foam
 {
-
+using namespace FastChemistry;
 /*---------------------------------------------------------------------------*\
                         Class OptSeulex Declaration
 \*---------------------------------------------------------------------------*/
@@ -97,6 +93,8 @@ class OptSeulex
 {
     // Private Data
 
+        //- State of the adaptive stepping: direction flag, tried and
+        //  accepted step sizes, and accept/reject history flags
     class stepState
     {
         public:
@@ -121,7 +119,6 @@ class OptSeulex
         {}
     };
 
-
         //- Coefficients dictionary
         dictionary coeffsDict_;
 
@@ -137,7 +134,6 @@ class OptSeulex
 
         //- The maximum number of sub-steps allowed for the integration step
         const label maxSteps_;
-
 
     // Seulex
 
@@ -173,10 +169,9 @@ class OptSeulex
 
             // Fields space for "solve" function
 
-
             mutable scalarField dxOpt_, temp_;
             //mutable scalarField y0_, ySequence_, scale_;
-            
+
             mutable double* y0_;
             mutable double* ySequence_;
             mutable double* scale_;
@@ -186,24 +181,18 @@ class OptSeulex
 
         mutable FastChemistry::LUsolver LU;
 
-
-
-
 public:
 
     //- Runtime type information
     TypeName("OptSeulex");
-
 
     // Constructors
 
         //- Construct from thermo
         OptSeulex(const fluidReactionThermo& thermo);
 
-
     //- Destructor
     virtual ~OptSeulex();
-
 
     // Member Functions
 
@@ -217,7 +206,6 @@ public:
             scalar& __restrict__ deltaT,
             scalar& __restrict__ subDeltaT
         ) const;
-
 
         virtual void solve
         (
@@ -244,7 +232,7 @@ public:
             double* __restrict__ k11,
             double* __restrict__ Jy,
             double* __restrict__ a
-        )const;
+        ) const;
 
         void SeulexSolve
         (
@@ -259,10 +247,10 @@ public:
             double* __restrict__ dy_,
             double* __restrict__ dydx_,
             double* __restrict__ k9,
-            double* __restrict__ k11,            
+            double* __restrict__ k11,
             double* __restrict__ Jy,
-            double* __restrict__ a            
-        )const;
+            double* __restrict__ a
+        ) const;
 
     // Private Member Functions
 
@@ -281,9 +269,9 @@ public:
             double* __restrict__ Ha,
             double* __restrict__ dy_,
             double* __restrict__ dydx_,
-            double* __restrict__ k11,             
+            double* __restrict__ k11,
             double* __restrict__ Jy,
-            double* __restrict__ a                
+            double* __restrict__ a
         ) const;
 
         //- Polynomial extrapolation
@@ -295,8 +283,7 @@ public:
         ) const;
 
 };
-
-
+ 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
@@ -312,3 +299,4 @@ public:
 #endif
 
 // ************************************************************************* //
+

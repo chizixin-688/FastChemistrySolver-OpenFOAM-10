@@ -17,8 +17,7 @@
 //=============================================================================//
 
 void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
-{
-    __m256d onev = _mm256_set1_pd(1.0);
+{    __m256d onev = _mm256_set1_pd(1.0);
     __m256d smallv = _mm256_set1_pd(FastChemistry::SRILimiter);
     __m256d invLog10v = _mm256_set1_pd(0.43429448190325182765112891891661);
     __m256d logTv = _mm256_set1_pd(this->logT);
@@ -131,16 +130,25 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             //const double dKdT   = Pr*dKinfdT;
             __m256d dKdTv = _mm256_mul_pd(Prv,dKinfdTv);
 
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
+
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dKdT + F*invOnePlusPr*invOnePlusPr*dPrdT*Kinf + K0*invOnePlusPr*dFdT*M;
             //invOnePlusPr*(F*(dKdT+invOnePlusPr*dPrdT*Kinf) + K0*dFdT*M)
@@ -211,17 +219,17 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double e = this->e_[i];
 
-        const double logT = this->logT;
+        //const double logT = this->logT;
 
-        const double F = d*std::exp(X*logPsi+e*logT);
+        const double F = d*std::exp(X*logPsi+e*this->logT);
 
         const double b = this->b_[i];
 
         const double invc = this->invc_[i];
 
-        const double invT = this->invT;
+        const double rT = this->invT;
 
-        const double dpsidT = a*b*invT*invT*expbT - invc*expTc;
+        const double dpsidT = a*b*rT*rT*expbT - invc*expTc;
 
         const double dlogPrdPr = Pr >= FastChemistry::SRILimiter ? invLog10*1/Pr : 0;
 
@@ -237,9 +245,14 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         {
             const double dKdT   = Pr*dKinfdT;
 
-            const double dFdT = F*(X/psi*dpsidT + e*invT);
-
             const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+
+            // OpenFOAM FallOffReactionRate::ddT includes the Pr-dependence of
+            // the fall-off function: dFdT_full = F_.ddT + F_.ddPr*dPrdT.
+            const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
+            const double dFdPr = F*logPsi*dXdPr;
+
+            const double dFdT = F*(X/psi*dpsidT + e*rT) + dFdPr*dPrdT;
 
             this->dKfdT_[j] = F*invOnePlusPr*dKdT + F*invOnePlusPr*invOnePlusPr*dPrdT*Kinf + K0*invOnePlusPr*dFdT*M;
             //invOnePlusPr*(F*(dKdT+invOnePlusPr*dPrdT*Kinf) + K0*dFdT*M)
@@ -258,8 +271,7 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
     else if (remainFO==2)
     {
         const unsigned int i = this->n_SRIFO-2;
-        const unsigned int j = this->SRIFO[i];
-        const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
+        const unsigned int j = this->SRIFO[i];        const unsigned int m = j - this->Ikf[4] + this->Itbr[2];
 
         //const double Kinf = this->Kf_[j+this->offset_kinf];
         __m256d Kinfv = _mm256_setzero_pd();
@@ -420,16 +432,25 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             //const double dKdT   = Pr*dKinfdT;
             __m256d dKdTv = _mm256_mul_pd(Prv,dKinfdTv);
 
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
+
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dKdT + F*invOnePlusPr*invOnePlusPr*dPrdT*Kinf + K0*invOnePlusPr*dFdT*M;
             //invOnePlusPr*(F*(dKdT+invOnePlusPr*dPrdT*Kinf) + K0*dFdT*M)
@@ -604,24 +625,33 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             Nv = _mm256_mul_pd(Nv,K0v);
             __m256d MNv = _mm256_mul_pd(Nv,Mv);
             //this->Kf_[j] = M*N; 
-            this->Kf_[j+0] = this->get_elem0(MNv);
-            this->Kf_[j+1] = this->get_elem1(MNv);
-            this->Kf_[j+2] = this->get_elem2(MNv);
+            this->Kf_[j+0] = get0(MNv);
+            this->Kf_[j+1] = get1(MNv);
+            this->Kf_[j+2] = get2(MNv);
         }
         {
             //const double dKdT   = Pr*dKinfdT;
             __m256d dKdTv = _mm256_mul_pd(Prv,dKinfdTv);
+
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
 
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dKdT + F*invOnePlusPr*invOnePlusPr*dPrdT*Kinf + K0*invOnePlusPr*dFdT*M;
             //invOnePlusPr*(F*(dKdT+invOnePlusPr*dPrdT*Kinf) + K0*dFdT*M)
@@ -631,9 +661,9 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             dKfdTv = _mm256_fmadd_pd(dKfdTv,Kinfv,dKdTv);
             dKfdTv = _mm256_fmadd_pd(dKfdTv,Fv,K0dFdTMv);
             dKfdTv = _mm256_mul_pd(dKfdTv,invOnePlusPrv);
-            this->dKfdT_[j+0] = this->get_elem0(dKfdTv);
-            this->dKfdT_[j+1] = this->get_elem1(dKfdTv);
-            this->dKfdT_[j+2] = this->get_elem2(dKfdTv);
+            this->dKfdT_[j+0] = get0(dKfdTv);
+            this->dKfdT_[j+1] = get1(dKfdTv);
+            this->dKfdT_[j+2] = get2(dKfdTv);
         }
         {
             //const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
@@ -654,9 +684,9 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             __m256d dKfdCv = _mm256_mul_pd(K0v,invOnePlusPrv);
             __m256d N1N2v = _mm256_add_pd(N1v,N2v);
             dKfdCv = _mm256_mul_pd(dKfdCv,N1N2v);
-            this->dKfdC_[m+0] = this->get_elem0(dKfdCv);
-            this->dKfdC_[m+1] = this->get_elem1(dKfdCv);
-            this->dKfdC_[m+2] = this->get_elem2(dKfdCv);
+            this->dKfdC_[m+0] = get0(dKfdCv);
+            this->dKfdC_[m+1] = get1(dKfdCv);
+            this->dKfdC_[m+2] = get2(dKfdCv);
             //_mm_storeu_pd(&this->dKfdC_[m],_mm256_castpd256_pd128(dKfdCv));
 
             //this->dKfdC_[m] =  K0*invOnePlusPr*(N1 + N2); 
@@ -769,16 +799,25 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             //const double dKdT   = dK0dT;
             __m256d dKdTv = dK0dTv;
 
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
+
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dKdT 
             //+ F*invOnePlusPr*invOnePlusPr*dPrdT*K0
@@ -855,17 +894,17 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
 
         const double e = this->e_[i+this->n_SRIFO];
 
-        const double logT = this->logT;
+        //const double logT = this->logT;
 
-        const double F = d*std::exp(X*logPsi+e*logT);
+        const double F = d*std::exp(X*logPsi+e*this->logT);
 
         const double b = this->b_[i+this->n_SRIFO];
 
         const double invc = this->invc_[i+this->n_SRIFO];
 
-        const double invT = this->invT;
+        const double rT = this->invT;
 
-        const double dpsidT = a*b*invT*invT*expbT - invc*expTc;
+        const double dpsidT = a*b*rT*rT*expbT - invc*expTc;
 
         const double dlogPrdPr = Pr >= FastChemistry::SRILimiter ? invLog10*1/Pr : 0;
 
@@ -881,9 +920,13 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
         {
             //const double dKdT   = k<this->n_Fall_Off_Reaction?Pr*dKinfdT:dK0dT;
 
-            const double dFdT = F*(X/psi*dpsidT + e*invT);
-
             const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
+            const double dFdPr = F*logPsi*dXdPr;
+
+            const double dFdT = F*(X/psi*dpsidT + e*rT) + dFdPr*dPrdT;
 
             this->dKfdT_[j] = F*invOnePlusPr*dK0dT + F*invOnePlusPr*invOnePlusPr*dPrdT*K0 + K0*invOnePlusPr*dFdT;
         }
@@ -1063,16 +1106,25 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             //const double dKdT   = Pr*dKinfdT;
             __m256d dKdTv = dK0dTv;
 
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
+
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dKdT + F*invOnePlusPr*invOnePlusPr*dPrdT*Kinf + K0*invOnePlusPr*dFdT*M;
             //invOnePlusPr*(F*(dKdT+invOnePlusPr*dPrdT*Kinf) + K0*dFdT*M)
@@ -1249,24 +1301,33 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             __m256d Nv = _mm256_mul_pd(invOnePlusPrv,Fv);
             Nv = _mm256_mul_pd(Nv,K0v);
             //this->Kf_[j] = M*N; 
-            this->Kf_[j+0] = this->get_elem0(Nv);
-            this->Kf_[j+1] = this->get_elem1(Nv);
-            this->Kf_[j+2] = this->get_elem2(Nv);
+            this->Kf_[j+0] = get0(Nv);
+            this->Kf_[j+1] = get1(Nv);
+            this->Kf_[j+2] = get2(Nv);
         }
         {
             //const double dKdT   = Pr*dKinfdT;
             __m256d dKdTv = dK0dTv;
+
+            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
+            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
+            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
+            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+
+            // F depends on Pr, which depends on T: dFdT_full = F_.ddT + F_.ddPr*dPrdT
+            __m256d dXdPrv = _mm256_mul_pd(Xv,Xv);
+            __m256d logPrdlogPrdPrv = _mm256_mul_pd(logPrv,dlogPrdPrv);
+            dXdPrv = _mm256_mul_pd(dXdPrv,_mm256_set1_pd(-2));
+            dXdPrv = _mm256_mul_pd(dXdPrv,logPrdlogPrdPrv);
+            __m256d dFdPrv = _mm256_mul_pd(Fv,logPsiv);
+            dFdPrv = _mm256_mul_pd(dFdPrv,dXdPrv);
 
             //const double dFdT = F*(X/psi*dpsidT + e*invT);
             __m256d dFdTv = _mm256_div_pd(Xv,psiv);
             __m256d einvTv = _mm256_mul_pd(ev,invTv);
             dFdTv = _mm256_fmadd_pd(dFdTv,dpsidTv,einvTv);
             dFdTv = _mm256_mul_pd(Fv,dFdTv);
-
-            //const double dPrdT = (M*dK0dT-Pr*dKinfdT)*invKinf;
-            __m256d PrdKinfdTv = _mm256_mul_pd(Prv,dKinfdTv);
-            __m256d dPrdTv = _mm256_fmsub_pd(Mv,dK0dTv,PrdKinfdTv);
-            dPrdTv = _mm256_mul_pd(dPrdTv,invKinfv);
+            dFdTv = _mm256_fmadd_pd(dFdPrv,dPrdTv,dFdTv);
 
             //this->dKfdT_[j] = F*invOnePlusPr*dK0dT 
             //+ F*invOnePlusPr*invOnePlusPr*dPrdT*K 
@@ -1277,9 +1338,9 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             dKfdTv = _mm256_fmadd_pd(dKfdTv,K0v,dKdTv);
             dKfdTv = _mm256_fmadd_pd(dKfdTv,Fv,K0dFdTv);
             dKfdTv = _mm256_mul_pd(dKfdTv,invOnePlusPrv);
-            this->dKfdT_[j+0] = this->get_elem0(dKfdTv);
-            this->dKfdT_[j+1] = this->get_elem1(dKfdTv);
-            this->dKfdT_[j+2] = this->get_elem2(dKfdTv);
+            this->dKfdT_[j+0] = get0(dKfdTv);
+            this->dKfdT_[j+1] = get1(dKfdTv);
+            this->dKfdT_[j+2] = get2(dKfdTv);
         }
         {
             //const double dXdPr = -(X*X)*2*logPr*dlogPrdPr;
@@ -1304,9 +1365,9 @@ void FastChemistry::OptReaction::evalSRIPartialDerivative()const noexcept
             __m256d K0invKinfv = _mm256_mul_pd(K0v,invKinfv);
             dKfdCv = _mm256_mul_pd(dKfdCv,N2N1v);
             dKfdCv = _mm256_mul_pd(dKfdCv,K0invKinfv);
-            this->dKfdC_[m+0] = this->get_elem0(dKfdCv);
-            this->dKfdC_[m+1] = this->get_elem1(dKfdCv);
-            this->dKfdC_[m+2] = this->get_elem2(dKfdCv);
+            this->dKfdC_[m+0] = get0(dKfdCv);
+            this->dKfdC_[m+1] = get1(dKfdCv);
+            this->dKfdC_[m+2] = get2(dKfdCv);
             //_mm_storeu_pd(&this->dKfdC_[m],_mm256_castpd256_pd128(dKfdCv));
 
             //this->dKfdC_[m] =  K0*invOnePlusPr*K0*invKinf*(N2 - N1); 

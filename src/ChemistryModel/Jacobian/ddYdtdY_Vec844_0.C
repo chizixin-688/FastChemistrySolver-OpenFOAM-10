@@ -1,9 +1,25 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing mass fraction based jacobian matrix using molar concentration 
-      based matrix
-      Computing partial derivatives of dYdt w.r.t mass fraction
-      the tail is 0.  
+      Species block of the mass-fraction based Jacobian (exact path):
+      Jac[i][j] = d(dY_i/dt)/dY_j  for i,j in [0, Ns).
+
+      The molar-concentration based matrix ddNdtByVdcT is converted to the
+      mass-fraction basis with the ideal-gas relation
+
+          dc_k/dY_j = -rhoM*invW[k]*Phi[k]*rhoMByRhoi[j]
+                       + delta_kj*rhoM*invW[j]
+
+      and assembled into the Jacobian
+
+          Jac[i][j] = WiByrhoM[i] * sum_k ddNdtByVdcT[i][k]*dc_k/dY_j
+                      + rhoMByRhoi[j] * (WiByrhoM[i]*dPhidt[i])
+
+      where rhoM is the reference density, invW = 1/W, Phi holds the mass
+      fractions, and dcdY is a scratch buffer holding dc_k/dY_j of one
+      8-column block at a time.
+
+      This variant (suffix 0) is specialised for nSpecie() % 8 == 0, so no
+      remainder tail is required.
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -19,7 +35,7 @@
 //---------------------------------
 // 2. SIMD / AVX2 headers
 //---------------------------------
-#include <immintrin.h>  
+#include <immintrin.h>
 
 //=============================================================================//
 
@@ -74,7 +90,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0
             store256d(&dcdY[i*8+48],_mm256_mul_pd(rhoMByWi6YTv,rhoMbyRhoJ03));
             store256d(&dcdY[i*8+52],_mm256_mul_pd(rhoMByWi6YTv,rhoMbyRhoJ47));
             store256d(&dcdY[i*8+56],_mm256_mul_pd(rhoMByWi7YTv,rhoMbyRhoJ03));
-            store256d(&dcdY[i*8+60],_mm256_mul_pd(rhoMByWi7YTv,rhoMbyRhoJ47));            
+            store256d(&dcdY[i*8+60],_mm256_mul_pd(rhoMByWi7YTv,rhoMbyRhoJ47));
         }
 
 
@@ -104,7 +120,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0
             __m256d ddNi0dtByVdYj47 = _mm256_setzero_pd();
             __m256d ddNi1dtByVdYj47 = _mm256_setzero_pd();
             __m256d ddNi2dtByVdYj47 = _mm256_setzero_pd();
-            __m256d ddNi3dtByVdYj47 = _mm256_setzero_pd();            
+            __m256d ddNi3dtByVdYj47 = _mm256_setzero_pd();
             const double* __restrict__ JcRowi0 = &ddNdtByVdcT[(i+0)*this->alignN];
             const double* __restrict__ JcRowi1 = &ddNdtByVdcT[(i+1)*this->alignN];
             const double* __restrict__ JcRowi2 = &ddNdtByVdcT[(i+2)*this->alignN];
@@ -126,17 +142,17 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0
                 ddNi1dtByVdYj47 = _mm256_fmadd_pd(ddNi1dtByVdck0v,dCk0dYj47v,ddNi1dtByVdYj47);
                 ddNi2dtByVdYj47 = _mm256_fmadd_pd(ddNi2dtByVdck0v,dCk0dYj47v,ddNi2dtByVdYj47);
                 ddNi3dtByVdYj47 = _mm256_fmadd_pd(ddNi3dtByVdck0v,dCk0dYj47v,ddNi3dtByVdYj47);
-                
+
                 __m256d ddNi0dtByVdck1v = _mm256_set1_pd(JcRowi0[k+1]);
                 __m256d ddNi1dtByVdck1v = _mm256_set1_pd(JcRowi1[k+1]);
                 __m256d ddNi2dtByVdck1v = _mm256_set1_pd(JcRowi2[k+1]);
                 __m256d ddNi3dtByVdck1v = _mm256_set1_pd(JcRowi3[k+1]);
-                __m256d dCk1dYj03v = load256d(&dcdY[k*8+8]);     
+                __m256d dCk1dYj03v = load256d(&dcdY[k*8+8]);
                 ddNi0dtByVdYj03 = _mm256_fmadd_pd(ddNi0dtByVdck1v,dCk1dYj03v,ddNi0dtByVdYj03);
                 ddNi1dtByVdYj03 = _mm256_fmadd_pd(ddNi1dtByVdck1v,dCk1dYj03v,ddNi1dtByVdYj03);
                 ddNi2dtByVdYj03 = _mm256_fmadd_pd(ddNi2dtByVdck1v,dCk1dYj03v,ddNi2dtByVdYj03);
                 ddNi3dtByVdYj03 = _mm256_fmadd_pd(ddNi3dtByVdck1v,dCk1dYj03v,ddNi3dtByVdYj03);
-                __m256d dCk1dYj47v = load256d(&dcdY[k*8+12]);     
+                __m256d dCk1dYj47v = load256d(&dcdY[k*8+12]);
                 ddNi0dtByVdYj47 = _mm256_fmadd_pd(ddNi0dtByVdck1v,dCk1dYj47v,ddNi0dtByVdYj47);
                 ddNi1dtByVdYj47 = _mm256_fmadd_pd(ddNi1dtByVdck1v,dCk1dYj47v,ddNi1dtByVdYj47);
                 ddNi2dtByVdYj47 = _mm256_fmadd_pd(ddNi2dtByVdck1v,dCk1dYj47v,ddNi2dtByVdYj47);
@@ -160,24 +176,24 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0
                 __m256d ddNi0dtByVdck3v = _mm256_set1_pd(JcRowi0[k+3]);
                 __m256d ddNi1dtByVdck3v = _mm256_set1_pd(JcRowi1[k+3]);
                 __m256d ddNi2dtByVdck3v = _mm256_set1_pd(JcRowi2[k+3]);
-                __m256d ddNi3dtByVdck3v = _mm256_set1_pd(JcRowi3[k+3]);  
-                __m256d dCk3dYj03v = load256d(&dcdY[k*8+24]);              
+                __m256d ddNi3dtByVdck3v = _mm256_set1_pd(JcRowi3[k+3]);
+                __m256d dCk3dYj03v = load256d(&dcdY[k*8+24]);
                 ddNi0dtByVdYj03 = _mm256_fmadd_pd(ddNi0dtByVdck3v,dCk3dYj03v,ddNi0dtByVdYj03);
                 ddNi1dtByVdYj03 = _mm256_fmadd_pd(ddNi1dtByVdck3v,dCk3dYj03v,ddNi1dtByVdYj03);
                 ddNi2dtByVdYj03 = _mm256_fmadd_pd(ddNi2dtByVdck3v,dCk3dYj03v,ddNi2dtByVdYj03);
                 ddNi3dtByVdYj03 = _mm256_fmadd_pd(ddNi3dtByVdck3v,dCk3dYj03v,ddNi3dtByVdYj03);
-                __m256d dCk3dYj47v = load256d(&dcdY[k*8+28]);              
+                __m256d dCk3dYj47v = load256d(&dcdY[k*8+28]);
                 ddNi0dtByVdYj47 = _mm256_fmadd_pd(ddNi0dtByVdck3v,dCk3dYj47v,ddNi0dtByVdYj47);
                 ddNi1dtByVdYj47 = _mm256_fmadd_pd(ddNi1dtByVdck3v,dCk3dYj47v,ddNi1dtByVdYj47);
                 ddNi2dtByVdYj47 = _mm256_fmadd_pd(ddNi2dtByVdck3v,dCk3dYj47v,ddNi2dtByVdYj47);
-                ddNi3dtByVdYj47 = _mm256_fmadd_pd(ddNi3dtByVdck3v,dCk3dYj47v,ddNi3dtByVdYj47);                
+                ddNi3dtByVdYj47 = _mm256_fmadd_pd(ddNi3dtByVdck3v,dCk3dYj47v,ddNi3dtByVdYj47);
             }
              __m256d WiByrhoM_0 = _mm256_set1_pd(Wi0ByrhoM_);
             __m256d dYidtv0 = _mm256_set1_pd(dYi0dt);
             __m256d ddYi0dtdYj03v = _mm256_mul_pd(rhoMbyRhoJ03,dYidtv0);
             ddYi0dtdYj03v = _mm256_fmadd_pd(WiByrhoM_0,ddNi0dtByVdYj03,ddYi0dtdYj03v);
             __m256d ddYi0dtdYj47v = _mm256_mul_pd(rhoMbyRhoJ47,dYidtv0);
-            ddYi0dtdYj47v = _mm256_fmadd_pd(WiByrhoM_0,ddNi0dtByVdYj47,ddYi0dtdYj47v);            
+            ddYi0dtdYj47v = _mm256_fmadd_pd(WiByrhoM_0,ddNi0dtByVdYj47,ddYi0dtdYj47v);
 
 
             __m256d WiByrhoM_1 = _mm256_set1_pd(Wi1ByrhoM_);
@@ -209,7 +225,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0
             store256d(&Jac[(i+0)*(this->alignN)+ j+4],ddYi0dtdYj47v);
             store256d(&Jac[(i+1)*(this->alignN)+ j+4],ddYi1dtdYj47v);
             store256d(&Jac[(i+2)*(this->alignN)+ j+4],ddYi2dtdYj47v);
-            store256d(&Jac[(i+3)*(this->alignN)+ j+4],ddYi3dtdYj47v);            
-        }     
-    }     
+            store256d(&Jac[(i+3)*(this->alignN)+ j+4],ddYi3dtdYj47v);
+        }
+    }
 }

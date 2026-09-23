@@ -79,13 +79,11 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         const unsigned int i = this->n_LindemannFO-2;
         const unsigned int j = this->LindemannFO[i+0]+0;
         const unsigned int m = j - this->Ikf[4] + this->Itbr[2];        
-
-        //__m256d Kinf = _mm256_setr_pd(Kf_[j + this->offset_kinf],Kf_[j1 + this->offset_kinf],1,1);  
+ 
         __m128d Kinf = _mm_loadu_pd(&Kf_[j+this->offset_kinf]);  
 
         __m128d invKinf = _mm_div_pd(_mm256_castpd256_pd128(one),Kinf);
 
-        //__m128d dKinfdT = _mm256_setr_pd(dKfdT_[j + this->offset_kinf],dKfdT_[j1 + this->offset_kinf],1,1);
         __m128d dKinfdT = _mm_loadu_pd(&dKfdT_[j+this->offset_kinf]);
 
         __m128d K0 = _mm_loadu_pd(&Kf_[j]); 
@@ -104,19 +102,12 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         __m128d N = _mm_mul_pd(tmp,K0);
         __m128d dKfdT = _mm_mul_pd(_mm_mul_pd(_mm_mul_pd(tmp,tmp),dPrdT),K);
         dKfdT = _mm_fmadd_pd(tmp,dKdT,dKfdT);
-
-        //dKfdT_[j] = get_elem0(dKfdT);
-        //dKfdT_[j1] = get_elem1(dKfdT);
         _mm_storeu_pd(&dKfdT_[j],dKfdT);
 
         __m128d dKfdC = _mm_mul_pd((_mm_mul_pd(K0,tmp)),N1);
-        //dKfdC_[m] = get_elem0(dKfdC);
-        //dKfdC_[m1] = get_elem1(dKfdC);
         _mm_storeu_pd(&dKfdC_[m],dKfdC);
 
         __m128d KF = (_mm_mul_pd(M,N));   
-        //Kf_[j] = get_elem0(KF);
-        //Kf_[j1] = get_elem1(KF);
         _mm_storeu_pd(&Kf_[j],KF);
     }
     else if (remainFO==3)
@@ -169,17 +160,17 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         __m256d N = _mm256_mul_pd(tmp,K0v);
         __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
         dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
-        this->dKfdT_[j+0] = get_elem0(dKfdT);
-        this->dKfdT_[j+1] = get_elem1(dKfdT);
-        this->dKfdT_[j+2] = get_elem2(dKfdT);
+        this->dKfdT_[j+0] = get0(dKfdT);
+        this->dKfdT_[j+1] = get1(dKfdT);
+        this->dKfdT_[j+2] = get2(dKfdT);
         __m256d dKfdC = _mm256_mul_pd((_mm256_mul_pd(K0v,tmp)),N1);
-        this->dKfdC_[m+00] = get_elem0(dKfdC);
-        this->dKfdC_[m+1] = get_elem1(dKfdC);
-        this->dKfdC_[m+2] = get_elem2(dKfdC);
+        this->dKfdC_[m+00] = get0(dKfdC);
+        this->dKfdC_[m+1] = get1(dKfdC);
+        this->dKfdC_[m+2] = get2(dKfdC);
         __m256d KF = (_mm256_mul_pd(Mv,N));
-        this->Kf_[j+0] = get_elem0(KF);
-        this->Kf_[j+1] = get_elem1(KF);
-        this->Kf_[j+2] = get_elem2(KF);
+        this->Kf_[j+0] = get0(KF);
+        this->Kf_[j+1] = get1(KF);
+        this->Kf_[j+2] = get2(KF);
     }
 
     const unsigned int remainCA = (this->n_LindemannCA)%4;
@@ -209,7 +200,7 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         __m256d N1 = (-tmp);
         __m256d N = _mm256_mul_pd(tmp,K0);
         __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
-        dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
+        dKfdT = _mm256_fmsub_pd(tmp,dKdT,dKfdT);
         _mm256_storeu_pd(&this->dKfdT_[j0],dKfdT);
         __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,tmp),KK),N1);
         _mm256_storeu_pd(&this->dKfdC_[m0],dKfdC);
@@ -235,7 +226,6 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         const double KK0     = K00*invKinf0;
         const double N10     = -invOnePlusPr0;
         const double N0  = invOnePlusPr0*1*K00;
-        // - k0*k0*dMdc/kInf/sqr(1 + Pr)
 
         const double r0 = invOnePlusPr0*dKdT0 - invOnePlusPr0*invOnePlusPr0*dPrdT0*K0;
         const double r1 = K00*KK0*(N10)*invOnePlusPr0; 
@@ -249,22 +239,15 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         const unsigned int j = this->LindemannCA[i+0]+0;
         const unsigned int m = j - this->Ikf[5] + this->Itbr[3];
 
-        //__m256d Kinf = _mm256_setr_pd(Kf_[j0-this->Ikf[5]+this->Ikf[8]],Kf_[j1-this->Ikf[5]+this->Ikf[8]],1,1);  
         __m128d Kinfv = _mm_loadu_pd(&Kf_[j-this->Ikf[5]+this->Ikf[8]]);
 
-        //__m256d invKinf = _mm256_div_pd(_mm256_set1_pd(1.0),Kinf);
         __m128d invKinfv = _mm_div_pd(_mm256_castpd256_pd128(one),Kinfv);
-
-        //__m256d dKinfdT = _mm256_setr_pd(dKfdT_[j0-this->Ikf[5]+this->Ikf[8]],dKfdT_[j1-this->Ikf[5]+this->Ikf[8]],1,1);
         __m128d dKinfdTv = _mm_loadu_pd(&dKfdT_[j-this->Ikf[5]+this->Ikf[8]]);
-        
-        //__m256d K0 = _mm256_setr_pd(Kf_[j0],Kf_[j1],1,1);        
+            
         __m128d K0v = _mm_loadu_pd(&Kf_[j]);
 
-        //__m256d dK0dT = _mm256_setr_pd(dKfdT_[j0],dKfdT_[j1],1,1);     
         __m128d dK0dTv = _mm_loadu_pd(&dKfdT_[j]);
 
-        //__m256d M = _mm256_setr_pd(tmp_M[m0],tmp_M[m1],1,1);
         __m128d Mv = _mm_loadu_pd(&tmp_M[m]);
 
         __m128d Prv = _mm_mul_pd(_mm_mul_pd(K0v,Mv),invKinfv);
@@ -280,20 +263,13 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         __m128d N1v = (-tmpv);
         __m128d Nv = _mm_mul_pd(tmpv,K0v);
         __m128d dKfdTv = _mm_mul_pd(_mm_mul_pd(_mm_mul_pd(tmpv,tmpv),dPrdTv),Kv);
-        dKfdTv = _mm_fmadd_pd(tmpv,dKdTv,dKfdTv);
-
-        //dKfdT_[j0] = get_elem0(dKfdT);
-        //dKfdT_[j1] = get_elem1(dKfdT);
+        dKfdTv = _mm_fmsub_pd(tmpv,dKdTv,dKfdTv);
         _mm_storeu_pd(&dKfdT_[j],dKfdTv);
 
         __m128d dKfdCv = _mm_mul_pd(_mm_mul_pd(_mm_mul_pd(K0v,tmpv),KKv),N1v);
-        //dKfdC_[m0] = get_elem0(dKfdC);
-        //dKfdC_[m1] = get_elem1(dKfdC);
         _mm_storeu_pd(&dKfdC_[m],dKfdCv);
 
         __m128d kfv = (Nv);   
-        //Kf_[j0] = get_elem0(KF);
-        //Kf_[j1] = get_elem1(KF);
         _mm_storeu_pd(&Kf_[j],kfv);
 
     }
@@ -344,17 +320,17 @@ void FastChemistry::OptReaction::evalLindemannPartialDerivative()const noexcept
         __m256d N1 = (-tmp);
         __m256d N = _mm256_mul_pd(tmp,K0v);
         __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(tmp,tmp),dPrdT),K);
-        dKfdT = _mm256_fmadd_pd(tmp,dKdT,dKfdT);
-        this->dKfdT_[j+0] = get_elem0(dKfdT);
-        this->dKfdT_[j+1] = get_elem1(dKfdT);
-        this->dKfdT_[j+2] = get_elem2(dKfdT);
+        dKfdT = _mm256_fmsub_pd(tmp,dKdT,dKfdT);
+        this->dKfdT_[j+0] = get0(dKfdT);
+        this->dKfdT_[j+1] = get1(dKfdT);
+        this->dKfdT_[j+2] = get2(dKfdT);
         __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0v,tmp),KK),N1);
-        this->dKfdC_[m+0] = get_elem0(dKfdC);
-        this->dKfdC_[m+1] = get_elem1(dKfdC);
-        this->dKfdC_[m+2] = get_elem2(dKfdC);
+        this->dKfdC_[m+0] = get0(dKfdC);
+        this->dKfdC_[m+1] = get1(dKfdC);
+        this->dKfdC_[m+2] = get2(dKfdC);
         __m256d KF = (N);
-        this->Kf_[j+0] = get_elem0(KF);
-        this->Kf_[j+1] = get_elem1(KF);
-        this->Kf_[j+2] = get_elem2(KF);
+        this->Kf_[j+0] = get0(KF);
+        this->Kf_[j+1] = get1(KF);
+        this->Kf_[j+2] = get2(KF);
     }
 }

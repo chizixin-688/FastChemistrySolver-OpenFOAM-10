@@ -481,11 +481,17 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         __m256d Fcent = _mm256_setzero_pd();
         {
-            const double tmpi0 = this->tmp_Exp[i+0+this->nSpecies];
-            const double tmpi1 = this->tmp_Exp[i+1+this->nSpecies];
-            const double tmpi2 = this->tmp_Exp[i+2+this->nSpecies];
+            //const double tmpi0 = this->tmp_Exp[i+0+this->nSpecies];
+            //const double tmpi1 = this->tmp_Exp[i+1+this->nSpecies];
+            //const double tmpi2 = this->tmp_Exp[i+2+this->nSpecies];
 
-            __m256d expTTsss = _mm256_setr_pd(tmpi0,tmpi1,tmpi2,1);
+            __m256d expTTsss = _mm256_setr_pd
+            (
+                this->tmp_Exp[i+0+this->nSpecies],
+                this->tmp_Exp[i+1+this->nSpecies],
+                this->tmp_Exp[i+2+this->nSpecies],
+                1
+            );
             Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha),expTTsss);
         }
         __m256d x2 = _mm256_setzero_pd();
@@ -629,9 +635,9 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             dFdT = _mm256_fmadd_pd(dFdPr,dPrdT,dFdT);
             __m256d MM = (M);
             dKfdT = _mm256_fmadd_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),dFdT),MM,dKfdT); 
-            this->dKfdT_[j0+0] = this->get_elem0(dKfdT);
-            this->dKfdT_[j0+1] = this->get_elem1(dKfdT);
-            this->dKfdT_[j0+2] = this->get_elem2(dKfdT);
+            this->dKfdT_[j0+0] = get0(dKfdT);
+            this->dKfdT_[j0+1] = get1(dKfdT);
+            this->dKfdT_[j0+2] = get2(dKfdT);
 
         }
         {
@@ -640,17 +646,17 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m256d N1 = _mm256_mul_pd(F,invOnePlusPr);
    
             __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),KK),_mm256_add_pd(N1,N2));
-            this->dKfdC_[m0+0] = this->get_elem0(dKfdC);
-            this->dKfdC_[m0+1] = this->get_elem1(dKfdC);
-            this->dKfdC_[m0+2] = this->get_elem2(dKfdC);
+            this->dKfdC_[m0+0] = get0(dKfdC);
+            this->dKfdC_[m0+1] = get1(dKfdC);
+            this->dKfdC_[m0+2] = get2(dKfdC);
 
         }
         {
             __m256d N = _mm256_mul_pd(_mm256_mul_pd(F,K0),invOnePlusPr);
             __m256d KF = (_mm256_mul_pd(N,M));
-            this->Kf_[j0+0] = this->get_elem0(KF);
-            this->Kf_[j0+1] = this->get_elem1(KF);
-            this->Kf_[j0+2] = this->get_elem2(KF);
+            this->Kf_[j0+0] = get0(KF);
+            this->Kf_[j0+1] = get1(KF);
+            this->Kf_[j0+2] = get2(KF);
         }
     }
 
@@ -834,8 +840,10 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const double invKinf = 1.0/Kinf;
         const double logPr = std::log10(std::max(Pr, FastChemistry::TroeLimiter));
         const double expTTsss = this->tmp_Exp[i+this->nSpecies+this->n_TroeFO];
-        const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->n_TroeCA+this->n_TroeFO];
-        const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO];
+        const double expTTss  = this->tmp_Exp[i+this->nSpecies+this->n_Troe+this->n_TroeFO];
+        const double expTTs   = this->tmp_Exp[i+this->nSpecies+this->n_Troe*2+this->n_TroeFO];
+
+
         const double Fcent = (1 - this->alpha_[i+this->n_TroeFO])*expTTsss + 
             this->alpha_[i+this->n_TroeFO]*expTTs + expTTss;
 
@@ -930,8 +938,8 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const __m128d Pr = tmpPr;
         const __m128d logPr_ = tmplogPr;
 
-        __m128d expTTss = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_TroeCA+this->n_TroeFO]);
-        __m128d expTTs = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO]);
+        __m128d expTTss = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe+this->n_TroeFO]);
+        __m128d expTTs = _mm_loadu_pd(&this->tmp_Exp[i+this->nSpecies+this->n_Troe*2+this->n_TroeFO]);
         __m128d alpha = _mm_loadu_pd(&this->alpha_[i+this->n_TroeFO]);
         __m128d Fcent = _mm_setzero_pd();
         {
@@ -1105,13 +1113,14 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const __m256d Pr = tmpPr;
         const __m256d logPr_ = tmplogPr;
 
-        double tmpi0 = this->tmp_Exp[i+0+this->nSpecies+this->n_TroeCA+this->n_TroeFO];
-        double tmpi1 = this->tmp_Exp[i+1+this->nSpecies+this->n_TroeCA+this->n_TroeFO];
-        double tmpi2 = this->tmp_Exp[i+2+this->nSpecies+this->n_TroeCA+this->n_TroeFO];
+
+        double tmpi0 = this->tmp_Exp[i+0+this->nSpecies+this->n_Troe+this->n_TroeFO];
+        double tmpi1 = this->tmp_Exp[i+1+this->nSpecies+this->n_Troe+this->n_TroeFO];
+        double tmpi2 = this->tmp_Exp[i+2+this->nSpecies+this->n_Troe+this->n_TroeFO];
         __m256d expTTss = _mm256_setr_pd(tmpi0,tmpi1,tmpi2,1);
-        tmpi0 = this->tmp_Exp[i+0+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO];
-        tmpi1 = this->tmp_Exp[i+1+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO];
-        tmpi2 = this->tmp_Exp[i+2+this->nSpecies+this->n_TroeCA*2+this->n_TroeFO];
+        tmpi0 = this->tmp_Exp[i+0+this->nSpecies+this->n_Troe*2+this->n_TroeFO];
+        tmpi1 = this->tmp_Exp[i+1+this->nSpecies+this->n_Troe*2+this->n_TroeFO];
+        tmpi2 = this->tmp_Exp[i+2+this->nSpecies+this->n_Troe*2+this->n_TroeFO];
         __m256d expTTs = _mm256_setr_pd(tmpi0,tmpi1,tmpi2,1);
 
         const double alpha0 = this->alpha_[i+0+this->n_TroeFO];
@@ -1121,11 +1130,11 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
 
         __m256d Fcent = _mm256_setzero_pd();
         {
-            const double tmpi0 = this->tmp_Exp[i+0+this->nSpecies+this->n_TroeFO];
-            const double tmpi1 = this->tmp_Exp[i+1+this->nSpecies+this->n_TroeFO];
-            const double tmpi2 = this->tmp_Exp[i+2+this->nSpecies+this->n_TroeFO];
+            const double tmpi3 = this->tmp_Exp[i+0+this->nSpecies+this->n_TroeFO];
+            const double tmpi4 = this->tmp_Exp[i+1+this->nSpecies+this->n_TroeFO];
+            const double tmpi5 = this->tmp_Exp[i+2+this->nSpecies+this->n_TroeFO];
 
-            __m256d expTTsss = _mm256_setr_pd(tmpi0,tmpi1,tmpi2,1);
+            __m256d expTTsss = _mm256_setr_pd(tmpi3,tmpi4,tmpi5,1);
             Fcent  = _mm256_mul_pd(_mm256_sub_pd(one,alpha),expTTsss);
         }
         __m256d x2 = _mm256_setzero_pd();
@@ -1232,11 +1241,6 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             dFdPr = _mm256_mul_pd(F,dFdPr);
         }
 
-        //const double kinfj0 = this->Kf_[j0+0+this->offset_kinf];
-        //const double kinfj1 = this->Kf_[j0+1+this->offset_kinf];
-        //const double kinfj2 = this->Kf_[j0+2+this->offset_kinf];
-        //__m256d Kinf = _mm256_setr_pd(kinfj0,kinfj1,kinfj2,1);
-
         const double dKinfdTj0 = this->dKfdT_[j0+0-Ikf[4]+Ikf[7]];
         const double dKinfdTj1 = this->dKfdT_[j0+1-Ikf[4]+Ikf[7]];
         const double dKinfdTj2 = this->dKfdT_[j0+2-Ikf[4]+Ikf[7]];
@@ -1257,10 +1261,6 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
         const double dKfdTj2 = this->dKfdT_[j0+2];
         __m256d dK0dT = _mm256_setr_pd(dKfdTj0,dKfdTj1,dKfdTj2,1);
 
-        //const unsigned int k0 = j0 - this->Ikf[4];
-        //__m256d k = _mm256_setr_pd(k0,k0+1,k0+2,k0+3);
-
-
         {
             __m256d dKdT = (dK0dT);
             __m256d dKfdT = _mm256_mul_pd(_mm256_mul_pd(F,invOnePlusPr),dKdT);
@@ -1270,9 +1270,9 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             dFdT = _mm256_fmadd_pd(dFdPr,dPrdT,dFdT);
             __m256d MM = (one);
             dKfdT = _mm256_fmadd_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),dFdT),MM,dKfdT); 
-            this->dKfdT_[j0+0] = this->get_elem0(dKfdT);
-            this->dKfdT_[j0+1] = this->get_elem1(dKfdT);
-            this->dKfdT_[j0+2] = this->get_elem2(dKfdT);
+            this->dKfdT_[j0+0] = get0(dKfdT);
+            this->dKfdT_[j0+1] = get1(dKfdT);
+            this->dKfdT_[j0+2] = get2(dKfdT);
 
         }
         {
@@ -1281,17 +1281,17 @@ void FastChemistry::OptReaction::evalTroePartialDerivative()const noexcept
             __m256d N1 = _mm256_mul_pd(F,invOnePlusPr);
             N1 = (_mm256_sub_pd(_mm256_setzero_pd(),N1));    
             __m256d dKfdC = _mm256_mul_pd(_mm256_mul_pd(_mm256_mul_pd(K0,invOnePlusPr),KK),_mm256_add_pd(N1,N2));
-            this->dKfdC_[m0+0] = this->get_elem0(dKfdC);
-            this->dKfdC_[m0+1] = this->get_elem1(dKfdC);
-            this->dKfdC_[m0+2] = this->get_elem2(dKfdC);
+            this->dKfdC_[m0+0] = get0(dKfdC);
+            this->dKfdC_[m0+1] = get1(dKfdC);
+            this->dKfdC_[m0+2] = get2(dKfdC);
 
         }
         {
             __m256d N = _mm256_mul_pd(_mm256_mul_pd(F,K0),invOnePlusPr);
             __m256d KF = (N);
-            this->Kf_[j0+0] = this->get_elem0(KF);
-            this->Kf_[j0+1] = this->get_elem1(KF);
-            this->Kf_[j0+2] = this->get_elem2(KF);
+            this->Kf_[j0+0] = get0(KF);
+            this->Kf_[j0+1] = get1(KF);
+            this->Kf_[j0+2] = get2(KF);
         }
     }
 }

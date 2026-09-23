@@ -1,315 +1,410 @@
 /*---------------------------------------------------------------------------*\
   Description
-      This file is for text substitution purposes only.
+              Declaration of the molar-concentration-based Jacobian update functions
+              (JF = Jacobian Function) of the gas-phase reaction object. This file
+              is included in OptReaction.H for text substitution purposes only.
 
-      Declare the functions computing the molar concentration based jacobian 
-      matrix.
+              Each function accumulates, for one class of elementary reactions, the
+              contributions to
+                - the net rate of production dNdtByV, and
+                - the molar-concentration-based Jacobian matrix ddNdtByVdcTp
+                  (one row per species, alignN columns: nSpecies concentration
+                  columns plus one extra column for the temperature derivative).
 
-      RR:  reversible reaction
-      IR:  irreversible reaction reverse rate constant is zero
-      NER: non-equilibrium reaction, reverse rate constant is computed using
-           Arrhenius form instead of equilibrium rate constant
-      GNI: non-integer reaction. e.g. 1.5A^1.5 = B
-      GI:  integer reaction with number of reactants > 3 or 
-           number of products > 3. e.g. 3A+B = C
+              Naming convention:  JF <Nr> <Np> <Type>
+                Nr   : number of reactants  (1, 2 or 3)
+                Np   : number of products   (1, 2 or 3)
+                Type :
+                  RR  : reversible reaction; the reverse rate constant is
+                obtained from the chemical equilibrium constant
+                  IR  : irreversible reaction; the reverse rate constant is zero
+                  NER : non-equilibrium reaction; the reverse rate constant is
+                computed with the Arrhenius form instead of the
+                equilibrium constant
+                In addition:
+                  JFGI  : general reaction with integer stoichiometric coefficients
+                  (more than 3 reactants and/or more than 3 products)
+                  JFGNI : general reaction with non-integer stoichiometric
+                  coefficients, e.g. 1.5 A^1.5 = B
+
+              Common parameters of every function:
+                C              : molar concentrations of the species
+                dNdtByV        : net rate of production (accumulated in-place)
+                ddNdtByVdcTp   : Jacobian matrix (accumulated in-place)
+                ExpNegGbyRT    : exp(-G/(RuT)) of every species, used to build the
+                         chemical equilibrium constant Kc
+                dBdT           : temperature derivative of the standard-state Gibbs
+                         energy terms, used for the temperature column of
+                         the Jacobian
+
+              The functions are dispatched through the JFptr member (populated in
+              createGasPhaseReactionFromFoamDict.C) and invoked from
+              OptReaction::ddNdtByVdcTp().
+
   Author
-      Zixin Chi <chizixin@buaa.edu.cn>
+              Zixin Chi <chizixin@buaa.edu.cn>
 \*---------------------------------------------------------------------------*/
 
-    // for one-one reactions. e.g. A<=>B.
-    void JF11RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // ----------------------------------------------------------------------
+            // 1-1 reactions: one reactant, one product. e.g. A <=> B.
+            // ----------------------------------------------------------------------
 
-    void JF11IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF11RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
-    void JF11NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF11RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF11M
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF11IR: Irreversible reaction; the reverse rate constant is zero.
 
-    // for one-two reactions. e.g. A<=>B+B, A<=>B+C.
-    void JF12RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF11IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF12IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF11NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
 
-    void JF12NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF11NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF12M
-    (
-        double* ddNdtByVdcTp
-    )const noexcept;
+            // 1-2 reactions: one reactant, two products. e.g. A <=> B+C.
+            // ----------------------------------------------------------------------
 
-    // for one-three reactions. e.g. A<=>B+B+C, A<=>B+C+D.
-    void JF13RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF12RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
-    void JF13IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF12RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF13NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF12IR: Irreversible reaction; the reverse rate constant is zero.
 
-    // for two-one reactions. e.g. A<=>B+B+C, A<=>B+C+D.
-    void JF21RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF12IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF21IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF12NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
 
-    void JF21NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF12NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF21M
-    (
-        double* ddNdtByVdcTp
-    )const noexcept;
+            // 1-3 reactions: one reactant, three products. e.g. A <=> B+C+D.
+            // ----------------------------------------------------------------------
 
-    // for two-two reactions. e.g. A+D<=>B+B, A+A<=>B+C.
+            // JF13RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
-    void JF22RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF13RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF22IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF13IR: Irreversible reaction; the reverse rate constant is zero.
 
-    void JF22NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF13IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    // for two-three reactions. e.g. A+D<=>B+B, A+A<=>B+C.
+            // JF13NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
 
-    void JF23RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF13NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF23IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // 2-1 reactions: two reactants, one product. e.g. A+B <=> C.
+            // ----------------------------------------------------------------------
 
-    void JF23NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF21RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
-    // for three-one reactions. e.g. A+A+A<=>B, A+B+C<=>D.
-    void JF31RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF21RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF31IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF21IR: Irreversible reaction; the reverse rate constant is zero.
 
-    void JF31NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF21IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    // for three-two reactions. e.g. A+A+A<=>B+C, A+B+C<=>D+E.
-    void JF32RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF21NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
 
-    void JF32IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF21NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF32NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // 2-2 reactions: two reactants, two products. e.g. A+B <=> C+D.
+            // ----------------------------------------------------------------------
 
-    // for three-three reactions. e.g. A+A+A<=>B+C+D, A+B+C<=>D+E+F.
+            // JF22RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
-    void JF33RR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF22RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JF33IR
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF22IR: Irreversible reaction; the reverse rate constant is zero.
 
-    void JF33NER
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            void JF22IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
+            // JF22NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
 
-    // for general reactions with integer number. e.g. A+A+A+A<=>B+C+D, A<=>D+E+F+G.
+            void JF22NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 
-    void JFGI
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // 2-3 reactions: two reactants, three products. e.g. A+B <=> C+D+E.
+            // ----------------------------------------------------------------------
 
-    // for general reactions with non-integer number. e.g. 3.5A^1.4<=>B+C+D.
-    void JFGNI
-    (
-        const double* __restrict__ C,
-        double* __restrict__ dNdtByV,
-        double* __restrict__ ddNdtByVdcTp,
-        const double* __restrict__ ExpNegGbyRT,
-        const double* __restrict__ dBdT
-    )const noexcept;
+            // JF23RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
 
+            void JF23RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF23IR: Irreversible reaction; the reverse rate constant is zero.
+
+            void JF23IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF23NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
+
+            void JF23NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // 3-1 reactions: three reactants, one product. e.g. A+B+C <=> D.
+            // ----------------------------------------------------------------------
+
+            // JF31RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
+
+            void JF31RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF31IR: Irreversible reaction; the reverse rate constant is zero.
+
+            void JF31IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF31NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
+
+            void JF31NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // 3-2 reactions: three reactants, two products. e.g. A+B+C <=> D+E.
+            // ----------------------------------------------------------------------
+
+            // JF32RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
+
+            void JF32RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF32IR: Irreversible reaction; the reverse rate constant is zero.
+
+            void JF32IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF32NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
+
+            void JF32NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // 3-3 reactions: three reactants, three products. e.g. A+B+C <=> D+E+F.
+            // ----------------------------------------------------------------------
+
+            // JF33RR: Reversible reaction; the reverse rate constant is obtained from the chemical equilibrium constant.
+
+            void JF33RR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF33IR: Irreversible reaction; the reverse rate constant is zero.
+
+            void JF33IR
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // JF33NER: Non-equilibrium reversible reaction; the reverse rate constant is computed with the Arrhenius form instead of the equilibrium constant.
+
+            void JF33NER
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // ----------------------------------------------------------------------
+            // General reactions with integer stoichiometric coefficients
+            // (more than 3 reactants and/or more than 3 products).
+            // e.g. A+A+A+A <=> B+C+D, A <=> D+E+F+G.
+            // ----------------------------------------------------------------------
+
+            // JFGI: general reaction with integer stoichiometric coefficients
+            // (more than 3 reactants and/or more than 3 products). It handles the
+            // reversible / irreversible / non-equilibrium reverse-rate cases
+            // internally according to isIrreversible[i].
+
+            void JFGI
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
+
+            // ----------------------------------------------------------------------
+            // General reactions with non-integer stoichiometric coefficients.
+            // e.g. 3.5 A^1.4 <=> B+C+D.
+            // ----------------------------------------------------------------------
+
+            // JFGNI: general reaction with non-integer stoichiometric coefficients.
+            // It handles the reversible / irreversible / non-equilibrium reverse-rate
+            // cases internally according to isIrreversible[i].
+
+            void JFGNI
+            (
+                const double* __restrict__ C,
+                double* __restrict__ dNdtByV,
+                double* __restrict__ ddNdtByVdcTp,
+                const double* __restrict__ ExpNegGbyRT,
+                const double* __restrict__ dBdT
+            )const noexcept;
 

@@ -12,7 +12,7 @@
 // 1. FastChemistry headers
 //---------------------------------
 #include "OptReaction.H"
-
+#include <iostream>
 //=============================================================================//
 
 
@@ -27,8 +27,7 @@ FastChemistry::OptReaction::ddNdtByVdcTp
     double* __restrict__ dBdT,
     double* __restrict__ ddNdtByVdcT
 ) const noexcept
-{
-    this->update_Pow_pByRT_SumVki(Temperature);
+{    this->update_Pow_pByRT_SumVki(Temperature);
     this->update_Pow_pByRT_SumVki2(Temperature);
 
     for(unsigned int i = 0; i <this->n_Troe;i++)
@@ -68,8 +67,8 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             unsigned int i1 = this->tmp_ExpSize-1;
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],0,0);
             tmp = vec256_expd(tmp);
-            this->tmp_Exp[i0] = get_elem0(tmp);
-            this->tmp_Exp[i1] = get_elem1(tmp);
+            this->tmp_Exp[i0] = get0(tmp);
+            this->tmp_Exp[i1] = get1(tmp);
         }
         else if(remain==3)
         {
@@ -78,9 +77,9 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             unsigned int i2 = this->tmp_ExpSize-1;
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],tmp_Exp[i2],0);
             tmp = vec256_expd(tmp);
-            this->tmp_Exp[i0] = get_elem0(tmp);
-            this->tmp_Exp[i1] = get_elem1(tmp);
-            this->tmp_Exp[i2] = get_elem2(tmp);
+            this->tmp_Exp[i0] = get0(tmp);
+            this->tmp_Exp[i1] = get1(tmp);
+            this->tmp_Exp[i2] = get2(tmp);
         }
     }
     {
@@ -140,12 +139,12 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             __m256d tmp = _mm256_fmsub_pd(betav,LogTv,_mm256_mul_pd(Tav,InvTv));
             tmp = vec256_expd(tmp);
             __m256d Kfv = _mm256_mul_pd(Av,tmp);
-            this->Kf_[i0] = get_elem0(Kfv);
-            this->Kf_[i1] = get_elem1(Kfv);
+            this->Kf_[i0] = get0(Kfv);
+            this->Kf_[i1] = get1(Kfv);
             tmp = _mm256_fmadd_pd(Tav,InvTv,betav);
             __m256d dKfdTv = _mm256_mul_pd(Kfv,_mm256_mul_pd(tmp,InvTv));
-            this->dKfdT_[i0] = get_elem0(dKfdTv);
-            this->dKfdT_[i1] = get_elem1(dKfdTv);
+            this->dKfdT_[i0] = get0(dKfdTv);
+            this->dKfdT_[i1] = get1(dKfdTv);
         }
         else if(remain==3)
         {
@@ -158,14 +157,14 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             __m256d tmp = _mm256_fmsub_pd(betav,LogTv,_mm256_mul_pd(Tav,InvTv));
             tmp = vec256_expd(tmp);
             __m256d Kfv = _mm256_mul_pd(Av,tmp);
-            this->Kf_[i0] = get_elem0(Kfv);
-            this->Kf_[i1] = get_elem1(Kfv);
-            this->Kf_[i2] = get_elem2(Kfv);
+            this->Kf_[i0] = get0(Kfv);
+            this->Kf_[i1] = get1(Kfv);
+            this->Kf_[i2] = get2(Kfv);
             tmp = _mm256_fmadd_pd(Tav,InvTv,betav);
             __m256d dKfdTv = _mm256_mul_pd(Kfv,_mm256_mul_pd(tmp,InvTv));
-            this->dKfdT_[i0] = get_elem0(dKfdTv);  
-            this->dKfdT_[i1] = get_elem1(dKfdTv); 
-            this->dKfdT_[i2] = get_elem2(dKfdTv); 
+            this->dKfdT_[i0] = get0(dKfdTv);  
+            this->dKfdT_[i1] = get1(dKfdTv); 
+            this->dKfdT_[i2] = get2(dKfdTv); 
         }
     }
 
@@ -176,44 +175,104 @@ FastChemistry::OptReaction::ddNdtByVdcTp
         this->evalPlogPartialDerivative();
     }
     {
-        
-        unsigned int Tremain = (this->Itbr[4])%4;
-        for(unsigned int i = 0; i < this->Itbr[4]-Tremain; i=i+4)
+        unsigned int Tremain = (this->Itbr[4])%8;
+        unsigned int Spremain = this->AlignSpecies%8;
+        for(unsigned int i = 0; i < this->Itbr[4]-Tremain; i=i+8)
         {
-            __m256d arrM_0 = _mm256_setzero_pd();
-            __m256d arrM_1 = _mm256_setzero_pd();
-            __m256d arrM_2 = _mm256_setzero_pd();
-            __m256d arrM_3 = _mm256_setzero_pd();
+            __m256d M0 = _mm256_setzero_pd();
+            __m256d M1 = _mm256_setzero_pd();
+            __m256d M2 = _mm256_setzero_pd();
+            __m256d M3 = _mm256_setzero_pd();
+            __m256d M4 = _mm256_setzero_pd();
+            __m256d M5 = _mm256_setzero_pd();
+            __m256d M6 = _mm256_setzero_pd();
+            __m256d M7 = _mm256_setzero_pd();
             double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
             double* __restrict__ TBF1DRowi3 = &ThirdBodyFactor1D[(i+3)*this->AlignSpecies];
-            for(unsigned int j  = 0;j<this->AlignSpecies;j=j+4)
+            double* __restrict__ TBF1DRowi4 = &ThirdBodyFactor1D[(i+4)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi5 = &ThirdBodyFactor1D[(i+5)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi6 = &ThirdBodyFactor1D[(i+6)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi7 = &ThirdBodyFactor1D[(i+7)*this->AlignSpecies];
+            for(unsigned int j  = 0;j<this->AlignSpecies-Spremain;j=j+8)
             {
-                //__m256d Factor0 = load256d(&TBF1DRowi0[j+0]);
-                //__m256d Factor1 = load256d(&TBF1DRowi1[j+0]);
-                //__m256d Factor2 = load256d(&TBF1DRowi2[j+0]);
-                //__m256d Factor3 = load256d(&TBF1DRowi3[j+0]);
-                __m256d Factor0 = load256d(&this->TBFRowPtr[i+0][j+0]);
-                __m256d Factor1 = load256d(&this->TBFRowPtr[i+1][j+0]);
-                __m256d Factor2 = load256d(&this->TBFRowPtr[i+2][j+0]);
-                __m256d Factor3 = load256d(&this->TBFRowPtr[i+3][j+0]);
-                __m256d C_ = load256d(&c[j+0]);
-                
-                arrM_0 = _mm256_fmadd_pd(Factor0,C_,arrM_0);
-                arrM_1 = _mm256_fmadd_pd(Factor1,C_,arrM_1);
-                arrM_2 = _mm256_fmadd_pd(Factor2,C_,arrM_2);
-                arrM_3 = _mm256_fmadd_pd(Factor3,C_,arrM_3);
+                __m256d C03 = load256d(&c[j+0]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+0]),C03,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+0]),C03,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+0]),C03,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+0]),C03,M3);
+                M4 = fmadd256d(load256d(&TBF1DRowi4[j+0]),C03,M4);
+                M5 = fmadd256d(load256d(&TBF1DRowi5[j+0]),C03,M5);
+                M6 = fmadd256d(load256d(&TBF1DRowi6[j+0]),C03,M6);
+                M7 = fmadd256d(load256d(&TBF1DRowi7[j+0]),C03,M7);
+
+                __m256d C47 = load256d(&c[j+4]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+4]),C47,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+4]),C47,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+4]),C47,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+4]),C47,M3);
+                M4 = fmadd256d(load256d(&TBF1DRowi4[j+4]),C47,M4);
+                M5 = fmadd256d(load256d(&TBF1DRowi5[j+4]),C47,M5);
+                M6 = fmadd256d(load256d(&TBF1DRowi6[j+4]),C47,M6);
+                M7 = fmadd256d(load256d(&TBF1DRowi7[j+4]),C47,M7);
             }
-            __m256d s0h = _mm256_hadd_pd(arrM_0, arrM_1); 
-            __m256d s1h = _mm256_hadd_pd(arrM_2, arrM_3); 
-            s0h = _mm256_permute4x64_pd(s0h, 0b11011000);
-            s1h = _mm256_permute4x64_pd(s1h, 0b11011000);
-            __m256d sum_all = _mm256_hadd_pd(s0h, s1h); 
-            sum_all = _mm256_permute4x64_pd(sum_all, 0b11011000);
+            if(Spremain==4)
+            {
+                unsigned int j = this->AlignSpecies-4;
+                __m256d C03 = load256d(&c[j+0]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+0]),C03,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+0]),C03,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+0]),C03,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+0]),C03,M3);
+                M4 = fmadd256d(load256d(&TBF1DRowi4[j+0]),C03,M4);
+                M5 = fmadd256d(load256d(&TBF1DRowi5[j+0]),C03,M5);
+                M6 = fmadd256d(load256d(&TBF1DRowi6[j+0]),C03,M6);
+                M7 = fmadd256d(load256d(&TBF1DRowi7[j+0]),C03,M7);
+            }
+            __m256d M03 = hsum4x4(M0,M1,M2,M3);
+            __m256d M47 = hsum4x4(M4,M5,M6,M7);
+           _mm256_storeu_pd(&this->tmp_M[i+0],M03);
+           _mm256_storeu_pd(&this->tmp_M[i+4],M47);
+        }
+        if(Tremain>=4)
+        {
+            unsigned int i =(this->Itbr[4]) -Tremain;
+            Tremain = Tremain - 4;
+            __m256d M0 = _mm256_setzero_pd();
+            __m256d M1 = _mm256_setzero_pd();
+            __m256d M2 = _mm256_setzero_pd();
+            __m256d M3 = _mm256_setzero_pd();
+            double* __restrict__ TBF1DRowi0 = &ThirdBodyFactor1D[(i+0)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi1 = &ThirdBodyFactor1D[(i+1)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi2 = &ThirdBodyFactor1D[(i+2)*this->AlignSpecies];
+            double* __restrict__ TBF1DRowi3 = &ThirdBodyFactor1D[(i+3)*this->AlignSpecies];
+            for(unsigned int j  = 0;j<this->AlignSpecies-Spremain;j=j+8)
+            {
+                __m256d C03 = load256d(&c[j+0]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+0]),C03,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+0]),C03,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+0]),C03,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+0]),C03,M3);
 
-           _mm256_storeu_pd(&this->tmp_M[i+0],sum_all);
-
+                __m256d C47 = load256d(&c[j+4]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+4]),C47,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+4]),C47,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+4]),C47,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+4]),C47,M3);
+            }
+            if(Spremain==4)
+            {
+                unsigned int j = this->AlignSpecies-4;
+                __m256d C03 = load256d(&c[j+0]);
+                M0 = fmadd256d(load256d(&TBF1DRowi0[j+0]),C03,M0);
+                M1 = fmadd256d(load256d(&TBF1DRowi1[j+0]),C03,M1);
+                M2 = fmadd256d(load256d(&TBF1DRowi2[j+0]),C03,M2);
+                M3 = fmadd256d(load256d(&TBF1DRowi3[j+0]),C03,M3);
+            }
+            __m256d M03 = hsum4x4(M0,M1,M2,M3);
+            _mm256_storeu_pd(&this->tmp_M[i+0],M03);
+            
         }
         if(Tremain==3)
         {
@@ -229,13 +288,13 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             __m256d arrM_2 = _mm256_setzero_pd();
             for(unsigned int j  = 0;j<this->AlignSpecies;j=j+4)
             {
-                __m256d Factor0 = load256d(&TBF1DRowi0[j+0]);
-                __m256d Factor1 = load256d(&TBF1DRowi1[j+0]);
-                __m256d Factor2 = load256d(&TBF1DRowi2[j+0]);
-                __m256d C_ = load256d(&c[j+0]);
-                arrM_0 = _mm256_fmadd_pd(Factor0,C_,arrM_0);
-                arrM_1 = _mm256_fmadd_pd(Factor1,C_,arrM_1);
-                arrM_2 = _mm256_fmadd_pd(Factor2,C_,arrM_2);
+                __m256d Factor0 = _mm256_loadu_pd(&TBF1DRowi0[j+0]);
+                __m256d Factor1 = _mm256_loadu_pd(&TBF1DRowi1[j+0]);
+                __m256d Factor2 = _mm256_loadu_pd(&TBF1DRowi2[j+0]);
+                __m256d C_ = _mm256_loadu_pd(&c[j+0]);
+                arrM_0 = fmadd256d(Factor0,C_,arrM_0);
+                arrM_1 = fmadd256d(Factor1,C_,arrM_1);
+                arrM_2 = fmadd256d(Factor2,C_,arrM_2);
             }
 
             M0 = M0 + hsum4(arrM_0);
@@ -257,11 +316,11 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             __m256d arrM_1 = _mm256_setzero_pd();
             for(unsigned int j  = 0;j<this->AlignSpecies;j=j+4)
             {
-                __m256d Factor0 = load256d(&TBF1DRowi0[j+0]);
-                __m256d Factor1 = load256d(&TBF1DRowi1[j+0]);
-                __m256d C_ = load256d(&c[j+0]);
-                arrM_0 = _mm256_fmadd_pd(Factor0,C_,arrM_0);
-                arrM_1 = _mm256_fmadd_pd(Factor1,C_,arrM_1);
+                __m256d Factor0 = _mm256_loadu_pd(&TBF1DRowi0[j+0]);
+                __m256d Factor1 = _mm256_loadu_pd(&TBF1DRowi1[j+0]);
+                __m256d C_ = _mm256_loadu_pd(&c[j+0]);
+                arrM_0 = fmadd256d(Factor0,C_,arrM_0);
+                arrM_1 = fmadd256d(Factor1,C_,arrM_1);
             }
 
             M0 = M0 + hsum4(arrM_0);
@@ -278,14 +337,17 @@ FastChemistry::OptReaction::ddNdtByVdcTp
             __m256d arrM_0 = _mm256_setzero_pd();
             for(unsigned int j  = 0;j<this->AlignSpecies;j=j+4)
             {
-                __m256d Factor0 = load256d(&TBF1DRowi0[j+0]);
-                __m256d C_ = load256d(&c[j+0]);
-                arrM_0 = _mm256_fmadd_pd(Factor0,C_,arrM_0);
+                __m256d Factor0 = _mm256_loadu_pd(&TBF1DRowi0[j+0]);
+                __m256d C_ = _mm256_loadu_pd(&c[j+0]);
+                arrM_0 = fmadd256d(Factor0,C_,arrM_0);
             }
+
             M0 = M0 + hsum4(arrM_0);
+
             this->tmp_M[i+0] = M0;
         }
     }
+
 
     for(unsigned int i = 0; i < this->n_ThirdBodyReaction; i++)
     {
@@ -315,7 +377,7 @@ FastChemistry::OptReaction::ddNdtByVdcTp
     if(this->n_Troe>0)
     {
         this->evalTroePartialDerivative();
-    }        
+    }
 
     if(this->n_SRI>0)
     {

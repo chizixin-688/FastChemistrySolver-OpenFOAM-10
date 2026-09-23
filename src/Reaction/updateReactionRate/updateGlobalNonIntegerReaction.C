@@ -1,8 +1,10 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing the molar concentration reaction rate. The function 
-      is used for general reaction with non-integer stoichiometric number,e.g.
-      4.5A+5.5B=6.5C
+      Update the net rates of production (dNdtByV) for a general reaction with
+      non-integer stoichiometric coefficients, e.g. 4.5A + 5.5B -> 6.5C.
+
+  Functions
+      RFGNI:  general non-integer-stoichiometry reactions
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -11,7 +13,13 @@
 //=============================================================================//
 
 //---------------------------------
-// 1. FastChemistry headers
+// 1. Standard C++ library headers
+//---------------------------------
+#include <algorithm>
+#include <cmath>
+
+//---------------------------------
+// 2. FastChemistry headers
 //---------------------------------
 #include "OptReaction.H"
 
@@ -64,8 +72,8 @@ FastChemistry::OptReaction::RFGNI
             //Kp = std::exp(Kp);
             //double r = std::pow(this->Pstd/(this->Ru*this->T),sumVki);
             //Kc_ = Kp*r;
-            Kp = this->get_elem0(KpPow);
-            double r = this->get_elem1(KpPow);
+            Kp = get0(KpPow);
+            double r = get1(KpPow);
             Kc_ = Kp*r;
             
             Kc_ = std::max(Kc_,KcLimiter);

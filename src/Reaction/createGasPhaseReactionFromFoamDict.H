@@ -38,7 +38,7 @@ namespace FastChemistry
 
     // Read reaction information from OpenFOAM, read reaction with integer number
     // e.g. A+B=C
-    void readReactionInfo
+    void readElementaryReactionInfo
     (
         std::vector<unsigned int>& lhsIndex,
         std::vector<unsigned int>& rhsIndex,

@@ -124,10 +124,10 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
             //double k3 = Kf03*std::exp(weight3*logk1k03);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
-        double kfc = this->get_elem1(kfv);
-        double kfd = this->get_elem3(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
+        double kfc = get1(kfv);
+        double kfd = get3(kfv);
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
         this->Kf_[j2+this->Ikf[6]] = kfc;
@@ -207,8 +207,8 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
         logk1k0v = vec256_expd(logk1k0v);
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
 
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
@@ -325,10 +325,10 @@ void FastChemistry::OptReaction::evalPlogRateConstant()const noexcept
         __m256d kfv = _mm256_mul_pd(kf0v,logk1k0v);
             //double k3 = Kf03*std::exp(weight3*logk1k03);
 
-        double kfa = this->get_elem0(kfv);
-        double kfb = this->get_elem2(kfv);
-        double kfc = this->get_elem1(kfv);
-        //double kfd = this->get_elem3(kfv);
+        double kfa = get0(kfv);
+        double kfb = get2(kfv);
+        double kfc = get1(kfv);
+        //double kfd = get3(kfv);
         this->Kf_[j0+this->Ikf[6]] = kfa;
         this->Kf_[j1+this->Ikf[6]] = kfb;
         this->Kf_[j2+this->Ikf[6]] = kfc;

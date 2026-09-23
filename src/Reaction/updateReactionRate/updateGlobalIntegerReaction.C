@@ -1,8 +1,10 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing the molar concentration reaction rate. The function 
-      is used for general reaction with integer stoichiometric number, e.g.
-      4A+5B=6C
+      Update the net rates of production (dNdtByV) for a general reaction with
+      integer stoichiometric coefficients, e.g. 4A + 5B -> 6C.
+
+  Functions
+      RFGI:  general integer-stoichiometry reactions
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -11,7 +13,12 @@
 //=============================================================================//
 
 //---------------------------------
-// 1. FastChemistry headers
+// 1. Standard C++ library headers
+//---------------------------------
+#include <algorithm>
+
+//---------------------------------
+// 2. FastChemistry headers
 //---------------------------------
 #include "OptReaction.H"
 
@@ -93,7 +100,7 @@ FastChemistry::OptReaction::RFGI
         }
 
         const double q = Kf*CF-Kr*CR;
-
+        //this->q_[i] = q;
         for(unsigned int j = 0; j < lhsSpeciesIndex[i].size();j++)
         {
             const unsigned int si = lhsSpeciesIndex[i][j];

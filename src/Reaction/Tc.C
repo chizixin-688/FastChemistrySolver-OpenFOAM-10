@@ -70,8 +70,8 @@ FastChemistry::OptReaction::Tc
             const unsigned i1 = this->tmp_ExpSize-1;
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],0,0);
             tmp = vec256_expd(tmp);
-            this->tmp_Exp[i0] = get_elem0(tmp);
-            this->tmp_Exp[i1] = get_elem1(tmp);
+            this->tmp_Exp[i0] = get0(tmp);
+            this->tmp_Exp[i1] = get1(tmp);
         }
         else if(remain==3)
         {
@@ -81,9 +81,9 @@ FastChemistry::OptReaction::Tc
 
             __m256d tmp = _mm256_setr_pd(tmp_Exp[i0],tmp_Exp[i1],tmp_Exp[i2],0);
             tmp = vec256_expd(tmp);
-            this->tmp_Exp[i0] = get_elem0(tmp);
-            this->tmp_Exp[i1] = get_elem1(tmp);
-            this->tmp_Exp[i2] = get_elem2(tmp);
+            this->tmp_Exp[i0] = get0(tmp);
+            this->tmp_Exp[i1] = get1(tmp);
+            this->tmp_Exp[i2] = get2(tmp);
         }
     }
     if(this->n_PlogReaction>0)
@@ -184,8 +184,8 @@ FastChemistry::OptReaction::Tc
             Kf = _mm256_fmadd_pd(beta_,LogT,Kf);
             Kf = vec256_expd(Kf);
             Kf = _mm256_mul_pd(A_,Kf);
-            this->Kf_[i0] = get_elem0(Kf);
-            this->Kf_[i1] = get_elem1(Kf);
+            this->Kf_[i0] = get0(Kf);
+            this->Kf_[i1] = get1(Kf);
         }
         else if(remain==3)
         {
@@ -199,9 +199,9 @@ FastChemistry::OptReaction::Tc
             Kf = _mm256_fmadd_pd(beta_,LogT,Kf);
             Kf = vec256_expd(Kf);
             Kf = _mm256_mul_pd(A_,Kf);
-            this->Kf_[i0] = get_elem0(Kf);
-            this->Kf_[i1] = get_elem1(Kf); 
-            this->Kf_[i2] = get_elem2(Kf); 
+            this->Kf_[i0] = get0(Kf);
+            this->Kf_[i1] = get1(Kf); 
+            this->Kf_[i2] = get2(Kf); 
         }
     }
 
@@ -451,20 +451,23 @@ FastChemistry::OptReaction::Tc
             const double omegaf = this->Kf_[i]*CF;
             const double omegar = Kr*CR;
 
+            // NOTE: OpenFOAM tc() semantics: wf multiplies the forward rate
+            // (omegaf) by the PRODUCT-side stoich, wr multiplies the reverse
+            // rate (omegar) by the REACTANT-side stoich.
             double wf = 0;
-            for(unsigned int j = 0; j < lhsSpeciesIndex[i].size();j++)
+            for(unsigned int j = 0; j < rhsSpeciesIndex[i].size();j++)
             {
-                const double sl = lhsStoichCoeff[i][j];
-                wf += sl*omegaf;
+                const double sr = rhsStoichCoeff[i][j];
+                wf += sr*omegaf;
             }
             sumW += wf;
             sumWRateByCTot += (wf*wf);
 
             double wr = 0;
-            for(unsigned int j = 0; j < rhsSpeciesIndex[i].size();j++)
+            for(unsigned int j = 0; j < lhsSpeciesIndex[i].size();j++)
             {
-                const double sr = rhsStoichCoeff[i][j];
-                wr += sr*omegar   ;
+                const double sl = lhsStoichCoeff[i][j];
+                wr += sl*omegar   ;
             }
             sumW += wr;
             sumWRateByCTot += (wr*wr);            
@@ -533,8 +536,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf + omegaf;
-                double wr = omegar;
+                double wf = omegaf;
+                double wr = omegar + omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -570,8 +573,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf + omegaf;
-                double wr = omegar + omegar + omegar;
+                double wf = omegaf + omegaf + omegaf;
+                double wr = omegar + omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -606,8 +609,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf;
-                double wr = omegar + omegar;
+                double wf = omegaf + omegaf;
+                double wr = omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -671,8 +674,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf;
-                double wr = omegar + omegar + omegar;
+                double wf = omegaf + omegaf + omegaf;
+                double wr = omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -710,8 +713,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf + omegaf + omegaf;
-                double wr = omegar + omegar;
+                double wf = omegaf + omegaf;
+                double wr = omegar + omegar + omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -745,8 +748,8 @@ FastChemistry::OptReaction::Tc
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
 
-                double wf = omegaf + omegaf + omegaf;
-                double wr = omegar;
+                double wf = omegaf;
+                double wr = omegar + omegar + omegar;
                 sumW += wf;
                 sumWRateByCTot += (wf*wf);
                 sumW += wr;
@@ -776,7 +779,7 @@ FastChemistry::OptReaction::Tc
                 }
 
                 const double CF = C[sl0]*C[sl1]*C[sl2];
-                const double CR = C[sr0]*C[sr1];
+                const double CR = C[sr0]*C[sr1]*C[sr2];
 
                 const double omegaf = (this->Kf_[i]*CF);
                 const double omegar = (Kr*CR);
@@ -859,12 +862,12 @@ FastChemistry::OptReaction::Tc
             double wf = 0;
             double wr = 0;
 
-            for(unsigned int j = 0; j < lhsSpeciesIndex[i].size();j++)
+            for(unsigned int j = 0; j < rhsSpeciesIndex[i].size();j++)
             {
                 wf = wf + omegaf;
             }
             
-            for(unsigned int j = 0; j < rhsSpeciesIndex[i].size();j++)
+            for(unsigned int j = 0; j < lhsSpeciesIndex[i].size();j++)
             {
                 wr = wr + omegar;
             }       

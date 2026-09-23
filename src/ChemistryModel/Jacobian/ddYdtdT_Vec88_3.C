@@ -1,9 +1,22 @@
 /*---------------------------------------------------------------------------*\
   Description
-      Computing mass fraction based jacobian matrix using molar concentration 
-      based matrix
-      Computing partial derivatives of dYdt w.r.t temperature
-      the tail is 3.  
+      Temperature column of the mass-fraction based Jacobian (exact path):
+      Jac[i][Ns] = d(dY_i/dt)/dT  for i in [0, Ns).
+
+      The explicit temperature dependence ddNdtByVdcT[i][Ns] is combined
+      with the implicit one through the concentrations (dc_k/dT = -alpha*c_k
+      chain-rule term), giving
+
+          dY_i/dt      = WiByrhoM[i]*dPhidt[i]
+          Jac[i][Ns]   = WiByrhoM[i]*( ddNdtByVdcT[i][Ns]
+                          - alphavM*sum_j ddNdtByVdcT[i][j]*c[j] )
+                          + alphavM*dY_i/dt
+
+      dPhidt is also overwritten in place with dY_i/dt.  The species block
+      and the temperature row are assembled by the sibling kernels; this
+      routine only fills column Ns.
+
+This variant (suffix 3) is specialised for nSpecie() % 8 == 3: the last three species are handled by dedicated tail blocks.
 
   Author
       Zixin Chi <chizixin@buaa.edu.cn>
@@ -19,7 +32,7 @@
 //---------------------------------
 // 2. SIMD / AVX2 headers
 //---------------------------------
-#include <immintrin.h>  
+#include <immintrin.h>
 
 //=============================================================================//
 
@@ -38,17 +51,17 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3
     __m256d alphavMv = _mm256_set1_pd(alphavM);
     for (int i=0; i<this->nSpecie()-3; i=i+8)
     {
-        
+
             __m256d Wi03ByrhoMv = load256d(&WiByrhoM[i+0]);
-            __m256d dPhi03dtv = load256d(&dPhidt[i+0]);   
-            dPhi03dtv = _mm256_mul_pd(dPhi03dtv,Wi03ByrhoMv);   
+            __m256d dPhi03dtv = load256d(&dPhidt[i+0]);
+            dPhi03dtv = _mm256_mul_pd(dPhi03dtv,Wi03ByrhoMv);
             store256d(&dPhidt[i+0],dPhi03dtv);
 
             __m256d Wi47ByrhoMv = load256d(&WiByrhoM[i+4]);
-            __m256d dPhi47dtv = load256d(&dPhidt[i+4]);   
-            dPhi47dtv = _mm256_mul_pd(dPhi47dtv,Wi47ByrhoMv);   
+            __m256d dPhi47dtv = load256d(&dPhidt[i+4]);
+            dPhi47dtv = _mm256_mul_pd(dPhi47dtv,Wi47ByrhoMv);
             store256d(&dPhidt[i+4],dPhi47dtv);
-        
+
 
 
         const double* __restrict__ JcRowi0 = &ddNdtByVdcT[(i+0)*(alignN)];
@@ -76,7 +89,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3
         __m256d sumi4v = _mm256_setzero_pd();
         __m256d sumi5v = _mm256_setzero_pd();
         __m256d sumi6v = _mm256_setzero_pd();
-        __m256d sumi7v = _mm256_setzero_pd();      
+        __m256d sumi7v = _mm256_setzero_pd();
         for (int j=0; j<this->nSpecie()-3; j=j+8)
         {
             __m256d Cj03v = load256d(&c[j+0]);
@@ -165,19 +178,19 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3
         __m256d dY03dtv = load256d(&dPhidt[i+0]);
         __m256d ddNi03dtByVdTv = _mm256_setr_pd(ddNi0dtByVdT,ddNi1dtByVdT,ddNi2dtByVdT,ddNi3dtByVdT);
         __m256d result0 = _mm256_fmadd_pd(Wi03ByrhoMv,ddNi03dtByVdTv,_mm256_mul_pd(alphavMv,dY03dtv));
-        Jac[(i+0)*(alignN) + this->nSpecie()] = get_elem0(result0);
-        Jac[(i+1)*(alignN) + this->nSpecie()] = get_elem1(result0);
-        Jac[(i+2)*(alignN) + this->nSpecie()] = get_elem2(result0);
-        Jac[(i+3)*(alignN) + this->nSpecie()] = get_elem3(result0);
+        Jac[(i+0)*(alignN) + this->nSpecie()] = get0(result0);
+        Jac[(i+1)*(alignN) + this->nSpecie()] = get1(result0);
+        Jac[(i+2)*(alignN) + this->nSpecie()] = get2(result0);
+        Jac[(i+3)*(alignN) + this->nSpecie()] = get3(result0);
 
         __m256d dY47dtv = load256d(&dPhidt[i+4]);
         __m256d ddNi47dtByVdTv = _mm256_setr_pd(ddNi4dtByVdT,ddNi5dtByVdT,ddNi6dtByVdT,ddNi7dtByVdT);
         __m256d result1 = _mm256_fmadd_pd(Wi47ByrhoMv,ddNi47dtByVdTv,_mm256_mul_pd(alphavMv,dY47dtv));
-        Jac[(i+4)*(alignN) + this->nSpecie()] = get_elem0(result1);
-        Jac[(i+5)*(alignN) + this->nSpecie()] = get_elem1(result1);
-        Jac[(i+6)*(alignN) + this->nSpecie()] = get_elem2(result1);
-        Jac[(i+7)*(alignN) + this->nSpecie()] = get_elem3(result1);
-      
+        Jac[(i+4)*(alignN) + this->nSpecie()] = get0(result1);
+        Jac[(i+5)*(alignN) + this->nSpecie()] = get1(result1);
+        Jac[(i+6)*(alignN) + this->nSpecie()] = get2(result1);
+        Jac[(i+7)*(alignN) + this->nSpecie()] = get3(result1);
+
     }
     {
         int i = this->nSpecie()-3;
@@ -212,15 +225,15 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3
             __m256d Jci1j03v = load256d(&JcRowi1[j+0]);
             ddNi1dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci1j03v,Cj03v),alphavMv,ddNi1dtByVdTv);
             __m256d Jci2j03v = load256d(&JcRowi2[j+0]);
-            ddNi2dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci2j03v,Cj03v),alphavMv,ddNi2dtByVdTv);  
-            
+            ddNi2dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci2j03v,Cj03v),alphavMv,ddNi2dtByVdTv);
+
             __m256d Cj47v = load256d(&c[j+4]);
             __m256d Jci0j47v = load256d(&JcRowi0[j+4]);
             ddNi0dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci0j47v,Cj47v),alphavMv,ddNi0dtByVdTv);
             __m256d Jci1j47v = load256d(&JcRowi1[j+4]);
             ddNi1dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci1j47v,Cj47v),alphavMv,ddNi1dtByVdTv);
             __m256d Jci2j47v = load256d(&JcRowi2[j+4]);
-            ddNi2dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci2j47v,Cj47v),alphavMv,ddNi2dtByVdTv); 
+            ddNi2dtByVdTv = _mm256_fmadd_pd(_mm256_mul_pd(Jci2j47v,Cj47v),alphavMv,ddNi2dtByVdTv);
         }
         {
             int j = this->nSpecie()-3;
@@ -231,7 +244,7 @@ void Foam::FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3
 
             ddNi0dtByVdT -= JcRowi0[j+1]*c[j+1]*alphavM;
             ddNi1dtByVdT -= JcRowi1[j+1]*c[j+1]*alphavM;
-            ddNi2dtByVdT -= JcRowi2[j+1]*c[j+1]*alphavM; 
+            ddNi2dtByVdT -= JcRowi2[j+1]*c[j+1]*alphavM;
 
             ddNi0dtByVdT -= JcRowi0[j+2]*c[j+2]*alphavM;
             ddNi1dtByVdT -= JcRowi1[j+2]*c[j+2]*alphavM;

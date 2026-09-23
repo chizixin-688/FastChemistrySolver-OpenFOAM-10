@@ -66,6 +66,10 @@ void createIdealGasFromFoamDict
 
     for(int i = 0; i < gas->nSpecies;i++)
     {
+        if (gas->TlowMax < gas->Tlow[i])
+        {
+            gas->TlowMax = gas->Tlow[i];
+        }
         if (gas->TlowMin > gas->Tlow[i])
         {
             gas->TlowMin = gas->Tlow[i];
@@ -73,6 +77,10 @@ void createIdealGasFromFoamDict
         if(gas->ThighMax < gas->Thigh[i])
         {
             gas->ThighMax = gas->Thigh[i];
+        }
+        if(gas->ThighMin > gas->Thigh[i])
+        {
+            gas->ThighMin = gas->Thigh[i];
         }
     }
 
@@ -92,6 +100,21 @@ void createIdealGasFromFoamDict
             gas->Hf[i] = (((((Coeff[4]*Tstd*0.2+Coeff[3]*0.25)*Tstd+Coeff[2]*(1.0/3.0))*Tstd+Coeff[1]*0.5)*Tstd+Coeff[0])*Tstd +Coeff[5])*gas->Ru*gas->invW[i];
         }
         
+    }
+
+    // Fill the SoA coefficient storage (used by the ...SoA kernels).
+    // Column-major: LCoeffsSoA[j][i] = LCoeffs[i][j].
+    for(int j = 0; j < 7; j++)
+    {
+        for(int i = 0; i < gas->nSpecies; i++)
+        {
+            gas->LCoeffsSoA[j][i] = gas->LCoeffs[i][j];
+            gas->HCoeffsSoA[j][i] = gas->HCoeffs[i][j];
+        }
+    }
+    for(int i = 0; i < gas->nSpecies; i++)
+    {
+        gas->TcommonSoA[i] = gas->Tcommon[i];
     }
 }
 }

@@ -24,14 +24,13 @@ set(CMAKE_BUILD_TYPE release)
 #-g -fno-omit-frame-pointer
 set(DEFINITIONS_COMPILE "-std=c++14 -m64 -Dlinux64 -DWM_ARCH_OPTION=64 -DWM_DP 
 -DWM_LABEL_SIZE=32 
-
 -Wold-style-cast -Wnon-virtual-dtor 
 -Wno-unused-parameter -Wno-invalid-offsetof -Wno-attributes   -DNoRepository 
 -Wshadow -Wpedantic -Wsign-compare  -Wstrict-aliasing -Wnull-dereference -Wsequence-point
 -Wreturn-local-addr -Wlogical-op  -Wduplicated-cond -Wduplicated-branches
 -Wconversion
 -Wall -Wextra -Wshadow -Winit-self -Wuninitialized -Wmaybe-uninitialized
--ftemplate-depth-100 -fPIC -O3 -mavx2  -mfma -lmvec")
+-ftemplate-depth-100 -fPIC -O3 -mavx2  -mfma -lmvec -mno-avx256-split-unaligned-load")
 #-fopt-info-vec-missed=vec_missed.log
 add_definitions("${DEFINITIONS_COMPILE}")
 
