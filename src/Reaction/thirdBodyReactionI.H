@@ -1,4 +1,4 @@
-inline double OptReaction::dMdC
+inline double FastChemistry::OptReaction::dMdC
 (
     const unsigned int ri,
     const unsigned int cj

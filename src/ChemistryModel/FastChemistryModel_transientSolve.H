@@ -1,5 +1,15 @@
-template<class ThermoType>
-Foam::scalar Foam::FastChemistryModel<ThermoType>::solve
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
+
+      Solving chemistry using transient time step
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+template<class UnusedThermo>
+Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
 (
     const scalar deltaT
 )
@@ -20,7 +30,7 @@ Foam::scalar Foam::FastChemistryModel<ThermoType>::solve
 
     const volScalarField& T0vf = this->thermo().T().oldTime();
     const volScalarField& p0vf = this->thermo().p().oldTime();
-    
+    const auto& Vvf = this->mesh().V();
     double* __restrict__ Phi00 = this->YTpWork[0];
     double* __restrict__ Phi0  = this->YTpWork[1];
 
@@ -38,16 +48,27 @@ Foam::scalar Foam::FastChemistryModel<ThermoType>::solve
             {
                 scalar p = p0vf[celli];
                 const scalar rho0 = rho0vf[celli];
+                const scalar V0 = Vvf[celli];
 
                 // Load thermophysical variable into Phi vector
+                if(this->massFraction==true)
+                {
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi0[i] = Yvf_[i].oldTime()[celli];
+                    }
+                }
+                else
+                {
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi0[i] = Yvf_[i].oldTime()[celli]*rho0*V0*this->gas->invW[i];
+                    }
+                }
+
                 for (label i=0; i<nSpecie_; i++)
                 {
                     Phi00[i] = Yvf_[i].oldTime()[celli];
-                }
-                for (label i=0; i<nSpecie_; i++)
-                {
-                    Phi00[i] = max(0,Phi00[i]);
-                    Phi0[i] =  Phi00[i];
                 }
                 Phi00[this->nSpecie()] = T;
                 Phi0[this->nSpecie()]  = T;
@@ -71,10 +92,21 @@ Foam::scalar Foam::FastChemistryModel<ThermoType>::solve
                 for (label i=0; i<nSpecie_; i++)
                 {
                     Phi0[i] = max(0,Phi0[i]);
-                }                
-                for (label i=0; i<nSpecie_; i++)
+                }
+                if(this->massFraction==true)
                 {
-                    RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*invDeltaT;
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*invDeltaT;
+                    }
+                }
+                else
+                {
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi0[i] = Phi0[i]*this->gas->W[i]/(rho0*V0);
+                        RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*invDeltaT;
+                    }
                 }
             }
             else

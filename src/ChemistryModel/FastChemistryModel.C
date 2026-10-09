@@ -23,31 +23,38 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*\
+  Description
+      Implementation file for FastChemistryModel object
 
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. FastChemistry headers
+//---------------------------------
 #include "FastChemistryModel.H"
-#include "basicChemistryModel.H"
-#include "OptReaction.H"
+
+//=============================================================================//
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ThermoType>
-Foam::FastChemistryModel<ThermoType>::FastChemistryModel
+template<class UnusedThermo>
+Foam::FastChemistryModel<UnusedThermo>::FastChemistryModel
 (
     const fluidReactionThermo& thermo
 )
 :   basicChemistryModel(thermo),
+    massFraction(this->lookupOrDefault("massFraction", true)),
     Yvf_(this->thermo().composition().Y()),
     nSpecie_(Yvf_.size()),
-    jacobianType_
-    (
-        this->found("jacobian")
-      ? jacobianTypeNames_.read(this->lookup("jacobian"))
-      : jacobianType::exact
-    ),
-    reaction(),
     RR_(this->nSpecie_),
     n_(this->nSpecie_+1),
-    alignN(n_+(4-(this->nSpecie_+1)%4)),
+    alignN(((n_+3)/4)*4),
     Treact(this->lookupOrDefault("Treact",0)),
     DLBthreshold(this->lookupOrDefault("DLBthreshold",1.0)),
     MaxIter(this->lookupOrDefault("Iter",1)),
@@ -67,19 +74,46 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
 
     const IOdictionary thermoDict
     (
-        physicalProperties::findModelDict(this->mesh(), word::null)
-    );
-    const IOdictionary chemistryProperties
-    (
         IOobject
         (
-            "chemistryProperties",
+            FastChemistry::thermoDictName,
             this->mesh().time().constant(),
             this->mesh(),
             IOobject::MUST_READ_IF_MODIFIED,
             IOobject::NO_WRITE
         )
     );
+    const IOdictionary chemistryProperties
+    (
+        IOobject
+        (
+            FastChemistry::chemistryDictName,
+            this->mesh().time().constant(),
+            this->mesh(),
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+
+    if(chemistryProperties.found("jacobian"))
+    {
+        const word FCJacobianType = chemistryProperties.lookup("jacobian");
+        if(FCJacobianType=="exact")
+        {
+            this->FCjacobianType_ = 1;
+        }
+        else if(FCJacobianType=="fast")
+        {
+            this->FCjacobianType_ = 0;
+        }
+        else
+        {
+            FatalErrorInFunction
+                << "jacobian type in FastChemistryModel can only be"
+                << " \"exact\" or \"fast\", currently it is "<< FCJacobianType<<". "
+                << Foam::abort(FatalError);
+        }
+    }
 
     label defaultIndex = 0;
     const word defaultSpecie = thermoDict.lookup("defaultSpecie");
@@ -94,7 +128,13 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
                     << "Index of default species is wrong!"
                     << Foam::abort(FatalError);
     }
-    reaction.readInfo(chemistryProperties,thermoDict);
+
+
+    FastChemistry::createIdealGasFromFoamDict(thermoDict,gas);
+    FastChemistry::createGasPhaseReactionFromFoamDict(chemistryProperties,thermoDict,GasReaction);
+
+    GasReaction->alignN = this->alignN;
+
 
     // Create the fields for the chemistry sources
     forAll(RR_, fieldi)
@@ -110,7 +150,7 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
                     this->mesh().time().timeName(),
                     this->mesh(),
                     IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
+                    IOobject::NO_WRITE
                 ),
                 thermo.T().mesh(),
                 dimensionedScalar(dimMass/dimVolume/dimTime, 0)
@@ -124,16 +164,14 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
     {
         
 
-        //size_t alignN = N;
-        alignN = static_cast<unsigned int>(n_+(4-(this->nSpecie()+1)%4));
-        
+
         size_t totalSize = 12*alignN + 3*alignN*n_;
         size_t bytes = totalSize * sizeof(double);
         if (posix_memalign(reinterpret_cast<void**>(&this->buffer), 32, bytes))
         {
             throw std::bad_alloc();
         }
-        std::memset(this->buffer, 0, bytes);
+        memset(this->buffer, 0, bytes);
         size_t pos = 0;
 
         for (int i = 0; i < 12; i++)
@@ -152,14 +190,83 @@ Foam::FastChemistryModel<ThermoType>::FastChemistryModel
         cpuLoadTransferTable[i].resize(Pstream::nProcs(),0);
     }
 
-    reaction.alignN = this->alignN;
+
+    // select the jacobian function
+    {
+        int remain = this->nSpecie()%8;
+
+        if(remain==0)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_0;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_0;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_0;
+        }
+        else if(remain==1)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_1;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_1;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_1;
+        }
+        else if(remain==2)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_2;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_2;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_2;
+        }
+        else if(remain==3)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_3;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_3;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_3;
+        }
+        else if(remain==4)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_4;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_0;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_4;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_4;
+        }
+        else if(remain==5)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_5;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_1;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_5;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_5;
+        }
+        else if(remain==6)
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_6;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_2;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_6;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_6;
+        }
+        else
+        {
+            if(FCjacobianType_==1){this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::ddYdtdY_Vec844_7;}
+            else{this->ddYdtdYPtr = &FastChemistryModel<UnusedThermo>::FastddYdtdY_Vec44_3;}
+            this->ddYdtdTPtr = &FastChemistryModel<UnusedThermo>::ddYdtdT_Vec88_7;
+            this->ddTdtdYTPtr = &FastChemistryModel<UnusedThermo>::ddTdtdYT_Vec88_7;
+        }
+    }
+    if(this->massFraction==true)
+    {
+        Info<< "FastChemistryModel: Mass fraction is used in the chemistry model." << endl;
+    }
+    else
+    {
+        Info<< "FastChemistryModel: Mole number is used in the chemistry model." << endl;
+    }
 }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ThermoType>
-Foam::FastChemistryModel<ThermoType>::~FastChemistryModel()
+template<class UnusedThermo>
+Foam::FastChemistryModel<UnusedThermo>::~FastChemistryModel()
 {
     free(this->buffer);
 
@@ -175,8 +282,8 @@ Foam::FastChemistryModel<ThermoType>::~FastChemistryModel()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::derivatives
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::derivatives
 (
     const scalar t,
     const label li,
@@ -187,78 +294,451 @@ void Foam::FastChemistryModel<ThermoType>::derivatives
     double* __restrict__ Ha
 ) const
 {
-    double* __restrict__ c = YTpYTpWork[0];
-    int remain = nSpecie_%4;
 
-    const double T = Phi[nSpecie_];
-    //const volScalarField& p0vf = this->thermo().p().oldTime();
-    //double p = p0vf[li];
-    
-    for (int i=0; i<this->nSpecie(); i++)
+    double* __restrict__ c = YTpYTpWork[0];
+
+
+    // Constrain mass fraction to valid range
+    for(int i = 0; i < this->nSpecie();i++)
     {
         Phi[i] = std::max(Phi[i], 0.0);
     }
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    const double Tlow = gas->TlowMax;
+    const double Thigh = gas->ThighMin;
+    double T = Phi[this->nSpecie()];
+    T = T<Tlow?Tlow:T;
+    T = T>Thigh?Thigh:T;
+
+    // Computing temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    const double logT = get0(TPRuT);
+    const double logP = get1(TPRuT);
+    const double logRuT = get2(TPRuT);
+    gas->invT = invT;
+    gas->logT = logT;
+    GasReaction->T = T;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
+
+    // set to zero
+    memset(dPhidt, 0, alignN*sizeof(double));
     
-    double rhoM = 0;
-    double RuTByP = reaction.Ru*T/p;
-    __m256d RuTByPv = _mm256_set1_pd(RuTByP);
-    __m256d rhoMv = _mm256_setzero_pd();
-    for (int i=0; i<nSpecie_-remain; i=i+4)
-    {
-        __m256d YTpv = _mm256_loadu_pd(&Phi[i+0]);
-        __m256d invWv = _mm256_loadu_pd(&reaction.invW[i+0]);
-        rhoMv = _mm256_fmadd_pd(_mm256_mul_pd(YTpv,invWv),RuTByPv,rhoMv);
-    }
-    for(int i = nSpecie_-remain; i<nSpecie_;i++)
-    {
-        rhoM += Phi[i]*reaction.invW[i]*RuTByP;            
-    }
-    rhoM += reaction.hsum4(rhoMv);
-    double invrhoM = rhoM;
-    rhoM = 1/rhoM;
 
-    for (label i=0; i<nSpecie_; i ++)
-    {
-        c[i] = rhoM*reaction.invW[i]*Phi[i];
-    }
 
-    std::memset(dPhidt, 0, alignN * sizeof(double));
+    // Compute the thermodynamic parameters required by chemical reaction rate
 
-    reaction.dNdtByV(p,T,c,dPhidt,Cp,Ha);
+    // i-th species variables (size:nSpecie):
+    // c[i]             :Molar concentration                                [kmol/m^3]
+    // Cp[i]            :Specific heat capacity                             [J/kg/K]
+    // Ha[i]            :Absolute enthalpy                                  [J/kg]
+    // tmp_Exp[i]       :Dimensionless standard Gibbs energy(-Gstd/Ru/T)    [dimLess] 
 
-    double CpM = 0;
+    // Mixture variable:
+    // gas->rhoM        :Mixture density                                    [kg/m^3]
+    // gas->vM          :Mixture specific volume                            [m^3/kg]
+    // Cp[nSpecie()]    :Mixture specific heat capacity                     [J/kg/K]
+    gas->DerivativeThermoYT(T,p,Phi,c,Cp,Ha,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
+
+
+    // Compute the molar reaction rate
+
+    // i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Molar reaction rate                                [kmol/m^3/s]
+    GasReaction->dNdtByV(p,T,c,dPhidt);
+    
+
+    // Compute the change rate of mass fraction and temperature
+
+    // i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Mass fraction change rate                          [1/s]
+
+    // Mixture variable:
+    // dTdt             :Temperature change rate                            [K/s]
     double dTdt = 0;
-
-    __m256d CpMv = _mm256_setzero_pd();
+    double vm = gas->vM;
+    const double* __restrict__ W = gas->W;
     __m256d dTdtv = _mm256_setzero_pd();
-    for (label i=0; i<nSpecie_-remain; i=i+4)
+    __m256d invrhoMv = _mm256_set1_pd(vm);
+    int remain = this->nSpecie()%4;
+    for (label i=0; i<this->nSpecie()-remain; i=i+4)
     {
-        __m256d Wv = _mm256_loadu_pd(&reaction.W[i]);
-        __m256d dYTdtv = _mm256_loadu_pd(&dPhidt[i]);
-        __m256d invrhoMv = _mm256_set1_pd(invrhoM);
-        dYTdtv = _mm256_mul_pd(_mm256_mul_pd(Wv,invrhoMv),dYTdtv);
-        _mm256_storeu_pd(&dPhidt[i],dYTdtv);
+        __m256d Wv = load256d(&W[i]);
+        __m256d dYTdtv = load256d(&dPhidt[i]);
 
-        __m256d YTv = _mm256_loadu_pd(&Phi[i]);
-        __m256d Cpv = _mm256_loadu_pd(&Cp[i]);
-        CpMv = _mm256_fmadd_pd(YTv,Cpv,CpMv);
-        __m256d Hav = _mm256_loadu_pd(&Ha[i]);
+        dYTdtv = _mm256_mul_pd(_mm256_mul_pd(Wv,invrhoMv),dYTdtv);
+        store256d(&dPhidt[i],dYTdtv);
+
+        __m256d Hav = load256d(&Ha[i]);
         dTdtv = _mm256_fmadd_pd(Hav,dYTdtv,dTdtv);
     }
     for(label i = nSpecie_-remain;i<nSpecie_;i++)
     {
-        dPhidt[i] =dPhidt[i]*reaction.W[i]/rhoM;
-        CpM += Phi[i]*Cp[i];
+        dPhidt[i] =dPhidt[i]*W[i]*vm;
         dTdt -= dPhidt[i]*Ha[i];
     }
-    CpM = CpM + reaction.hsum4(CpMv);
-    dTdt = dTdt -(reaction.hsum4(dTdtv));
-    dTdt /= CpM;
-    dPhidt[nSpecie_] = dTdt;
+    dTdt = dTdt -(hsum4(dTdtv));
+    dTdt /= Cp[this->nSpecie()];
+    dPhidt[this->nSpecie()] = dTdt;
 }
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::jacobian
+
+
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::getdYTdt
+(
+    const scalar t,
+    const label li,
+    const double p,
+    double* __restrict__ YT,
+    double* __restrict__ dYTdt,
+    double* __restrict__ c,
+    double* __restrict__ Cp,
+    double* __restrict__ Ha
+) const
+{
+    // Constrain mass fraction to valid range
+    for(int i=0;i<this->nSpecie();i++){YT[i]=std::max(YT[i],0.0);}
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    double T = YT[this->nSpecie()];
+    T = std::max(std::min(gas->ThighMin,T),gas->TlowMax);
+
+    // Computing temperature and pressure, required by thermo and chemistry
+    __m256d TPRuT = _mm256_setr_pd(T,p,gas->Ru*T,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    gas->invT = invT;
+    gas->logT = get0(TPRuT);
+    GasReaction->T = T;
+    GasReaction->invT = invT;
+    GasReaction->logT = get0(TPRuT);
+    GasReaction->logP = get1(TPRuT);
+    GasReaction->logRuT = get2(TPRuT);
+
+    // set to zero
+    memset(dYTdt, 0, alignN*sizeof(double));
+    
+    // Compute the thermodynamic parameters required by chemical reaction rate
+    double* __restrict__ Gibbs1 = GasReaction->tmp_Exp;
+    double* __restrict__ Gibbs2 = GasReaction->negGstdByRT;
+    gas->DerivativeThermoYT(T,p,YT,c,Cp,Ha,Gibbs1,Gibbs2);
+
+    // Compute the molar reaction rate(dPhidt)
+    GasReaction->dNdtByV(p,T,c,dYTdt);
+
+    // Compute the change rate of mass fraction and temperature(dPhidt)
+    //      i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Mass fraction change rate                          [1/s]
+    //      Mixture variable:
+    // dTdt             :Temperature change rate                            [K/s]
+    double dTdt = 0;
+    double vm = gas->vM;
+    const double* __restrict__ W = gas->W;
+    __m256d dTdtv = _mm256_setzero_pd();
+    __m256d invrhoMv = _mm256_set1_pd(vm);
+    int remain = this->nSpecie()%4;
+    for (label i=0; i<this->nSpecie()-remain; i=i+4)
+    {
+        __m256d Wv = load256d(&W[i]);
+        __m256d dYTdtv = load256d(&dYTdt[i]);
+        dYTdtv = _mm256_mul_pd(_mm256_mul_pd(Wv,invrhoMv),dYTdtv);
+        store256d(&dYTdt[i],dYTdtv);
+        __m256d Hav = load256d(&Ha[i]);
+        dTdtv = _mm256_fmadd_pd(Hav,dYTdtv,dTdtv);
+    }
+    for(label i = nSpecie_-remain;i<nSpecie_;i++)
+    {
+        dYTdt[i] =dYTdt[i]*W[i]*vm;
+        dTdt -= dYTdt[i]*Ha[i];
+    }
+    dTdt = dTdt -(hsum4(dTdtv));
+    dTdt /= Cp[this->nSpecie()];
+    dYTdt[this->nSpecie()] = dTdt;
+}
+
+
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::getdNTdt
+(
+    const scalar t,
+    const label li,
+    const double p,
+    double* __restrict__ NT,
+    double* __restrict__ dNTdt,
+    double* __restrict__ c,
+    double* __restrict__ cp,
+    double* __restrict__ ha
+) const
+{
+    // Constrain molar number to valid range and compute total molar number
+    double sum = 0;
+    for(int i=0;i<this->nSpecie();i++)
+    {
+        NT[i]=std::max(NT[i],0.0);
+        sum += NT[i];
+    }
+    gas->Ntot = sum;
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    double T = NT[this->nSpecie()];
+    T = std::max(std::min(gas->ThighMin,T),gas->TlowMax);
+
+    // Computing temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    gas->invT = invT;
+    gas->invp = 1.0/p;
+    gas->invNtot = 1.0/gas->Ntot;
+    gas->invRuT = 1.0/RuT;
+    gas->logT = get0(TPRuT);
+    GasReaction->T = T;
+    GasReaction->invT = invT;
+    GasReaction->logT = get0(TPRuT);
+    GasReaction->logP = get1(TPRuT);
+    GasReaction->logRuT = get2(TPRuT);
+
+    // set to zero
+    memset(dNTdt, 0, alignN*sizeof(double));
+    
+    // Compute the thermodynamic parameters required by chemical reaction rate
+    double* __restrict__ Gibbs1 = GasReaction->tmp_Exp;
+    double* __restrict__ Gibbs2 = GasReaction->negGstdByRT;
+    gas->DerivativeThermoNT(T,p,NT,c,cp,ha,Gibbs1,Gibbs2);
+
+    // Compute the molar reaction rate(dPhidt)
+
+    GasReaction->dNdtByV(p,T,c,dNTdt);
+
+
+    // Compute the change rate of mass fraction and temperature(dPhidt)
+    //      i-th species variables (size:nSpecie):
+    // dPhidt[i]        :Mass fraction change rate                          [1/s]
+    //      Mixture variable:
+    // dTdt             :Temperature change rate                            [K/s]
+    double dTdt = 0;
+
+    __m256d dTdtv = _mm256_setzero_pd();
+    __m256d Vv = _mm256_set1_pd(gas->V);
+    int remain = this->nSpecie()%4;
+    for (label i=0; i<this->nSpecie()-remain; i=i+4)
+    {
+        __m256d dNTdtv = load256d(&dNTdt[i]);
+        dNTdtv = _mm256_mul_pd(Vv,dNTdtv);
+        store256d(&dNTdt[i],dNTdtv);
+        __m256d hav = load256d(&ha[i]);
+        dTdtv = _mm256_fmadd_pd(hav,dNTdtv,dTdtv);
+    }
+    for(label i = nSpecie_-remain;i<nSpecie_;i++)
+    {
+        dNTdt[i] =dNTdt[i]*gas->V;
+        dTdt -= dNTdt[i]*ha[i];
+    }
+    dTdt = dTdt -(hsum4(dTdtv));
+    dTdt /= cp[this->nSpecie()];
+    dNTdt[this->nSpecie()] = dTdt;
+
+}
+
+
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::getddNTdtdNT
+(
+    const scalar t,
+    const label li,
+    const double p,
+    double* __restrict__ c,
+    double* __restrict__ NT,
+    double* __restrict__ dNTdt,
+    double* __restrict__ cp,
+    double* __restrict__ ha,
+    double* __restrict__ dBdT,
+    double* __restrict__ dcpdT,
+    double* __restrict__ ddNdtByVdcT,
+    double* __restrict__ ddNTdtdNT
+) const 
+{
+
+    // Constrain molar number to valid range and compute total molar number
+    double sum = 0;
+    int remain = this->nSpecie()%4;
+    __m256d sumv = _mm256_setzero_pd();
+    for(int i=0;i<this->nSpecie()-remain;i=i+4)
+    {
+        __m256d NTv = load256d(&NT[i]);
+        NTv = _mm256_max_pd(NTv,_mm256_setzero_pd());
+        store256d(&NT[i],NTv);
+        sumv = _mm256_add_pd(sumv,NTv);
+    }
+    for(int i=this->nSpecie()-remain;i<this->nSpecie();i=i+1)
+    {
+        NT[i]=std::max(NT[i],0.0);
+        sum += NT[i];
+    }
+    sum = sum + hsum4(sumv);
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    double T = NT[this->nSpecie()];
+    T = std::max(std::min(gas->ThighMin,T),gas->TlowMax);
+    // Compute temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    const double invp = 1.0/p;
+    const double invNtot = 1.0/sum;
+    const double logT = get0(TPRuT);
+    const double logP = get1(TPRuT);
+    const double logRuT = get2(TPRuT);
+    gas->invT = invT;
+    gas->logT = logT;
+    gas->invp = invp;
+    gas->Ntot = sum;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
+
+
+    // set to zero
+    memset(ddNTdtdNT, 0, this->alignN*this->n_*sizeof(double));
+    memset(dNTdt, 0, this->alignN*sizeof(double));
+
+    double* __restrict__ Gibbs1 = GasReaction->tmp_Exp;
+    double* __restrict__ Gibbs2 = GasReaction->negGstdByRT;
+    gas->JacobianThermoNT(p,T,NT,c,Gibbs1,Gibbs2,dBdT,dcpdT,cp,ha);
+
+
+    GasReaction->ddNdtByVdcTp(p,T,NT,c,dNTdt,dBdT,ddNTdtdNT);
+
+    //double Ntot = gas->Ntot;
+    double V = gas->V;
+    double dcptotdT =  dcpdT[this->nSpecie()];
+    double cptot = cp[nSpecie_];
+
+    if(this->nSpecie()%4==0)
+    {
+        this->ddNTdtdNT0(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,this->nSpecie(),this->alignN);
+    }
+    else if(this->nSpecie()%4==1)
+    {
+        this->ddNTdtdNT1(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,this->nSpecie(),this->alignN);
+    }
+    else if(this->nSpecie()%4==2)
+    {
+        this->ddNTdtdNT2(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,this->nSpecie(),this->alignN);
+    }
+    else
+    {
+        this->ddNTdtdNT3(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,this->nSpecie(),this->alignN);
+    }
+}
+
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::getddNTdtdNTwithMergeI
+(
+    const scalar t,
+    const label li,
+    const double p,
+    const double scale,
+    double* __restrict__ c,
+    double* __restrict__ NT,
+    double* __restrict__ dNTdt,
+    double* __restrict__ cp,
+    double* __restrict__ ha,
+    double* __restrict__ dBdT,
+    double* __restrict__ dcpdT,
+    double* __restrict__ ddNdtByVdcT,
+    double* __restrict__ ddNTdtdNT
+) const 
+{
+
+    // Constrain molar number to valid range and compute total molar number
+    double sum = 0;
+    int remain = this->nSpecie()%4;
+    __m256d sumv = _mm256_setzero_pd();
+    for(int i=0;i<this->nSpecie()-remain;i=i+4)
+    {
+        __m256d NTv = load256d(&NT[i]);
+        NTv = _mm256_max_pd(NTv,_mm256_setzero_pd());
+        store256d(&NT[i],NTv);
+        sumv = _mm256_add_pd(sumv,NTv);
+    }
+    for(int i=this->nSpecie()-remain;i<this->nSpecie();i=i+1)
+    {
+        NT[i]=std::max(NT[i],0.0);
+        sum += NT[i];
+    }
+    sum = sum + hsum4(sumv);
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    double T = NT[this->nSpecie()];
+    T = std::max(std::min(gas->ThighMin,T),gas->TlowMax);
+
+    // Compute temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    const double invp = 1.0/p;
+    const double invNtot = 1.0/sum;
+    const double logT = get0(TPRuT);
+    const double logP = get1(TPRuT);
+    const double logRuT = get2(TPRuT);
+    gas->invT = invT;
+    gas->logT = logT;
+    gas->invp = invp;
+    gas->Ntot = sum;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
+
+
+    // set to zero
+    memset(ddNTdtdNT, 0, this->alignN*this->n_*sizeof(double));
+    memset(dNTdt, 0, this->alignN*sizeof(double));
+
+    double* __restrict__ Gibbs1 = GasReaction->tmp_Exp;
+    double* __restrict__ Gibbs2 = GasReaction->negGstdByRT;
+    gas->JacobianThermoNT(p,T,NT,c,Gibbs1,Gibbs2,dBdT,dcpdT,cp,ha);
+
+
+    GasReaction->ddNdtByVdcTp(p,T,NT,c,dNTdt,dBdT,ddNTdtdNT);
+
+    //double Ntot = gas->Ntot;
+    double V = gas->V;
+    double dcptotdT =  dcpdT[this->nSpecie()];
+    double cptot = cp[nSpecie_];
+
+    if(this->nSpecie()%4==0)
+    {
+        this->ddNTdtdNT0WithMergeI(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,scale,this->nSpecie(),this->alignN);
+    }
+    else if(this->nSpecie()%4==1)
+    {
+        this->ddNTdtdNT1WithMergeI(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,scale,this->nSpecie(),this->alignN);
+    }
+    else if(this->nSpecie()%4==2)
+    {
+        this->ddNTdtdNT2WithMergeI(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,scale,this->nSpecie(),this->alignN);
+    }
+    else
+    {
+        this->ddNTdtdNT3WithMergeI(NT,c,ha,cp,dNTdt,ddNTdtdNT,invNtot,invT,V,1.0/cptot,dcptotdT,scale,this->nSpecie(),this->alignN);
+    }
+}
+
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::jacobian
 (
     const scalar t,
     const label li,
@@ -269,26 +749,36 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
 ) const 
 {
 
+    // Constrain mass fraction to valid range
     for(int i = 0; i < this->nSpecie();i++)
     {
         Phi[i] = std::max(Phi[i], 0.0);
     }
 
-    const double T = Phi[this->nSpecie()];
-    //const volScalarField& p0vf = this->thermo().p().oldTime();
-    //double p = p0vf[li];
-        
+    // Constrain temperature to valid range (given by thermo.dat)
+    const double Tlowmin = gas->TlowMax;
+    const double Thighmax = gas->ThighMin;
+    double T = Phi[this->nSpecie()];
+    T = T<Tlowmin?Tlowmin:T;
+    T = T>Thighmax?Thighmax:T;
+    // Compute temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    const double logT = get0(TPRuT);
+    const double logP = get1(TPRuT);
+    const double logRuT = get2(TPRuT);
+    gas->invT = invT;
+    gas->logT = logT;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
+
+
+    
     double* __restrict__ ddNdtByVdcT = YTpYTpWork[0];
-
-    {
-        size_t size = alignN*(this->nSpecie()+1);
-        std::memset(ddNdtByVdcT, 0, size * sizeof(double));
-    }
-    {
-        size_t size = alignN;
-        std::memset(dPhidt, 0, size * sizeof(double));
-    }
-
     double* __restrict__ c           = YTpWork[3];
     double* __restrict__ dBdT        = YTpWork[4];
     double* __restrict__ dCpdT       = YTpWork[5];
@@ -296,8 +786,56 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
     double* __restrict__ Ha          = YTpWork[7];
     double* __restrict__ WiByrhoM    = YTpWork[8];
     double* __restrict__ rhoMByRhoi      = YTpWork[10];
-       
-    reaction.ddNdtByVdcTp
+    double* __restrict__ dcdY      = YTpYTpWork[2];
+
+    {
+        size_t size = alignN*(this->nSpecie()+1);
+        memset(ddNdtByVdcT, 0, size * sizeof(double));
+    }
+    {
+        size_t size = alignN;
+        memset(dPhidt, 0, size * sizeof(double));
+    }
+
+    // d(dPhidt)dPhi. Phi=[Y0 Y1 Y2 ... YNs T]
+
+    // Compute the thermodynamic parameters required by chemical Jacobian matrix
+    // 
+
+    // i-th species variables (size:nSpecie):
+    // c[i]             :Molar concentration                                [kmol/m^3]
+    // Cp[i]            :Specific heat capacity                             [J/kg/K]
+    // Ha[i]            :Absolute enthalpy                                  [J/kg]
+    // tmp_Exp[i]       :Dimensionless standard Gibbs energy(-Gstd/Ru/T)    [dimLess] 
+    // dBdT[i]          :Partial derivative of -Gstd/Ru w.r.t temperature   [dimLess]
+    // dCpdT[i]         :Partial derivative of Cp w.r.t temperature         [J/kg/K/K]
+    // rhoMByRhoi[i]    :Mixture density divided by species density         [dimLess]
+    // WiByrhoM[i]      :Specific molar volume                              [m^3/kmol]
+
+    // Mixture variable:
+    // gas->rhoM        :Mixture density                                    [kg/m^3]
+    // gas->vM          :Mixture specific volume                            [m^3/kg]
+    // Cp[nSpecie()]    :Mixture specific heat capacity                     [J/kg/K]
+    gas->JacobianThermoYT
+    (
+        p,
+        T,
+        Phi,
+        c,
+        GasReaction->tmp_Exp,
+        GasReaction->negGstdByRT,
+        dBdT,
+        dCpdT,
+        Cp,
+        Ha,
+        rhoMByRhoi,
+        WiByrhoM
+    );
+
+    // Compute the molar based jacobian matrix d(dcTdt)dcT
+    // cT = [c0, c1, ..., cNs, T]
+
+    GasReaction->ddNdtByVdcTp
     (
         p,
         T,
@@ -305,77 +843,95 @@ void Foam::FastChemistryModel<ThermoType>::jacobian
         c,
         dPhidt,
         dBdT,
-        dCpdT,
-        Cp,
-        Ha,
-        rhoMByRhoi,
-        WiByrhoM,
         ddNdtByVdcT
     );
-    unsigned int remain = reaction.nSpecies%4;
-    switch (jacobianType_)
-    {
-        case jacobianType::fast:
-        if(remain==0)
-        {
-            reaction.FastddYdtdY_Vec0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==1)
-        {
-            reaction.FastddYdtdY_Vec1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
-            reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==2)
-        {
-            reaction.FastddYdtdY_Vec2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else
-        {
-            reaction.FastddYdtdY_Vec3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Jac);
-            reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
-            reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        break;            
-        case jacobianType::exact:
-        if(remain==0)
-        {
-            reaction.ddYdtdY_Vec1_0(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_0(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_0(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==1)
-        {
-            reaction.ddYdtdY_Vec1_1(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_1(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);  
-            reaction.ddTdtdYT_Vec_1(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else if(remain==2)
-        {
-            reaction.ddYdtdY_Vec1_2(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_2(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac);
-            reaction.ddTdtdYT_Vec_2(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        else
-        {
-            reaction.ddYdtdY_Vec1_3(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,Phi,Jac);
-            reaction.ddYdtdTP_Vec_3(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac); 
-            reaction.ddTdtdYT_Vec_3(Cp,dCpdT,Ha,dPhidt,Jac);
-        }
-        break;
-    }
+    
+
+    // Compute the mass fraction based jacobian matrix d(dYTdt)dYT
+    // YT = [Y0, Y1, ..., YNs, T]
+    double* __restrict__ invW = gas->invW;
+    double rhoM = gas->rhoM;
+    double alphav = gas->alphav();
+
+    (this->*ddYdtdYPtr)(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,Jac,rhoM);
+    (this->*ddYdtdTPtr)(ddNdtByVdcT,WiByrhoM,c,dPhidt,Jac,alphav);
+    (this->*ddTdtdYTPtr)(Cp,dCpdT,Ha,dPhidt,Jac);
 }
 
 
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::getddYTdtdYT
+(
+    const scalar t,
+    const label li,
+    const double p,
+    double* __restrict__ c,
+    double* __restrict__ Phi,
+    double* __restrict__ dPhidt,
+    double* __restrict__ Cp,
+    double* __restrict__ Ha,
+    double* __restrict__ dBdT,
+    double* __restrict__ dCpdT,
+    double* __restrict__ rhoMByRhoi,
+    double* __restrict__ WiByrhoM,
+    double* __restrict__ ddNdtByVdcT,
+    double* __restrict__ dcdY,
+    double* __restrict__ ddYTdtdYT
+) const 
+{
+    // Constrain mass fraction to valid range
+    for(int i = 0; i < this->nSpecie();i++){Phi[i] = std::max(Phi[i],0.0);}
+
+    // Constrain temperature to valid range (given by thermo.dat)
+    const double Tlowmin = gas->TlowMax;
+    const double Thighmax = gas->ThighMin;
+    double T = Phi[this->nSpecie()];
+    T = T<Tlowmin?Tlowmin:T;
+    T = T>Thighmax?Thighmax:T;
+
+    // Compute temperature and pressure, required by thermo and chemistry
+    double RuT = gas->Ru*T;
+    __m256d TPRuT = _mm256_setr_pd(T,p,RuT,1);
+    TPRuT = FastChemistry::vec256_logd(TPRuT);
+    const double invT = 1.0/T;
+    const double logT = get0(TPRuT);
+    const double logP = get1(TPRuT);
+    const double logRuT = get2(TPRuT);
+    gas->invT = invT;
+    gas->logT = logT;
+    GasReaction->invT = invT;
+    GasReaction->logT = logT;
+    GasReaction->logP = logP;
+    GasReaction->logRuT = logRuT;
+
+    // Set to zero
+    {
+        memset(dPhidt, 0, alignN * sizeof(double));
+        memset(ddNdtByVdcT, 0, alignN*this->n_*sizeof(double));
+    }
+
+    // Compute the thermodynamic parameters required by chemical Jacobian matrix
+    double* __restrict__ Gibbs1 = GasReaction->tmp_Exp;
+    double* __restrict__ Gibbs2 = GasReaction->negGstdByRT;
+    gas->JacobianThermoYT(p,T,Phi,c,Gibbs1,Gibbs2,dBdT,dCpdT,Cp,Ha,rhoMByRhoi,WiByrhoM);
+
+    // Compute the molar based jacobian matrix d(dcTdt)dcT
+    
+    GasReaction->ddNdtByVdcTp(p,T,Phi,c,dPhidt,dBdT,ddNdtByVdcT);
+    
+
+    // Compute the mass fraction based jacobian matrix d(dYTdt)dYT
+    double* __restrict__ invW = gas->invW;
+    double rhoM = gas->rhoM;
+    (this->*ddYdtdYPtr)(ddNdtByVdcT,rhoMByRhoi,WiByrhoM,dPhidt,invW,Phi,dcdY,ddYTdtdYT,rhoM);
+    (this->*ddYdtdTPtr)(ddNdtByVdcT,WiByrhoM,c,dPhidt,ddYTdtdYT,invT);
+    (this->*ddTdtdYTPtr)(Cp,dCpdT,Ha,dPhidt,ddYTdtdYT);
+}
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::volScalarField>
-Foam::FastChemistryModel<ThermoType>::tc() const
+Foam::FastChemistryModel<UnusedThermo>::tc() const
 {
     tmp<volScalarField> ttc
     (
@@ -403,13 +959,38 @@ Foam::FastChemistryModel<ThermoType>::tc() const
         forAll(rho, celli)
         {
             const scalar rhoi = rho[celli];
-            const scalar Ti = T[celli];
+            scalar Ti = T[celli];
             const scalar pi = p[celli];
 
             for (label i=0; i<nSpecie_; i++)
             {
-                C[i] = rhoi*Yvf_[i][celli]*reaction.invW[i];
+                C[i] = rhoi*Yvf_[i][celli]*gas->invW[i];
+                C[i] = std::max(C[i],0.0);
             }
+
+            // Constrain temperature to valid range (given by thermo.dat)
+            const double Tlowmin = gas->TlowMax;
+            const double Thighmax = gas->ThighMin;
+            Ti = Ti<Tlowmin?Tlowmin:Ti;
+            Ti = Ti>Thighmax?Thighmax:Ti;
+
+            // Computing temperature and pressure, required by thermo and chemistry
+            double RuT = gas->Ru*Ti;
+            __m256d TPRuT = _mm256_setr_pd(Ti,pi,RuT,1);
+            TPRuT = FastChemistry::vec256_logd(TPRuT);
+            const double invT = 1.0/Ti;
+            const double logT = get0(TPRuT);
+            const double logP = get1(TPRuT);
+            const double logRuT = get2(TPRuT);
+            gas->invT = invT;
+            gas->logT = logT;
+            GasReaction->invT = invT;
+            GasReaction->logT = logT;
+            GasReaction->logP = logP;
+            GasReaction->logRuT = logRuT;
+
+            // Computing dimensionless standard Gibbs energy
+            gas->negGstdByRT(Ti,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
 
             // A reaction's rate scale is calculated as it's molar
             // production rate divided by the total number of moles in the
@@ -428,7 +1009,7 @@ Foam::FastChemistryModel<ThermoType>::tc() const
             // reactions produce the same result as the equivalent pair of
             // irreversible reactions.
             scalar sumW = 0, sumWRateByCTot = 0;
-            reaction.Tc(celli,pi,Ti,C,sumW,sumWRateByCTot);
+            GasReaction->Tc(celli,pi,Ti,C,sumW,sumWRateByCTot);
 
             double sumc = 0;
             for(int i = 0; i < this->nSpecie();i++)
@@ -441,94 +1022,13 @@ Foam::FastChemistryModel<ThermoType>::tc() const
     }
     ttc.ref().correctBoundaryConditions();
     return ttc;
-    /*tmp<volScalarField> ttc
-    (
-        volScalarField::New
-        (
-            "tc",
-            this->mesh(),
-            dimensionedScalar(dimTime, small),
-            extrapolatedCalculatedFvPatchScalarField::typeName
-        )
-    );
-    scalarField& tc = ttc.ref();
 
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
-
-    if (this->chemistry_)
-    {
-        reactionEvaluationScope scope(*this);
-
-        forAll(rho, celli)
-        {
-            const scalar rhoi = rho[celli];
-            const scalar Ti = T[celli];
-            const scalar pi = p[celli];
-
-            for (label i=0; i<nSpecie_; i++)
-            {
-                c_[i] = rhoi*Yvf_[i][celli]/specieThermos_[i].W();
-            }
-
-            // A reaction's rate scale is calculated as it's molar
-            // production rate divided by the total number of moles in the
-            // system.
-            //
-            // The system rate scale is the average of the reactions' rate
-            // scales weighted by the reactions' molar production rates. This
-            // weighting ensures that dominant reactions provide the largest
-            // contribution to the system rate scale.
-            //
-            // The system time scale is then the reciprocal of the system rate
-            // scale.
-            //
-            // Contributions from forward and reverse reaction rates are
-            // handled independently and identically so that reversible
-            // reactions produce the same result as the equivalent pair of
-            // irreversible reactions.
-
-            scalar sumW = 0, sumWRateByCTot = 0;
-            forAll(reactions_, i)
-            {
-                const Reaction<ThermoType>& R = reactions_[i];
-                scalar omegaf, omegar;
-                R.omega(pi, Ti, c_, celli, omegaf, omegar);
-
-                scalar wf = 0;
-                forAll(R.rhs(), s)
-                {
-                    wf += R.rhs()[s].stoichCoeff*omegaf;
-                }
-                sumW += wf;
-                sumWRateByCTot += sqr(wf);
-
-                scalar wr = 0;
-                forAll(R.lhs(), s)
-                {
-                    wr += R.lhs()[s].stoichCoeff*omegar;
-                }
-                sumW += wr;
-                sumWRateByCTot += sqr(wr);
-            }
-
-            tc[celli] =
-                sumWRateByCTot == 0 ? vGreat : sumW/sumWRateByCTot*sum(c_);
-        }
-    }
-
-    ttc.ref().correctBoundaryConditions();
-
-    return ttc;*/
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::volScalarField>
-Foam::FastChemistryModel<ThermoType>::Qdot() const
+Foam::FastChemistryModel<UnusedThermo>::Qdot() const
 {
     tmp<volScalarField> tQdot
     (
@@ -550,7 +1050,7 @@ Foam::FastChemistryModel<ThermoType>::Qdot() const
             forAll(Qdot, celli)
             {
                 //const scalar hi = specieThermos_[i].Hf();
-                const double hi = reaction.Hf[i];
+                const double hi = gas->Hf[i];
                 Qdot[celli] -= hi*RR_[i][celli];
             }
         }
@@ -560,9 +1060,9 @@ Foam::FastChemistryModel<ThermoType>::Qdot() const
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::tmp<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>
-Foam::FastChemistryModel<ThermoType>::calculateRR
+Foam::FastChemistryModel<UnusedThermo>::calculateRR
 (
     const label ri,
     const label si
@@ -586,8 +1086,8 @@ Foam::FastChemistryModel<ThermoType>::calculateRR
 }
 
 
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::calculate()
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::calculate()
 {
 
     if (!this->chemistry_)
@@ -602,25 +1102,53 @@ void Foam::FastChemistryModel<ThermoType>::calculate()
     const scalarField& p = this->thermo().p();
     double* __restrict__ C = YTpWork[0];
     double* __restrict__ dNdtByV = YTpWork[1];
-    double* __restrict__ Cp = YTpWork[2];
-    double* __restrict__ Ha = YTpWork[3];
+    //double* __restrict__ Cp = YTpWork[2];
+    //double* __restrict__ Ha = YTpWork[3];
 
     forAll(rho, celli)
     {
         const scalar rhoi = rho[celli];
-        const scalar Ti = T[celli];
+        scalar Ti = T[celli];
         const scalar pi = p[celli];
 
+        // Constrain temperature to valid range (given by thermo.dat)
+        const double Tlowmin = gas->TlowMax;
+        const double Thighmax = gas->ThighMin;
+        Ti = Ti<Tlowmin?Tlowmin:Ti;
+        Ti = Ti>Thighmax?Thighmax:Ti;
+
+        // Computing temperature and pressure, required by thermo and chemistry
+        double RuT = gas->Ru*Ti;
+        __m256d TPRuT = _mm256_setr_pd(Ti,pi,RuT,1);
+        TPRuT = FastChemistry::vec256_logd(TPRuT);
+        const double invT = 1.0/Ti;
+        const double logT = get0(TPRuT);
+        const double logP = get1(TPRuT);
+        const double logRuT = get2(TPRuT);
+        gas->invT = invT;
+        gas->logT = logT;
+        GasReaction->invT = invT;
+        GasReaction->logT = logT;
+        GasReaction->logP = logP;
+        GasReaction->logRuT = logRuT;
+    
+        // Computing molar concentration
         for (int i=0; i<this->nSpecie(); i++)
         {
             const scalar Yi = Yvf_[i][celli];
-            C[i] = rhoi*Yi*reaction.invW[i];
+            C[i] = rhoi*Yi*gas->invW[i];
         }
-        std::memset(C, 0, this->alignN * sizeof(double)*4);
-        reaction.dNdtByV(pi,Ti,C,dNdtByV,Cp,Ha);
+        gas->negGstdByRT(Ti,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
+
+        memset(C, 0, this->alignN * sizeof(double)*4);
+
+    
+        GasReaction->dNdtByV(pi,Ti,C,dNdtByV);
+    
+        //reaction.dNdtByV(pi,Ti,C,dNdtByV,Cp,Ha);
         for (int i=0; i<this->nSpecie(); i++)
         {
-            RR_[i][celli] = dNdtByV[i]*reaction.W[i];
+            RR_[i][celli] = dNdtByV[i]*gas->W[i];
         }
     }
     return;
@@ -629,8 +1157,8 @@ void Foam::FastChemistryModel<ThermoType>::calculate()
 
 #include "FastChemistryModel_transientSolve.H"
 #include "FastChemistryModel_localEulerSolve.H"
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::exchange
+template<class UnusedThermo>
+void Foam::FastChemistryModel<UnusedThermo>::exchange
 (
     const UList<DynamicList<char>>& sendBufs,
     const List<std::streamsize>& recvSizes,
@@ -717,33 +1245,6 @@ void Foam::FastChemistryModel<ThermoType>::exchange
 
     recvBufs[Pstream::myProcNo(comm)] = sendBufs[Pstream::myProcNo(comm)];
 }
-template<class ThermoType>
-void Foam::FastChemistryModel<ThermoType>::exchangeSizes
-(
-    const UList<DynamicList<char>>& sendBufs,
-    labelList& recvSizes,
-    const label comm
-)
-{
-    if (sendBufs.size() != UPstream::nProcs(comm))
-    {
-        FatalErrorInFunction
-            << "Size of container " << sendBufs.size()
-            << " does not equal the number of processors "
-            << UPstream::nProcs(comm)
-            << Foam::abort(FatalError);
-    }
-
-    labelList sendSizes(sendBufs.size());
-    forAll(sendBufs, proci)
-    {
-        sendSizes[proci] = sendBufs[proci].size();
-    }
-    recvSizes.setSize(sendSizes.size());
-    Foam::UPstream::allToAll(sendSizes, recvSizes, comm);
-    Pout<<"exchangesize: recvSizes: "<<recvSizes<<endl;
-}
-
 
 
 // ************************************************************************* //

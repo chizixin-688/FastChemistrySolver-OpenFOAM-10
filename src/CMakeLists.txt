@@ -24,14 +24,13 @@ set(CMAKE_BUILD_TYPE release)
 #-g -fno-omit-frame-pointer
 set(DEFINITIONS_COMPILE "-std=c++14 -m64 -Dlinux64 -DWM_ARCH_OPTION=64 -DWM_DP 
 -DWM_LABEL_SIZE=32 
-
 -Wold-style-cast -Wnon-virtual-dtor 
 -Wno-unused-parameter -Wno-invalid-offsetof -Wno-attributes   -DNoRepository 
 -Wshadow -Wpedantic -Wsign-compare  -Wstrict-aliasing -Wnull-dereference -Wsequence-point
 -Wreturn-local-addr -Wlogical-op  -Wduplicated-cond -Wduplicated-branches
 -Wconversion
 -Wall -Wextra -Wshadow -Winit-self -Wuninitialized -Wmaybe-uninitialized
--ftemplate-depth-100 -fPIC -O3 -mavx2  -mfma ")
+-ftemplate-depth-100 -fPIC -O3 -mavx2  -mfma -lmvec -mno-avx256-split-unaligned-load")
 #-fopt-info-vec-missed=vec_missed.log
 add_definitions("${DEFINITIONS_COMPILE}")
 
@@ -59,18 +58,24 @@ include_directories(
 
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/asmCode       
-        ${CMAKE_SOURCE_DIR}/Aligned
         ${CMAKE_SOURCE_DIR}/ChemistryModel
+        ${CMAKE_SOURCE_DIR}/ChemistryModel/Jacobian
         ${CMAKE_SOURCE_DIR}/dataBlock
         ${CMAKE_SOURCE_DIR}/dataBlock/simpleDataBlock
         ${CMAKE_SOURCE_DIR}/LUsolver
-        ${CMAKE_SOURCE_DIR}/ODE/OptRodas23
         ${CMAKE_SOURCE_DIR}/ODE/OptRodas34
-        ${CMAKE_SOURCE_DIR}/ODE/OptRosenbrock23
         ${CMAKE_SOURCE_DIR}/ODE/OptRosenbrock34
-        ${CMAKE_SOURCE_DIR}/ODE/oRosenbrock34
         ${CMAKE_SOURCE_DIR}/ODE/OptSeulex
         ${CMAKE_SOURCE_DIR}/Reaction 
+        ${CMAKE_SOURCE_DIR}/Reaction/updateReactionRate
+        ${CMAKE_SOURCE_DIR}/Reaction/updateJacobianMatrix
+        ${CMAKE_SOURCE_DIR}/Reaction/SRI
+        ${CMAKE_SOURCE_DIR}/Reaction/Troe
+        ${CMAKE_SOURCE_DIR}/Reaction/Lindemann
+        ${CMAKE_SOURCE_DIR}/Reaction/PLOG
+        ${CMAKE_SOURCE_DIR}/Thermo/idealGas 
+        ${CMAKE_SOURCE_DIR}/Thermo
+        ${CMAKE_SOURCE_DIR}/MakeChemistrySolvers
         ) #change here
 
 link_directories(${OpenFOAM_LIB_DIR} ${OpenFOAM_LIB_DIR}/dummy ${OpenFOAM_LIB_DIR}/${PATH_LIB_OPENMPI} )
@@ -87,7 +92,7 @@ set_source_files_properties(
 )
 add_library(
     ${PROJECT_NAME} SHARED 
-    odeChemistrySolvers.C 
+    MakeChemistrySolvers/odeChemistrySolvers.C 
     asmCode/svml_d_gnuexp_data.S
     asmCode/svml_d_gnuexp4_core_avx2.S
     asmCode/svml_d_gnupow_data.S
@@ -96,6 +101,45 @@ add_library(
     asmCode/svml_d_gnulog4_core_avx2.S
     dataBlock/dataBlock.C 
     dataBlock/simpleDataBlock/simpleDataBlock.C
+    Thermo/createIdealGasFromFoamDict.C
+    Thermo/idealGas/idealGas.C
+    LUsolver/LUsolver.C
+    Reaction/createGasPhaseReactionFromFoamDict.C
+    Reaction/Jacobian.C
+    Reaction/OptReaction.C
+    Reaction/ReactionRate.C
+    Reaction/Tc.C
+    Reaction/Lindemann/EvalLindemannPartialDerivative.C
+    Reaction/Lindemann/EvalLindemannRateConstant.C
+    Reaction/PLOG/EvalPlogPartialDerivative.C
+    Reaction/PLOG/EvalPlogRateConstant.C
+    Reaction/PLOG/FindPlogPressureRange.C
+    Reaction/SRI/EvalSRIPartialDerivative.C
+    Reaction/SRI/EvalSRIRateConstant.C
+    Reaction/Troe/EvalTroePartialDerivative.C
+    Reaction/Troe/EvalTroeRateConstant.C
+    Reaction/updateJacobianMatrix/updateJacobian11.C
+    Reaction/updateJacobianMatrix/updateJacobian12.C
+    Reaction/updateJacobianMatrix/updateJacobian13.C
+    Reaction/updateJacobianMatrix/updateJacobian21.C
+    Reaction/updateJacobianMatrix/updateJacobian22.C
+    Reaction/updateJacobianMatrix/updateJacobian23.C
+    Reaction/updateJacobianMatrix/updateJacobian31.C
+    Reaction/updateJacobianMatrix/updateJacobian32.C
+    Reaction/updateJacobianMatrix/updateJacobian33.C
+    Reaction/updateJacobianMatrix/updateJacobianGlobalIntegerReaction.C
+    Reaction/updateJacobianMatrix/updateJacobianGlobalNonIntegerReaction.C
+    Reaction/updateReactionRate/update11Reaction.C
+    Reaction/updateReactionRate/update12Reaction.C
+    Reaction/updateReactionRate/update13Reaction.C
+    Reaction/updateReactionRate/update21Reaction.C
+    Reaction/updateReactionRate/update22Reaction.C
+    Reaction/updateReactionRate/update23Reaction.C
+    Reaction/updateReactionRate/update31Reaction.C
+    Reaction/updateReactionRate/update32Reaction.C
+    Reaction/updateReactionRate/update33Reaction.C
+    Reaction/updateReactionRate/updateGlobalIntegerReaction.C
+    Reaction/updateReactionRate/updateGlobalNonIntegerReaction.C
 )
 
 target_link_libraries(${PROJECT_NAME} 

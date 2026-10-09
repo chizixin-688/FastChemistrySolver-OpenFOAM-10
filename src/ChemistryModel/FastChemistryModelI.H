@@ -23,51 +23,60 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+
+/*---------------------------------------------------------------------------*\
+  Description
+      Inline function for FastChemistryModel object
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline label
-Foam::FastChemistryModel<ThermoType>::nSpecie() const
+Foam::FastChemistryModel<UnusedThermo>::nSpecie() const
 {
     return nSpecie_;
 }
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline Foam::PtrList<Foam::volScalarField>&
-Foam::FastChemistryModel<ThermoType>::RR()
+Foam::FastChemistryModel<UnusedThermo>::RR()
 {
     return RR_;
 }
 
-template<class ThermoType>
-inline Foam::label Foam::FastChemistryModel<ThermoType>::nReaction() const
+template<class UnusedThermo>
+inline Foam::label Foam::FastChemistryModel<UnusedThermo>::nReaction() const
 {
-    return reaction.n_Reactions;
+    return GasReaction->n_Reactions;
 }
 
-template<class ThermoType>
-inline OptReaction& Foam::FastChemistryModel<ThermoType>::getReaction() const
+template<class UnusedThermo>
+inline std::unique_ptr<FastChemistry::OptReaction>& 
+Foam::FastChemistryModel<UnusedThermo>::getReaction() const
 {
-    return reaction;
+    return GasReaction;
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::FastChemistryModel<ThermoType>::RR(const label i) const
+Foam::FastChemistryModel<UnusedThermo>::RR(const label i) const
 {
     return RR_[i].internalField();
 }
 
 
-template<class ThermoType>
+template<class UnusedThermo>
 Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::FastChemistryModel<ThermoType>::RR(const label i)
+Foam::FastChemistryModel<UnusedThermo>::RR(const label i)
 {
     return RR_[i].ref();
 }
-
-
 
 
 // ************************************************************************* //

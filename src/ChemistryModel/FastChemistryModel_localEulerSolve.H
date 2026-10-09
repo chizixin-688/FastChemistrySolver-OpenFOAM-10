@@ -1,5 +1,15 @@
-template<class ThermoType>
-Foam::scalar Foam::FastChemistryModel<ThermoType>::solve
+/*---------------------------------------------------------------------------*\
+  Description
+      This file is for text substitution purposes only.
+
+      Solving chemistry using local Euler time step
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+template<class UnusedThermo>
+Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
 (
     const scalarField& deltaT
 )

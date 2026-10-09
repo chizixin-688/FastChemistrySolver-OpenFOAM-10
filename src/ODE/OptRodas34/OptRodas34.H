@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::rodas23
+    Foam::OptRodas34
 
 Description
     L-stable, stiffly-accurate embedded Rosenbrock ODE solver of order (2)3.
@@ -37,26 +37,42 @@ Description
     \endverbatim
 
 SourceFiles
-    rodas34.C
+    OptRodas34.C
+
+Author
+    Zixin Chi <chizixin@buaa.edu.cn>
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef OptRodas34_H
-#define OptRodas34_H
+//=============================================================================//
 
-#include "chemistrySolver.H"
-#include "simpleMatrix.H"
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
+//---------------------------------
+// 2. OpenFOAM library headers
+//---------------------------------
+#include "chemistrySolver.H"
+
+//---------------------------------
+// 3. FastChemistry headers
+//---------------------------------
 #include "LUsolver.H"
+
+//=============================================================================//
+
+#ifndef OptRodas34_H
+#define OptRodas34_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
+using namespace FastChemistry;
 /*---------------------------------------------------------------------------*\
                            Class OptRodas34 Declaration
 \*---------------------------------------------------------------------------*/
@@ -66,10 +82,11 @@ class OptRodas34
     public chemistrySolver<ChemistryModel>
 {
     // Private Data
+        //- State of the adaptive time stepping (current try step
+        //  size and whether the current step is the last one)
     class stepState
     {
         public:
-
 
         scalar dxTry;
         bool last;
@@ -94,7 +111,7 @@ class OptRodas34
 
         //- The maximum number of sub-steps allowed for the integration step
         const label maxSteps_;
-        
+
     // Adaptive Solver
 
         //- Step-size adjustment controls
@@ -145,27 +162,22 @@ class OptRodas34
         constexpr static const scalar gamma = 0.25;
         constexpr static const scalar Invgamma= 1.0/gamma;
 
+    // Linear-solver engine (LU factorisation of the iteration matrices)
 
-
-    // Rodas34
-
-        mutable LUsolver LU;
+        mutable FastChemistry::LUsolver LU;
 
 public:
 
     //- Runtime type information
     TypeName("OptRodas34");
 
-
     // Constructors
 
         //- Construct from thermo
         OptRodas34(const fluidReactionThermo& thermo);
 
-
     //- Destructor
     virtual ~OptRodas34();
-
 
     // Member Functions
 
@@ -187,7 +199,7 @@ public:
             const double p,
             double& __restrict__ deltaT,
             double& __restrict__ subDeltaT
-        ) const;        
+        ) const;
 
     // ODE solver
 
@@ -209,8 +221,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
-
+        ) const;
 
     // adaptive solver
 
@@ -232,7 +243,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
+        ) const;
 
         scalar Rodas34Solve
         (
@@ -253,8 +264,7 @@ public:
             double* __restrict__ dydx,
             double* __restrict__ dfdx,
             double* __restrict__ a_
-        )const;
-
+        ) const;
 
         //- Return the normalised scalar error
         inline scalar normaliseError
@@ -262,9 +272,8 @@ public:
             const double* __restrict__ Phi0,
             const double* __restrict__ Phi,
             const double* __restrict__ err
-        )const;         
+        ) const;
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -278,3 +287,4 @@ public:
 #endif
 
 // ************************************************************************* //
+

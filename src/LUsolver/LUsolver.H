@@ -1,70 +1,104 @@
+/*---------------------------------------------------------------------------*\
+  Description
+      Header file for the block LU decomposition of a dense matrix.
 
+      LUsolver decomposes an N x N matrix (stored row-major with a row stride
+      of alignN = ceil(N/4)*4) into a unit lower-triangular part L and an
+      upper-triangular part U using 4x4 diagonal blocks.  It is used by the
+      fast-chemistry ODE solvers to solve the linear systems.
 
+      The AVX-2 kernels are implemented in LUsolver.C.
+
+  Author
+      Zixin Chi <chizixin@buaa.edu.cn>
+\*---------------------------------------------------------------------------*/
+
+//=============================================================================//
+
+//---------------------------------
+// 1. Standard C++ library headers
+//---------------------------------
+#include <vector>
+
+//---------------------------------
+// 2. FastChemistry headers
+//---------------------------------
+#include "Macro.H"
+#include "vec_math_avx2.H"
+
+//---------------------------------
+// 3. SIMD / AVX2 headers
+//---------------------------------
+#include <immintrin.h>
+
+//=============================================================================//
 
 #ifndef LUsolver_H
 #define LUsolver_H
-#include <vector>
-#include <immintrin.h>
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace FastChemistry
+{
 class LUsolver
 {
     // Private data
 
-        //- Matrix size
-        unsigned int N;
+        //- Matrix size.
+        int N;
 
-        unsigned int alignN;
+        //- Row stride of the storage (rounded up to a multiple of 4).
+        int alignN;
 
-        //- Remain
-        unsigned int Remain;
-
-        //- Data pointer
+        //- Data pointer (matrix is stored row-major, stride alignN).
         double* __restrict__ v_;
 
-        //- Store the global index of target row.
-        unsigned int* pivotIndice_;
-
-        //- Store the row address
+        //- Pivot index of each row (row permutation table).
+        std::vector<int> pivotIndice_;
+        
+        //- Row start addresses; LUDecompose4 may swap entries of this array
+        //  internally, so each block always sees its rows in the identity order.
         std::vector<double*> rowPtr;
 
-        //- Save the reciprocal of diagonal elements
+        //- Reciprocal of the diagonal elements of U.
         std::vector<double> invD;
 
-        //- Whether the data is own
-        bool owner;
+        //- Reciprocal of each row's maximum absolute value (row equilibration).
+        std::vector<double> rowScales;
 
 public:
 
-    // Constructor
+    // Constructors
 
-        // Constructor from external data.
+        //- Construct from externally owned data.
         LUsolver(double* externalData, int size);
 
-        // Disable default constructor 
-        LUsolver()=delete;  
+        //- Disable default construction.
+        LUsolver() = delete;
 
     // Destructor
 
         ~LUsolver();
 
-    // Member function
+    // Member functions
 
         // Access
 
-            //- (i, j) element access.
-            inline double& operator()(const unsigned int i,const unsigned int j);
+            //- (i, j) element access (non-const).
+            inline double& operator()(const int i,const int j);
 
-            //- (i, j) element access. 
-            inline double operator() (const unsigned int i,const unsigned int j)const;
- 
-            //- pivotIndice access.
-            inline unsigned int& pivotIndice(const unsigned int i);
+            //- (i, j) element access (const).
+            inline double operator() (const int i,const int j)const;
 
-            //- pivotIndice access.
-            inline unsigned int pivotIndice(const unsigned int i) const;
+            //- pivotIndice access (non-const).
+            inline int& pivotIndice(const int i);
 
-        // Print the variable
+            //- pivotIndice access (const).
+            inline int pivotIndice(const int i) const;
 
-            void printMatrix(double*A,int mRows, int nCol);
+        // Debug printing
+
+            void printMatrix(double* A,int mRows, int nCol);
 
             void printMatrix();
 
@@ -75,114 +109,53 @@ public:
             // using 4*4 block.
             void Block4LUDecompose();
 
-            // Solve Ax=b.
+        // Solve Ax=b.
+
             void xSolve_Serial(double* __restrict__ b);
-            void xSolve_Vec_0(double* __restrict__ b);
-            void xSolve_Vec_1(double* __restrict__ b);
-            void xSolve_Vec_2(double* __restrict__ b);
-            void xSolve_Vec_3(double* __restrict__ b);
-            void xSolve(double* __restrict__ b);            
+            void xSolve(double* __restrict__ b);
 
-            // Sub functions
+        // Sub functions
 
-                // LU decomposition of 4*4 block.
-                void LUDecompose4(unsigned int k0);
-                //void LUDecompose4Old(unsigned int k0);
-                //void LUDecompose4();
-                void LUDecompose4_2();           
-                void LUDecompose4_3();        
-                
-                //void forwardSitituate4(unsigned int k0,unsigned int k1);
-                void forwardSitituate4_0(unsigned int k0,unsigned int k1);
-                void forwardSitituate4_1(unsigned int k0,unsigned int k1);
-                void forwardSitituate4_2(unsigned int k0,unsigned int k1);
-                void forwardSitituate4_3(unsigned int k0,unsigned int k1);
+            // LU decomposition of 4*4 block.
+            void LUDecompose4(int k0);
+            void LUDecompose4_2();
+            void LUDecompose4_3();
 
-                //void backSitituate4(unsigned int k0,unsigned int k1);
-                void backSitituate4_0(unsigned int k0,unsigned int k1);
-                void backSitituate4_1(unsigned int k0,unsigned int k1);
-                void backSitituate4_2(unsigned int k0,unsigned int k1);
-                void backSitituate4_3(unsigned int k0,unsigned int k1);                
+            void forwardSubstitute4_0(int k0,int k1);
+            void forwardSubstitute4_1(int k0,int k1);
+            void forwardSubstitute4_2(int k0,int k1);
+            void forwardSubstitute4_3(int k0,int k1);
 
-                void permutation0(unsigned int k0,unsigned int k1);
-                void permutation1(unsigned int k0,unsigned int k1);
-                void permutation2(unsigned int k0,unsigned int k1);
-                void permutation3(unsigned int k0,unsigned int k1);
-                //void permutationold(unsigned int k0,unsigned int k1);
-                //void permutation();
-                void permutation_2();
-                void permutation_3();
+            void backSubstitute4_0(int k0,int k1);
+            void backSubstitute4_1(int k0,int k1);
+            void backSubstitute4_2(int k0,int k1);
+            void backSubstitute4_3(int k0,int k1);
 
-                //void UpdateL22U22(unsigned int k0,unsigned int k1);
-                //void UpdateL22U22_Vec(unsigned int k0,unsigned int k1);
-                //void UpdateL22U22_Vec2(unsigned int k0,unsigned int k1);   
-                void UpdateL22U22_Vec2_0(unsigned int k0,unsigned int k1);   
-                void UpdateL22U22_Vec2_1(unsigned int k0,unsigned int k1);  
-                void UpdateL22U22_Vec2_2(unsigned int k0,unsigned int k1);  
-                void UpdateL22U22_Vec2_3(unsigned int k0,unsigned int k1);   
-                
-        //void LUDecompose_s();
+            void permutation0(int k0,int k1);
+            void permutation1(int k0,int k1);
+            void permutation2(int k0,int k1);
+            void permutation3(int k0,int k1);
+            void permutation_2();
+            void permutation_3();
 
-        // Read square matrix from text.
-        void ReadTxt(std::string fileName);
+            void UpdateL22U22_Vec_38(int k0,int k1);
+            void scaleA0();
+            void scaleA1();
+            void scaleA2();
+            void scaleA3();
+            void scaleb(double* __restrict__ b);
 
         // Reassign a square matrix
         void ReAssign(double* externalData);
 
-        inline double hsum4(__m256d v);// result = v0+v1+v2+v3
-
-        inline __m256d hsum4x4(__m256d sum0, __m256d sum1,__m256d sum2, __m256d sum3) const
-        {
-            __m256d t0 = _mm256_hadd_pd(sum0, sum1);  // [a0+a1, b0+b1, a2+a3, b2+b3]
-            __m256d t1 = _mm256_hadd_pd(sum2, sum3);  // [c0+c1, d0+d1, c2+c3, d2+d3]
-            __m256d t2 = _mm256_permute4x64_pd (t0, _MM_SHUFFLE(3,1,2,0)); // [a0+a1, a2+a3, b0+b1,  b2+b3]
-            __m256d t3 = _mm256_permute4x64_pd(t1, _MM_SHUFFLE(3,1,2,0)); // [c0+c1, c2+c3, d0+d1, d2+d3]
-            __m256d t4 = _mm256_hadd_pd(t2, t3); // [a0+a1+a2+a3, c0+c1+c2+c3, b0+b1+b2+b3, d0+d1+d2+d3]
-            __m256d t5 = _mm256_permute4x64_pd(t4, _MM_SHUFFLE(3,1,2,0));
-            return t5;
-        }
-
-        inline double get_elem0(__m256d vec) const
-        {
-            return _mm256_cvtsd_f64(vec); 
-        }
-
-        inline double get_elem1(__m256d vec) const
-        {
-            __m128d low = _mm256_castpd256_pd128(vec); 
-            return _mm_cvtsd_f64(_mm_unpackhi_pd(low, low));
-        }
-
-        inline double get_elem2(__m256d vec) const
-        {
-            __m128d high = _mm256_extractf128_pd(vec, 1); 
-            return _mm_cvtsd_f64(high);
-        }
-
-        inline __m128d get_high(__m256d vec) const
-        {
-            return _mm256_extractf128_pd(vec, 1);
-        }
-
-        inline __m128d get_low(__m256d vec) const
-        {
-            return _mm256_castpd256_pd128(vec);
-        }
-
-        inline double get_elem3(__m256d vec) const
-        {
-            __m128d high = _mm256_extractf128_pd(vec, 1); 
-            return _mm_cvtsd_f64(_mm_unpackhi_pd(high, high));
-        }
-
-        inline void transpose4x4_pd(__m256d& v0,__m256d& v1,__m256d& v2,__m256d& v3);
 };
+
+
+} // End namespace FastChemistry
 
 #include "LUsolverI.H"
 
-#ifdef NoRepository
-    #include "LUsolver.C" 
-#endif
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
