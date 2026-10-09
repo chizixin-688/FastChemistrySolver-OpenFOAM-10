@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      initialConditions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+constantProperty pressure;
+
+fractionBasis   mole;
+
+fractions
+{
+O2	18.5	;
+NC12H26	1	;
+N2	68.77	;
+}
+/*fractions
+{
+AR	1;
+H	1;
+O	1;
+OH	1;
+HO2	1;
+H2	1;
+H2O	1;
+H2O2	1;
+O2	1;
+CH2	1;
+CH2*	1;
+CH3	1;
+CH4	1;
+HCO	1;
+CH2O	1;
+CH3O	1;
+CO	1;
+CO2	1;
+C2H2	1;
+C2H3	1;
+C2H4	1;
+C2H5	1;
+C2H6	1;
+CH2CHO	1;
+aC3H5	1;
+C3H6	1;
+nC3H7	1;
+C2H3CHO	1;
+C4H7	1;
+C4H81	1;
+pC4H9	1;
+C5H9	1;
+C5H10	1;
+PXC5H11	1;
+C6H12	1;
+PXC6H13	1;
+C7H14	1;
+PXC7H15	1;
+C8H16	1;
+PXC8H17	1;
+C9H18	1;
+PXC9H19	1;
+C10H20	1;
+PXC10H21	1;
+NC12H26	1;
+PXC12H25	1;
+SXC12H25	1;
+S3XC12H25	1;
+C12H24	1;
+C12H25O2	1;
+C12OOH	1;
+O2C12H24OOH	1;
+OC12H23OOH	1;
+N2	1;
+}*/
+p               2e+06;
+
+T               1000;
+
+
+// ************************************************************************* //

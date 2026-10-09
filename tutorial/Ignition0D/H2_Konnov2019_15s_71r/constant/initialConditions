@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      initialConditions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+constantProperty pressure;
+
+fractionBasis  mole;
+
+fractions
+{
+    H2              2;
+    N2              3.76;
+    O2              1;
+}
+
+p               101325;
+
+T               1200;
+
+/*fractionBasis  mass;
+
+fractions
+{
+H	0.00294988	;
+H2	0.0153598	;
+H2O	0.0880044	;
+H2O2	1.29E-06	;
+HO2	4.17E-05	;
+O	0.00709881	;
+O2	0.135241	;
+O2X	6.15E-05	;
+O3	4.97E-08	;
+OH	0.00612582	;
+OHX	2.12E-10	;
+OX	8.53E-08	;
+N2	7.451156814075810E-01	;
+}
+
+p               101325;
+
+T               1471.96;*/
+
+
+// ************************************************************************* //

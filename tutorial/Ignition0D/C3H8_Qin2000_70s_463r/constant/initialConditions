@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      initialConditions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+constantProperty pressure;
+
+fractionBasis  mole;
+
+fractions
+{
+    C3H8              1;
+    N2              18.8;
+    O2              5;
+}
+/*fractions
+{
+H2	1;
+H	1;
+O	1;
+O2	1;
+OH	1;
+H2O	1;
+HO2	1;
+H2O2	1;
+C	1;
+CH	1;
+CH2	1;
+CH2*	1;
+CH3	1;
+CH4	1;
+CO	1;
+CO2	1;
+HCO	1;
+CH2O	1;
+CH2OH	1;
+CH3O	1;
+CH3OH	1;
+C2H	1;
+C2H2	1;
+C2H3	1;
+C2H4	1;
+C2H5	1;
+C2H6	1;
+HCCO	1;
+CH2CO	1;
+HCCOH	1;
+AR	1;
+N2	1;
+CH2CHO	1;
+C3H2	1;
+C3H3	1;
+pC3H4	1;
+aC3H4	1;
+cC3H4	1;
+C4H2	1;
+H2C4O	1;
+n-C4H3	1;
+i-C4H3	1;
+C4H4	1;
+n-C4H5	1;
+i-C4H5	1;
+C4H6	1;
+C4H612	1;
+C4H81	1;
+C4H7	1;
+C6H2	1;
+C6H3	1;
+l-C6H4	1;
+c-C6H4	1;
+A1	1;
+A1-	1;
+C6H5O	1;
+C6H5OH	1;
+C5H6	1;
+C5H5	1;
+C5H5O	1;
+C5H4OH	1;
+C5H4O	1;
+C3H8	1;
+nC3H7	1;
+iC3H7	1;
+C3H6	1;
+aC3H5	1;
+CH3CCH2	1;
+CH3CHO	1;
+C2H3CHO	1;
+}*/
+p               3000000;
+
+T               800;
+
+
+// ************************************************************************* //

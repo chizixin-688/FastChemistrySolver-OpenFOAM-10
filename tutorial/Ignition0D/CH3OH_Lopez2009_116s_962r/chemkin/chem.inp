@@ -1,0 +1,1177 @@
+
+ELEMENTS
+O  H  C  N  AR
+END  
+SPECIES    
+H  O  OH  H2  O2  HO2  H2O  H2O2            
+CO CO2 HOCO 
+CH4 CH3 CH2 CH2(S) CH C
+CH3OH CH3O CH2OH CH2O HCO 
+CH3OOH CH3OO CH2OOH 
+C2H6 C2H5 C2H4 C2H3 C2H2 H2CC C2H C2
+CH3CH2OH CH3CH2O CH3CHOH CH2CH2OH CH3CHO cC2H4O 
+CH2CHOH CHCHOH cC2H3O HCCOH CH3CO CH2CHO CH2CO HCCO C2O OCHCHO
+CH3CH2OOH CH3CH2OO CH3CHOOH CH2CH2OOH CH2CHOOH CH2CHOO CYCOOCD HOCH2CH2OO
+C3H6 CH2CHCH2 CH2CCH3 CH3CHCH CH3CCH2 H2CCCH2 H3CCCH cC3H4 H2CCCH C3H2 C3H
+C2H5CHO C2H5CO CH2CHCHO CH3CHCO CH2CHCO
+NO NO2 NO3 N2O HNO HON HONO HNO2 H2NO HNOH HONO2  
+CH3NO CH3NO2 CH2NO2 CH3ONO CH3ONO2 C2H5NO2 CH3CH2ONO CH3CH2ONO2 
+NH3 NH2 NH N N2H4 N2H3 N2H2 H2NN NNH  
+HCN HNC CN HNCO HOCN HCNO NCO H2CN HCNH CH3CN CH2CN NCCN NCN  
+AR N2
+ END
+ REACTIONS
+ H+O2=O+OH                            3.6E15  -0.410   16600
+ H+H+M=H2+M                           7.0E17  -1.000       0
+   N2/0/ H2O/0/ H2/0/
+ H+H+N2=H2+N2                         5.4E18  -1.300       0
+ H+H+H2=H2+H2                         1.0E17  -0.600       0
+ H+H+H2O=H2+H2O                       1.0E19  -1.000       0
+ H+O+M=OH+M                           6.2E16  -0.600       0
+   H2O/5/
+ H+O2(+M)=HO2(+M)                     1.5E12   0.600       0
+   LOW  / 3.5E16 -0.41 -1116 /
+   TROE / 0.5 1.0E-30 1.0E30 /
+   N2/0/ AR/0/ H2O/11/ H2/2/ O2/0.78/
+ H+O2(+AR)=HO2(+AR)                   1.5E12   0.600       0
+   LOW  / 9.04E19 -1.500 490 /
+   TROE / 0.5 1.0E-30 1.0E30 /
+ H+O2(+N2)=HO2(+N2)                   1.5E12   0.600       0
+   LOW  / 6.37E20 -1.720 520 /
+   TROE / 0.8 1.0E-30 1.0E30 /
+ O+O+M=O2+M                           1.9E13   0.000   -1788
+   N2/1.5/ O2/1.5/ H2O/10/
+ O+H2=OH+H                            3.8E12   0.000    7948
+   DUPLICATE
+ O+H2=OH+H                            8.8E14   0.000   19175
+   DUPLICATE
+ OH+OH=O+H2O                          4.3E03   2.700   -1822
+ OH+H+M=H2O+M                         4.5E22  -2.000       0
+   AR/0.38/ H2/0.73/ H2O/12/
+ OH+H2=H+H2O                          2.1E08   1.520    3449
+ H2+O2=HO2+H                          7.4E05   2.433   53502
+ HO2+H=OH+OH                          8.4E13   0.000     400
+ HO2+H=H2O+O                          1.4E12   0.000       0
+ HO2+O=OH+O2                          1.6E13   0.000    -445
+ HO2+OH=H2O+O2                        3.6E21  -2.100    9000
+   DUPLICATE
+ HO2+OH=H2O+O2                        2.0E15  -0.600       0
+   DUPLICATE
+ HO2+OH=H2O+O2                       -2.2E96 -24.000   49000
+   DUPLICATE
+ HO2+HO2=H2O2+O2                      1.9E11   0.000   -1408
+   DUPLICATE
+ HO2+HO2=H2O2+O2                      1.0E14   0.000   11034
+   DUPLICATE
+ H2O2(+M)=OH+OH(+M)                   4.0E11   0.000   37137
+   LOW  /2.291E16 0.0 43638/
+   TROE /0.5 1E-30 1E30 1E30/
+   H2O/12/ H2/2.5/ AR/0.64/
+ H2O2+H=H2O+OH                        1.0E13   0.000    3580
+ H2O2+H=HO2+H2                        1.7E12   0.000    3760
+ H2O2+O=HO2+OH                        9.6E06   2.000    3970
+ H2O2+OH=H2O+HO2                      1.9E12   0.000     427
+   DUPLICATE
+ H2O2+OH=H2O+HO2                      1.6E18   0.000   29410
+   DUPLICATE
+ CO+O(+M)=CO2(+M)                     1.8E10   0.000    2384
+   LOW  /1.35E24 -2.79 4191/
+   TROE /1.0 1E-30 1E30 1E30/
+   H2/2.5/ H2O/12/ CO/1.9/ CO2/3.8/
+ CO+O2=CO2+O                          4.7E12   0.000   60500
+ CO+HO2=CO2+OH                        1.6E05   2.180   17943
+ CO+OH=CO2+H                          1.5E12   0.000   13909
+   DUPLICATE
+ CO+OH=CO2+H                          5.8E06   1.500       0
+   DUPLICATE
+ CO+OH=HOCO                           4.9E25  -5.200    1987
+   DUPLICATE
+ CO+OH=HOCO                           4.0E38  -9.000    6955
+   DUPLICATE
+ CO+OH=HOCO                           5.0E43 -10.000   13015
+   DUPLICATE
+ HOCO=CO2+H                           1.4E58 -15.000   46500
+   DUPLICATE
+ HOCO=CO2+H                           1.0E71 -18.000   60000
+   DUPLICATE
+ HOCO+OH=CO2+H2O                      4.6E12   0.000     -89
+   DUPLICATE
+ HOCO+OH=CO2+H2O                      9.5E06   2.000     -89
+   DUPLICATE
+ HOCO+O2=CO2+HO2                      9.9E11   0.000       0
+ CH2O(+M)=HCO+H(+M)                   8.0E15   0.000   87726
+   LOW  /3.734E15 0.0 73479/
+ CH2O(+M)=CO+H2(+M)                   3.7E13   0.000   71969
+   LOW  /5.661E15 0.0 65849/
+ CH2O+H=HCO+H2                        4.1E08   1.470    2444
+ CH2O+O=HCO+OH                        4.2E11   0.570    2760
+ CH2O+O2=HCO+HO2                      2.4E05   2.500   36461
+ CH2O+OH=HCO+H2O                      7.8E07   1.630   -1055
+ CH2O+HO2=HCO+H2O2                    4.1E04   2.500   10206
+ CH2O+CH3=HCO+CH4                     3.2E01   3.360    4310
+ HCO=H+CO                             2.9E13  -0.865   16755
+ HCO+H=CO+H2                          1.1E14   0.000       0
+ HCO+O=CO+OH                          3.0E13   0.000       0
+ HCO+O=CO2+H                          3.0E13   0.000       0
+ HCO+OH=CO+H2O                        1.1E14   0.000       0
+ HCO+O2=CO+HO2                        3.4E12   0.000       0
+ HCO+HO2=CO2+OH+H                     3.0E13   0.000       0
+ HCO+HCO=CO+CH2O                      2.7E13   0.000       0
+ CH3+H(+M)=CH4(+M)                    2.1E14   0.000       0
+   LOW  /6.467E23 -1.8 0/
+   TROE /0.6376 1E-30 3230 1E30/
+   CH4/1.9/ C2H6/4.8/
+ CH4+H=CH3+H2                         4.1E03   3.156    8755
+ CH4+O=CH3+OH                         4.4E05   2.500    6577
+ CH4+OH=CH3+H2O                       1.0E06   2.182    2506
+ CH4+HO2=CH3+H2O2                     4.7E04   2.500   21000
+ CH4+CH2=CH3+CH3                      4.3E12   0.000   10030
+ CH4+CH2(S)=CH3+CH3                   4.3E13   0.000       0
+ CH2+H(+M)=CH3(+M)                    3.8E16  -0.800       0
+  LOW / 4.8E27 -3.14 1230/
+  TROE/ 0.68 78 1995 5590 /
+  N2/1.0/ H2O/6/  AR/0.7/
+ CH3+H=CH2+H2                         9.0E13   0.000   15100
+ CH2(S)+H2=CH3+H                      7.2E13   0.000       0
+ CH3+O=CH2O+H                         6.9E13   0.000       0
+ CH3+O=H2+CO+H                        1.5E13   0.000       0
+ CH3+OH=CH2+H2O                       1.1E03   3.000    2780
+ CH2(S)+H2O=CH3+OH                    3.0E15  -0.600       0
+ CH3+HO2=CH4+O2                       1.8E03   2.830   -3730
+ CH3+HO2=CH3O+OH                      2.0E13   0.000    1075
+ CH3+O2=CH3O+O                        7.5E12   0.000   28297
+ CH3+O2=CH2O+OH                       1.9E11   0.000    9842
+ CH3+O2=CH3OO                         2.8E18  -2.200    1400
+   DUPLICATE
+ CH3+O2=CH3OO                         5.6E28  -5.250    6850
+   DUPLICATE
+ CH3+HCO=CH4+CO                       2.8E13   0.000       0
+ CH3+CH3=C2H5+H                       5.4E13   0.000   16055
+ CH3+CH3(+M)=C2H6(+M)                 3.6E13   0.000       0
+   LOW  /1.269E41 -7.0 2762/
+   TROE /0.62 73 1180 1E30/
+ CH2+M=CH+H+M                         5.6E15  0.000    89000
+ CH2+M=C+H2+M                         5.8E12  0.500    68500
+ CH2+H=CH+H2                          1.0E18 -1.560        0
+ CH2+O=CO+H+H                         5.0E13  0.000        0
+ CH2+O=CO+H2                          3.0E13  0.000        0
+ CH2+OH=CH2O+H                        3.0E13  0.000        0
+ CH2+OH=CH+H2O                        1.1E07  2.000     3000
+ CH2+O2=CO+H2O                        2.2E22 -3.300     2867
+ CH2+O2=CO2+H+H                       3.3E21 -3.300     2867
+ CH2+O2=CH2O+O                        3.3E21 -3.300     2867
+ CH2+O2=CO2+H2                        2.6E21 -3.300     2867
+ CH2+O2=CO+OH+H                       1.6E21 -3.300     2867
+ CH2+CO2=CO+CH2O                      1.0E11  0.000     1000
+ CH2(S)+M=CH2+M                       1.0E13  0.000        0
+     N2/0/ H2O/0/ AR/0/ H/0/
+ CH2(S)+N2=CH2+N2                     1.3E13  0.000      430
+ CH2(S)+AR=CH2+AR                     1.5E13  0.000      884
+ CH2(S)+H=CH2+H                       2.0E14  0.000        0
+ CH2(S)+H=CH+H2                       3.0E13  0.000        0
+ CH2(S)+O=CO+2H                       3.0E13  0.000        0
+ CH2(S)+OH=CH2O+H                     3.0E13  0.000        0
+ CH2(S)+O2=CO+OH+H                    7.0E13  0.000        0
+ CH2(S)+H2O=CH2+H2O                   3.0E13  0.000        0
+ CH2(S)+CO2=CH2O+CO                   1.1E13  0.000        0
+ CH+H=C+H2                            1.5E14  0.000        0
+ CH+O=CO+H                            5.7E13  0.000        0
+ CH+OH=HCO+H                          3.0E13  0.000        0
+ CH+OH=C+H2O                          4.0E07  2.000     3000
+ CH+O2=HCO+O                          3.3E13  0.000        0
+ CH+H2O=CH2O+H                        5.7E12  0.000     -755
+ CH+CO2=HCO+CO                        8.8E06  1.750    -1040
+ C+OH=CO+H                            5.0E13  0.000        0
+ C+O2=CO+O                            2.0E13  0.000        0
+ CH3OH(+M)=CH3+OH(+M)                 2.1E18  -0.6148  92540
+   LOW  /2.60E49 -8.80 101500/
+   TROE /0.7656 1910 59.51 9374/
+ CH3OH+H=CH2OH+H2                     2.9E09   1.240    4491
+ CH3OH+H=CH3O+H2                      5.1E08   1.240    4491
+ CH3OH+O=CH2OH+OH                     2.1E13   0.000    5305
+ CH3OH+O=CH3O+OH                      3.7E12   0.000    5305
+ CH3OH+OH=CH2OH+H2O                   1.5E08   1.4434    113
+ CH3OH+OH=CH3O+H2O                    2.7E07   1.4434    113
+ CH3OH+HO2=CH2OH+H2O2                 2.0E13   0.000   15000
+ CH3OH+O2=CH2OH+HO2                   6.0E13   0.000   46600
+ CH3OH+O2=CH3O+HO2                    6.0E13   0.000   54800
+ CH2OH(+M)=CH2O+H(+M)                 2.8E14  -0.730   32820
+   LOW  /6.01E33 -5.39 36200/
+   TROE /0.96 67.6 1855 7543/
+   H2/2/ H2O/5/ CO/2/ CO2/3/
+ CH2OH+H=CH2O+H2                      1.4E13   0.000       0
+ CH2OH+H=CH3+OH                       6.0E12   0.000       0
+ CH2OH+H(+M)=CH3OH(+M)                4.3E15  -0.790       0
+   LOW  /3.844E37 -6.21 1333/
+   TROE /0.25 210 1434 1E30/
+ CH2OH+O=CH2O+OH                      6.6E13   0.000    -693
+ CH2OH+OH=CH2O+H2O                    2.4E13   0.000       0
+ CH2OH+HO2=CH2O+H2O2                  1.2E13   0.000       0
+ CH2OH+O2=CH2O+HO2                    7.2E13   0.000    3736
+   DUPLICATE
+ CH2OH+O2=CH2O+HO2                    2.9E16  -1.500       0
+   DUPLICATE
+ CH2OH+HCO=CH3OH+CO                   1.0E13   0.000       0
+ CH2OH+HCO=CH2O+CH2O                  1.5E13   0.000       0
+ CH2OH+CH2O=CH3OH+HCO                 5.5E03   2.810    5862
+ CH2OH+CH2OH=CH3OH+CH2O               4.8E12   0.000       0
+ CH2OH+CH3O=CH3OH+CH2O                2.4E12   0.000       0
+ CH2OH+CH4=CH3OH+CH3                  2.2E01   3.100   16227
+ CH3O(+M)=CH2O+H(+M)                  6.8E13   0.000   26154
+   LOW  /1.867E25 -3.0 24291/
+   TROE /0.5 1000 2000/
+ CH3O+H=CH2O+H2                       5.3E13   0.000     745
+ CH3O+H=CH3+OH                        4.6E12   0.000     745
+ CH3O+H(+M)=CH3OH(+M)                 2.4E12   0.515      50
+   LOW  /4.66E41 -7.44 14080/
+   TROE /0.7 100 90000 10000/
+   N2/1/ H2/2/ H2O/6/ CH4/2/ CO/1.5/ CO2/2/ C2H6/3/
+ CH3O+O=CH2O+OH                       3.8E12   0.000       0
+ CH3O+OH=CH2O+H2O                     1.8E13   0.000       0
+ CH3O+HO2=CH2O+H2O2                   3.0E11   0.000       0
+ CH3O+O2=CH2O+HO2                     2.2E10   0.000    1749
+ CH3O+CO=CH3+CO2                      9.5E25  -4.930    9080
+ CH3O+CH3=CH2O+CH4                    2.4E13   0.000       0
+ CH3O+CH4=CH3OH+CH3                   1.3E14   0.000   15073
+ CH3O+CH2O=CH3OH+HCO                  1.0E11   0.000    2981
+ CH3O+CH3O=CH3OH+CH2O                 6.0E13   0.000       0
+ CH3OOH=CH3O+OH                       2.8E26  -3.500   46340
+ CH3OOH+H=CH2OOH+H2                   5.4E10   0.000    1860
+ CH3OOH+H=CH3OO+H2                    5.4E10   0.000    1860
+ CH3OOH+H=CH3O+H2O                    1.2E10   0.000    1860
+ CH3OOH+O=CH2OOH+OH                   1.6E13   0.000    4750
+ CH3OOH+O=CH3OO+OH                    8.7E12   0.000    4750
+ CH3OOH+OH=CH3OO+H2O                  1.1E12   0.000    -437
+ CH3OOH+OH=CH2OOH+H2O                 7.2E11   0.000    -258
+ CH3OOH+HO2=CH3OO+H2O2                4.1E04   2.500   10206
+ CH3OO+H=CH3O+OH                      1.0E14   0.000       0
+ CH3OO+O=CH3O+O2                      1.6E13   0.000    -445
+ CH3OO+OH=CH3OH+O2                    2.0E15  -0.600       0
+ CH3OO+OH=CH3O+HO2                    4.0E11   0.600       0
+ CH3OO+HO2=CH3OOH+O2                  2.5E11   0.000   -1490
+ CH3OO+CH3=CH3O+CH3O                  5.1E12   0.000   -1411
+ CH3OO+CH4=CH3OOH+CH3                 4.7E04   2.500   21000
+ CH3OO+HCO=CH3O+H+CO2                 3.0E13   0.000       0
+ CH3OO+CO=CH3O+CO2                    1.6E05   2.180   17940
+ CH3OO+CH2O=CH3OOH+HCO                4.1E04   2.500   10206
+ CH3OO+CH3O=CH2O+CH3OOH               3.0E11   0.000       0
+ CH3OO+CH3OH=CH3OOH+CH2OH             4.0E13   0.000   19400
+ CH3OO+CH3OO=CH3O+CH3O+O2             1.1E18  -2.400    1800
+   DUPLICATE
+ CH3OO+CH3OO=CH3O+CH3O+O2             7.0E10   0.000     800
+   DUPLICATE
+ CH3OO+CH3OO=CH3OH+CH2O+O2            2.0E11  -0.550   -1600
+ CH3OO+C2H5=CH3O+CH3CH2O              5.1E12   0.000   -1410
+ CH3OO+C2H6=CH3OOH+C2H5               1.9E01   3.640   17100
+ CH2OOH=>CH2O+OH                      7.0E14  -1.064    1744
+ C2H6+H=C2H5+H2                       9.8E13   0.000    9220
+ C2H6+O=C2H5+OH                       1.1E-07  6.500     274
+ C2H6+OH=C2H5+H2O                     9.2E06   2.000     990
+ C2H6+HO2=C2H5+H2O2                   1.1E05   2.500   16850
+ C2H6+O2=C2H5+HO2                     7.3E05   2.500   49160
+ C2H6+CH3=C2H5+CH4                    5.6E10   0.000    9418
+   DUPLICATE
+ C2H6+CH3=C2H5+CH4                    8.4E14   0.000   22250
+   DUPLICATE
+ C2H6+CH2(S)=C2H5+CH3                 1.2E14   0.000       0
+ C2H4+H(+M)=C2H5(+M)                  1.4E09   1.463    1355
+   LOW  /2.0E39 -6.642 5769/
+   TROE /-0.569 299 9147 152.4/
+ C2H5+H(+M)=C2H6(+M)                  5.2E17  -0.990    1580
+   LOW  /1.99E41 -7.08 6685/
+   TROE /0.8422 125 2219 6882/
+   N2/1/ H2/2/ H2O/6/ CH4/2/ CO/1.5/ CO2/2/ C2H6/3/ AR/0.7/
+ C2H5+O=CH3+CH2O                      4.2E13   0.000       0
+ C2H5+O=CH3CHO+H                      5.3E13   0.000       0
+ C2H5+O=C2H4+OH                       3.1E13   0.000       0
+ C2H5+OH=C2H4+H2O                     2.4E13   0.000       0
+ C2H5+HO2=CH3CH2O+OH                  3.1E13   0.000       0
+ C2H5+O2(+M)=CH3CH2OO(+M)             2.0E10   0.980     -64
+   LOW  /8.486E29 -4.29 220/
+   TROE /0.897 1E-30 601 1E30/
+ C2H5+O2=C2H4+HO2                     1.4E07   1.090   -1975
+ C2H5+CH2O=C2H6+HCO                   5.5E03   2.810    5860
+ C2H5+HCO=C2H6+CO                     4.3E13   0.000       0
+ C2H5+CH3=C2H4+CH4                    9.0E11   0.000       0
+ C2H5+C2H5=C2H6+C2H4                  1.5E12   0.000       0
+ C2H3+H(+M)=C2H4(+M)                  3.9E13   0.200       0
+   LOW  /2.10E24 -1.3 0/
+   TROE /0.5 1E-30 1E30 1E30/
+ C2H4(+M)=H2CC+H2(+M)                 8.0E12   0.440   88800
+    LOW/7.0E50 -9.31 99900/
+    TROE/0.735 180 1035 5417/
+    H2O/6/ AR/0.7/
+ C2H4+H=C2H3+H2                       2.4E02   3.620   11266
+ CH4+CH=C2H4+H                        3.0E13   0.000    -400
+ CH3+CH2=C2H4+H                       4.2E13   0.000       0
+ CH3+CH2(S)=C2H4+H                    2.0E13   0.000       0
+ C2H4+O=CH3+HCO                       3.9E12   0.000    1494
+   DUPLICATE
+ C2H4+O=CH3+HCO                       6.2E13   0.000    6855
+   DUPLICATE
+ C2H4+O=CH2CHO+H                      1.7E12   0.000    1494
+   DUPLICATE
+ C2H4+O=CH2CHO+H                      2.8E13   0.000    6855
+   DUPLICATE
+ C2H4+OH=C2H3+H2O                     1.3E-1   4.200    -860
+ C2H4+OH=CH3+CH2O                     3.3E11   0.000    9079
+ C2H4+OH=CH3CHO+H                     1.4E33  -6.114   24907
+ C2H4+OH=CH2CHOH+H                    1.7E13   0.000   11527
+ C2H4+OH=CH2CH2OH                     2.4E20  -2.399    3294
+ C2H4+HO2=cC2H4O+OH                   2.2E12   0.000   17200
+ C2H4+O2=C2H3+HO2                     7.1E13   0.000   60010
+ C2H4+CH3=C2H3+CH4                    6.0E07   1.560   16630
+ C2H2+H(+M)=C2H3(+M)                  1.7E10   1.266    2709
+   LOW  /6.3E31 -4.664 3780 /
+   TROE /0.7878 -10212 1.E30 /
+   H2/2/ CO/2/ CO2/3/ H2O/5/
+ C2H3+H=C2H2+H2                       4.5E13   0.000       0
+ CH3+CH=C2H3+H                        3.0E13   0.000       0
+ C2H3+O=CH2CO+H                       3.0E13   0.000       0
+ C2H3+OH=C2H2+H2O                     2.0E13   0.000       0
+ C2H3+HO2=CH2CHO+OH                   3.0E13   0.000       0
+ C2H3+O2=CH2CHOO                      1.1E12   0.000   -1680
+ C2H3+O2=CH2O+HCO                     6.3E12   0.000    3130
+ C2H3+O2=CH2CHO+O                     4.8E12   0.000    4800
+ C2H3+O2=C2H2+HO2                     7.6E11   0.000    7930
+ C2H3+O2=CH3O+CO                      2.8E11   0.000    3130
+ C2H3+O2=CH3+CO2                      1.3E10   0.000    3130
+ C2H3+CH2O=C2H4+HCO                   5.4E03   2.810    5860
+ C2H3+HCO=C2H4+CO                     9.0E13   0.000       0
+ C2H3+CH3=C2H2+CH4                    2.1E13   0.000       0
+ C2H3+CH=CH2+C2H2                     5.0E13   0.000       0
+ C2H3+C2H3=C2H4+C2H2                  1.5E13   0.000       0
+ C2H3+C2H=C2H2+C2H2                   3.0E13   0.000       0
+ C2H2+M=C2H+H+M                       9.1E30  -3.700  127138
+      H2/2/ CO/2/ CO2/3/  H2O/5/
+ CH3+C=C2H2+H                         5.0E13   0.000       0
+ CH2+CH=C2H2+H                        4.0E13   0.000       0
+ CH2+CH2=C2H2+H+H                     3.2E13   0.000       0
+ C2H2+O=HCCO+H                        1.4E07   2.000    1900
+ C2H2+O=CH2+CO                        6.1E06   2.000    1900
+ C2H2+O=C2H+OH                        3.2E15  -0.600   15000
+ C2H2+OH=CH3+CO                       8.3E05   1.770    4697
+ C2H2+OH=HCCOH+H                      7.3E06   1.890   13603
+ C2H2+OH=CHCHOH                       6.2E20  -2.800    2831
+   DUPLICATE
+ C2H2+OH=CHCHOH                       1.6E29  -4.910    9734
+   DUPLICATE
+ C2H2+OH=CH2CO+H                      1.5E04   2.450    4477
+ C2H2+HO2=CH2O+HCO                    3.0E12   0.000   10000
+ C2H2+HO2=CH2CHO+O                    3.0E12   0.000   10000
+ C2H2+O2=HCO+HCO                      7.0E07   1.800   30600
+ C2H2+CH2(S)=C2H2+CH2                 4.0E13   0.000       0
+ H2CC=C2H2                            1.0E07   0.000       0
+ H2CC+H=C2H2+H                        1.0E14   0.000       0
+ H2CC+OH=CH2CO+H                      2.0E13   0.000       0
+ H2CC+O2=CH2+CO2                      1.0E13   0.000       0
+ C2+H2=C2H+H                          4.0E05   2.40     1000
+ CH2+C=C2H+H                          5.0E13   0.000       0
+ C2H+O=CH+CO                          5.0E13   0.000       0
+ C2H+OH=HCCO+H                        2.0E13   0.000       0
+ C2H+OH=C2+H2O                        4.0E07   2.000    8000
+ C2H+H2=C2H2+H                        4.1E05   2.390     864
+ C2H+O2=CO+CO+H                       4.7E13  -0.16        0
+ C2H+CH4=CH3+C2H2                     7.2E12   0.000     976
+ C2+M=C+C+M                           1.5E16   0.000  142300
+ C2+O=C+CO                            1.0E14   0.000       0
+ C2+OH=C2O+H                          5.0E13   0.000       0
+ C2+O2=CO+CO                          9.0E12   0.000     980
+ CH3CH2OH(+M)=CH2OH+CH3(+M)           5.9E23  -1.680   91163
+   LOW  /2.88E85 -18.9 109914/
+   TROE /0.5 200 890 4600/
+   H2O/5/ H2/2/ CO2/3/ CO/2/
+ CH3CH2OH(+M)=C2H5+OH(+M)             1.3E23  -1.540   96005
+   LOW  /3.25E85 -18.81 114930/
+   TROE /0.5 300 900 5000/
+   H2O/5/ H2/2/ CO2/3/ CO/2/
+ CH3CH2OH(+M)=C2H4+H2O(+M)            2.8E13   0.090   66136
+   LOW  /2.57E83 -18.85 86452/
+   TROE /0.7 350 800 3800/
+   H2O/5/
+ CH3CH2OH(+M)=CH3CHO+H2(+M)           7.2E11   0.095   91007
+   LOW  /4.46E87 -19.42 115586/
+   TROE /0.9 900 1100 3500/
+   H2O/5/
+ CH3CH2OH+H=CH3CHOH+H2                2.6E07   1.650    2827
+ CH3CH2OH+H=CH2CH2OH+H2               1.2E07   1.800    5098
+ CH3CH2OH+H=CH3CH2O+H2                1.5E07   1.650    3038
+ CH3CH2OH+O=CH3CHOH+OH                1.9E07   1.850    1824
+ CH3CH2OH+O=CH2CH2OH+OH               9.4E07   1.700    5459
+ CH3CH2OH+O=CH3CH2O+OH                1.6E07   2.000    4448
+ CH3CH2OH+OH=CH3CHOH+H2O              4.6E11   0.150       0
+ CH3CH2OH+OH=CH2CH2OH+H2O             1.7E11   0.270     600
+ CH3CH2OH+OH=CH3CH2O+H2O              7.5E11   0.300    1634
+ CH3CH2OH+HO2=CH3CHOH+H2O2            8.2E03   2.550   10750
+ CH3CH2OH+HO2=CH2CH2OH+H2O2           1.2E04   2.550   15750
+ CH3CH2OH+HO2=CH3CH2O+H2O2            2.5E12   0.000   24000
+ CH3CH2OH+CH3=CH3CHOH+CH4             7.3E02   2.990    7948
+ CH3CH2OH+CH3=CH2CH2OH+CH4            2.2E02   3.180    9622
+ CH3CH2OH+CH3=CH3CH2O+CH4             1.5E02   2.990    7649
+ CH3CHOH+M=CH3CHO+H+M                 1.0E14   0.000   25000
+ CH3CHOH+O=CH3CHO+OH                  1.0E14   0.000       0
+ CH3CHOH+H=CH2OH+CH3                  3.0E13   0.000       0
+ CH3CHOH+H=C2H4+H2O                   3.0E13   0.000       0
+ CH3CHOH+OH=CH3CHO+H2O                5.0E12   0.000       0
+ CH3CHOH+HO2=CH3CHO+OH+OH             4.0E13   0.000       0
+ CH3CHOH+O2=CH3CHO+HO2                8.4E15  -1.200       0
+   DUPLICATE
+ CH3CHOH+O2=CH3CHO+HO2                4.8E14   0.000    5017
+   DUPLICATE
+ CH2CH2OH=CH2CHOH+H                   2.2E05   2.840   32920
+ CH3CH2O=CH2CH2OH                     2.8E-29 11.900    4450
+ CH2CH2OH+H=CH3+CH2OH                 1.0E14   0.000       0
+ CH2CH2OH+H(+M)=CH3CH2OH(+M)          5.2E17  -0.990    1580
+   LOW  /1.99E41 -7.08 6685/
+   TROE /0.8422 125 2219 6882/
+ CH2CH2OH+O=CH2O+CH2OH                4.0E13   0.000       0
+ CH2CH2OH+OH=CH2CHOH+H2O              2.4E13   0.000       0
+ CH2CH2OH+HO2=CH3CH2OH+O2             1.0E12   0.000       0
+ CH2CH2OH+HO2=>CH2OH+CH2O+OH          3.0E13   0.000       0
+ CH2CH2OH+O2=CH2CHOH+HO2              1.4E07   1.090   -1975
+ CH2CH2OH+O2(+M)=HOCH2CH2OO(+M)       2.0E10   0.980     -64
+   LOW  /8.486E29 -4.29 220/
+   TROE /0.897 1E-30 601 1E30/
+ CH3CH2O(+M)=CH3+CH2O(+M)             1.1E13   0.000   16790
+   LOW  /2.0E16 0.0 13970/
+   TROE /0.78 1E-30 1235 1E30/
+ CH3CH2O=CH3CHO+H                     1.3E13   0.000   20060
+ CH3CH2O+H=CH3CHO+H2                  3.0E13   0.000       0
+ CH3CH2O+OH=CH3CHO+H2O                3.0E13   0.000       0
+ CH3CH2O+O2=CH3CHO+HO2                1.5E10   0.000     645
+ CH3CH2O+CO=C2H5+CO2                  9.5E25  -4.930    9080
+ CH3CHO(+M)=CH3+HCO(+M)               4.3E22  -1.880   85480
+   LOW  /2.22E76 -11.81 95040/
+   TROE /0.23 80 7000 1E30/
+ CH3CHO+H=CH3CO+H2                    4.7E13  -0.350    3000
+ CH3CHO+H=CH2CHO+H2                   1.9E12   0.400    5359
+ CH3CHO+O=CH3CO+OH                    1.8E18  -1.900    2975
+ CH3CHO+O=CH2CHO+OH                   3.7E13  -0.200    3556
+ CH3CHO+OH=CH3CO+H2O                  2.4E11   0.300   -1000
+ CH3CHO+OH=CH2CHO+H2O                 3.0E13  -0.600     800
+ CH3CHO+HO2=CH3CO+H2O2                2.4E19  -2.200   14030
+ CH3CHO+HO2=CH2CHO+H2O2               2.3E11   0.400   14864
+ CH3CHO+O2=CH3CO+HO2                  1.2E05   2.500   37554
+ CH3CHO+CH3=CH3CO+CH4                 3.9E-07  5.800    2200
+ CH3CHO+CH3=CH2CHO+CH4                2.5E01   3.150    5727
+ cC2H4O=CH2CHO+H                       1.8E13   0.200   71780
+ cC2H4O=CH3+HCO                        5.6E13   0.400   61880
+ cC2H4O=CH3CO+H                        2.4E13   0.250   65310
+ cC2H4O=CH2CO+H2                       3.6E12  -0.200   63030
+ cC2H4O=CH3CHO                         3.2E12  -0.750   46424
+ cC2H4O=C2H2+H2O                       7.6E12   0.060   69530
+ cC2H4O+H=cC2H3O+H2                     2.0E13   0.000    8310
+ cC2H4O+H=C2H3+H2O                     5.0E09   0.000    5000
+ cC2H4O+H=C2H4+OH                      9.5E10   0.000    5000
+ cC2H4O+O=cC2H3O+OH                     1.9E12   0.000    5250
+ cC2H4O+OH=cC2H3O+H2O                   1.8E13   0.000    3610
+ cC2H4O+HO2=cC2H3O+H2O2                 4.0E12   0.000   17000
+ cC2H4O+O2=cC2H3O+HO2                   4.0E13   0.000   61500
+ cC2H4O+CH3=cC2H3O+CH4                  1.1E12   0.000   11830
+ CH2CHOH+H=CHCHOH+H2                  2.4E02   3.630   11266
+ CH2CHOH+H=CH2CHO+H2                  1.5E07   1.700    3000
+ CH2CHOH+O=CH2OH+HCO                  3.9E12   0.000    1494
+   DUPLICATE
+ CH2CHOH+O=CH2OH+HCO                  6.2E13   0.000    6855
+   DUPLICATE
+ CH2CHOH+O=CH2CHO+OH                  1.6E07   2.000    4400
+ CH2CHOH+OH=CHCHOH+H2O                1.3E-1   4.200    -860
+ CH2CHOH+OH=CH2CHO+H2O                7.5E11   0.300    1600
+ CH2CHOH+O2=>CH2O+HCO+OH              3.5E07   1.800   39000
+ CHCHOH=HCCOH+H                       1.1E31  -6.153   51383
+ CHCHOH+H=CH2CHO+H                    5.0E13   0.000       0
+ CHCHOH+O=OCHCHO+H                    5.0E13   0.000       0
+ CHCHOH+O2=HCCOH+HO2                  1.4E02   3.400    3700
+ cC2H3O=CH2CHO                         8.7E31  -6.900   14994
+ cC2H3O=CH2CO+H                        5.0E13   0.000   14863
+ cC2H3O=CH3+CO                         7.1E12   0.000   14280
+ CH2CHO=CH2CO+H                       1.2E36  -6.480   55171
+ CH2CHO=CH3+CO                        2.2E33  -5.970   50448
+ CH2CHO+H=CH3+HCO                     1.0E14   0.000       0
+ CH2CHO+H=CH3CO+H                     3.0E13   0.000       0
+ CH2CHO+H=CH2CO+H2                    2.0E13   0.000       0
+ CH2CHO+O=CH2CO+OH                    5.0E13   0.000       0
+ CH2CHO+OH=CH2CO+H2O                  2.0E13   0.000       0
+ CH2CHO+OH=CH2OH+HCO                  1.0E13   0.000       0
+ CH2CHO+O2=CH2O+CO+OH                 1.5E-10  6.690    4868
+ CH2CHO+CH3=C2H5+CO+H                 4.9E14  -0.500       0
+ CH2CHO+HO2=CH2O+HCO+OH               7.0E12  -0.500       0
+ CH2CHO+HO2=CH3CHO+O2                 3.0E12  -0.500       0
+ CH2CHO+CH2=C2H4+HCO                  5.0E13   0.000       0
+ CH2CHO+CH=C2H3+HCO                   1.0E14   0.000       0
+ CH3CO=CH3+CO                         1.3E20  -2.320   18012
+ CH2CO+H=CH3CO                        2.3E08   1.610    2627
+ CH3CO+H=CH3+HCO                      2.1E13   0.000       0
+ CH3CO+H=CH2CO+H2                     1.2E13   0.000       0
+ CH3CO+O=CH3+CO2                      1.6E14   0.000       0
+ CH3CO+O=CH2CO+OH                     5.3E13   0.000       0
+ CH3CO+OH=CH2CO+H2O                   1.2E13   0.000       0
+ CH3CO+CH3OO=CH3+CO2+CH3O             2.4E13   0.000       0
+ CH3CO+CH3=C2H6+CO                    3.3E13   0.000       0
+ CH3CO+CH3=CH2CO+CH4                  5.3E13   0.000       0
+ CH3CO+O2=CH2O+CO+OH                  1.9E12   0.000       0
+ CH2+CO(+M)=CH2CO(+M)                 8.1E11   0.500    4510
+   LOW  / 2.69E33 -5.11 7095/
+   TROE/ 0.5907 275 1226 5185 /
+   N2/1.0/ H2O/6/  AR/0.7/
+ CH2CO+H=CH3+CO                       3.3E10   0.851    2840
+ CH2CO+H=HCCO+H2                      3.0E07   2.000   10000
+ CH+CH2O=CH2CO+H                      9.5E13   0.000    -517
+ CH2CO+O=CO2+CH2                      1.8E12   0.000    1350
+ CH2CO+O=HCCO+OH                      2.0E07   2.000   10000
+ CH2CO+OH=CH2OH+CO                    1.0E12   0.000   -1013
+ CH2CO+OH=CH3+CO2                     6.7E11   0.000   -1013
+ CH2CO+OH=HCCO+H2O                    1.0E07   2.000    3000
+ CH2CO+CH2(S)=C2H4+CO                 1.6E14   0.000       0
+ HCCOH+H=HCCO+H2                      3.0E07   2.000    1000
+ HCCOH+O=HCCO+OH                      2.0E07   2.000    1900
+ HCCOH+OH=HCCO+H2O                    1.0E07   2.000    1000
+ CH+CO(+M)=HCCO(+M)                   5.0E13   0.000       0
+  LOW  / 2.7E28 -3.74 1936/
+  TROE/ 0.5757 237 1652 5069 /
+  N2/1.0/ H2O/6/  AR/0.7/  H2/2.0/ CH4/2.0/ CO/1.5/ CO2/2.0/ C2H6/3.0/
+ HCCO+H=CH2(S)+CO                     1.5E14   0.000       0
+ HCCO+O=CO+CO+H                       1.0E14   0.000       0
+ HCCO+OH=HCO+HCO                      1.0E13   0.000       0
+ HCCO+OH=C2O+H2O                      6.0E13   0.000       0
+ HCCO+O2=CO2+CO+H                     4.9E12  -0.142    1150
+ HCCO+O2=CO+CO+OH                     1.6E11  -0.020    1020
+ HCCO+O2=HCO+CO+O                     2.2E02   2.690    3540
+ HCCO+CH2=C2H3+CO                     3.0E13   0.000       0
+ HCCO+CH=C2H2+CO                      5.0E13   0.000       0
+ HCCO+HCCO=C2H2+CO+CO                 1.0E13   0.000       0
+ C2O+M=C+CO+M                         2.0E15   0.000   44200
+ C2O+H=CH+CO                          1.3E13   0.000       0
+ C2O+O=CO+CO                          5.2E13   0.000       0
+ C2O+OH=CO+CO+H                       2.0E13   0.000       0
+ C2O+O2=CO+CO+O                       1.0E13   0.000    2600
+ C2O+O2=CO+CO2                        1.0E13   0.000    2600
+ C2O+C=CO+C2                          1.0E14   0.000       0
+ CH3CH2OOH=CH3CH2O+OH                 2.0E35  -6.700   47450
+ CH3CH2OOH+H=CH3CHOOH+H2              6.5E10   0.000    1860
+ CH3CH2OOH+H=CH3CH2OO+H2              4.3E10   0.000    1860
+ CH3CH2OOH+H=CH3CH2O+H2O              1.2E10   0.000    1860
+ CH3CH2OOH+O=CH3CHOOH+OH              1.6E13   0.000    4750
+ CH3CH2OOH+O=CH3CH2OO+OH              8.7E12   0.000    4750
+ CH3CH2OOH+OH=CH3CHOOH+H2O            7.2E11   0.000    -258
+ CH3CH2OOH+OH=CH3CH2OO+H2O            1.1E12   0.000    -437
+ CH3CH2OOH+HO2=CH3CH2OO+H2O2          4.1E04   2.500   10206
+ CH3CH2OO(+M)=C2H4+HO2(+M)            7.1E04   2.320   27955
+   LOW  /8.311E21 -0.651 22890/
+   TROE /1 1E-30 106 1E30/
+ CH3CH2OO+H=CH3CH2O+OH                9.6E13   0.000       0
+ CH3CH2OO+O=CH3CH2O+O2                1.6E13   0.000    -145
+ CH3CH2OO+OH=CH3CH2OH+O2              2.0E15  -0.600       0
+ CH3CH2OO+OH=CH3CH2O+HO2              4.0E11   0.600       0
+ CH3CH2OO+HO2=CH3CH2OOH+O2            4.5E11   0.000   -1391
+ CH3CH2OO+CO=CH3CH2O+CO2              1.6E05   2.180   17940
+ CH3CH2OO+CH3=CH3CH2O+CH3O            5.1E12   0.000   -1411
+ CH3CH2OO+CH4=CH3CH2OOH+CH3           4.7E04   2.500   21000
+ CH3CH2OO+CH3OH=CH3CH2OOH+CH2OH       4.0E13   0.000   19400
+ CH3CH2OO+CH2O=CH3CH2OOH+HCO          4.1E04   2.500   10206
+ CH3CH2OO+C2H5=CH3CH2O+CH3CH2O        5.1E12   0.000   -1411
+ CH3CH2OO+C2H6=CH3CH2OOH+C2H5         8.6E00   3.760   17200
+ CH3CH2OO+CH3CHO=CH3CH2OOH+CH3CO      2.4E19  -2.200   14030
+ CH3CH2OO+CH3CHO=CH3CH2OOH+CH2CHO     2.3E11   0.400   14864
+ CH3CH2OO+CH3CH2OO=CH3CH2O+CH3CH2O+O2 2.9E11  -0.270     408
+ CH3CH2OO+CH3CH2OO=CH3CHO+CH3CH2OH+O2 4.3E09   0.000    -850
+ CH3CHOOH=CH3CHO+OH                   3.5E12  -0.947     979
+ CH2CH2OOH=cC2H4O+OH                  1.3E10   0.720   15380
+ CH2CH2OOH=CH3CH2OO                   1.2E07   1.040   17980
+ CH2CH2OOH=C2H4+HO2                   1.3E11   0.520   16150
+ CH2CHOOH=CH2CHO+OH                   2.0E35  -6.700   47450
+ CH2CHOOH+H=CH2CHOO+H2                4.3E10   0.000    1860
+ CH2CHOOH+H=CH2CHO+H2O                1.2E10   0.000    1860
+ CH2CHOOH+O=CH2CHOO+OH                8.7E12   0.000    4750
+ CH2CHOOH+OH=CH2CHOO+H2O              1.1E12   0.000    -437
+ CH2CHOOH+HO2=CH2CHOO+H2O2            4.1E04   2.500   10206
+ CH2CHOO=C2H2+HO2                     9.6E48  -8.868  110591
+ CH2CHOO=CH2O+HCO                     3.1E47  -8.701  111046
+ CH2CHOO=CYCOOCD                      3.9E09   0.000   22250
+ CH2CHOO+H=CH2CHO+OH                  9.6E13   0.000       0
+ CH2CHOO+O=CH2CHO+O2                  1.6E13   0.000    -145
+ CH2CHOO+OH=CH2CHOH+O2                2.0E15  -0.600       0
+ CH2CHOO+OH=CH2CHO+HO2                4.0E11   0.600       0
+ CH2CHOO+HO2=CH2CHOOH+O2              4.5E11   0.000   -1391
+ CH2CHOO+CO=CH2CHO+CO2                1.6E05   2.180   17940
+ CH2CHOO+CH3=CH2CHO+CH3O              5.1E12   0.000   -1411
+ CH2CHOO+CH4=CH2CHOOH+CH3             4.7E04   2.500   21000
+ CH2CHOO+CH3OH=CH2CHOOH+CH2OH         4.0E13   0.000   19400
+ CH2CHOO+CH2O=CH2CHOOH+HCO            4.1E04   2.500   10206
+ CH2CHOO+C2H6=CH2CHOOH+C2H5           8.6E00   3.760   17200
+ CYCOOCD=CH2O+HCO                     6.1E10   0.000     914
+ CYCOOCD=OCHCHO+H                     1.6E13  -1.093    3159
+ OCHCHO(+M)=CO+CO+H2(+M)              1.1E14   0.000   55000
+   LOW  /2.6E16 0.0 38400/
+ OCHCHO+H=CH2O+HCO                    3.0E13   0.000       0
+ OCHCHO+OH=HCO+CO+H2O                 6.6E12   0.000       0
+ HOCH2CH2OO=CH2O+CH2O+OH              9.4E08   0.994   22250
+ HOCH2CH2OO+HO2=>CH2OOH+CH2OH+O2      2.5E11   0.000   -1490
+ HOCH2CH2OO+CH2O=>CH2OOH+CH2OH+HCO    4.1E04   2.500   10206
+ HOCH2CH2OO+C2H4=>CH2O+CH2OH+CH3CHO   2.2E12   0.000   17200
+ C2H5+HCO=C2H5CHO                     1.8E13   0.000       0
+ CH2CHO+CH3=C2H5CHO                   5.0E13   0.000       0
+ C2H5CHO+H=C2H5CO+H2                  8.0E13   0.000       0
+ C2H5CHO+O=C2H5CO+OH                  7.8E12   0.000    1730
+ C2H5CHO+OH=C2H5CO+H2O                1.2E13   0.000       0
+ C2H5+CO=C2H5CO                       1.5E11   0.000    4800
+ CH2CHCH2+H(+M)=C3H6(+M)              2.0E14   0.000       0
+   LOW  / 1.3E60 -12.0 5970/
+   TROE/ 0.020 1097 1097 6860 /
+ C2H3+CH3(+M)=C3H6(+M)                2.5E13   0.000       0
+     LOW  / 4.3E58 -11.94 9770/
+     TROE / 0.175  1341 60000 10140 /
+     H2/2/ H2O/6/ CH4/2/ CO/1.5/ CO2/2/ C2H6/3/ AR/0.7/C2H2/3.00/ C2H4/3.00/
+ C3H6=C2H2+CH4                        3.5E12   0.000   70000
+ C3H6=H2CCCH2+H2                      4.0E13   0.000   80000
+ CH3CHCH+H=C3H6                       1.0E14   0.000       0
+ CH3CCH2+H=C3H6                       5.0E13   0.000       0
+ C3H6+H=C2H4+CH3                      7.2E12   0.000    1302
+ C3H6+H=CH2CHCH2+H2                   1.7E05   2.500    2492
+ C3H6+H=CH3CCH2+H2                    4.1E05   2.500    9794
+ C3H6+H=CH3CHCH+H2                    8.0E05   2.500   12284
+ C3H6+O=C2H5+HCO                      1.6E07   1.760   -1220
+ C3H6+O=CH2CHCH2+OH                   5.2E11   0.700    5884
+ C3H6+O=CH3CHCH+OH                    1.2E11   0.700    8959
+ C3H6+O=CH3CCH2+OH                    6.0E10   0.700    7632
+ C3H6+O=CH3CHCO+H+H                   5.0E07   1.760      76
+ C3H6+OH=CH2CHCH2+H2O                 3.1E06   2.000    -298
+ C3H6+OH=CH3CCH2+H2O                  1.1E06   2.000    1451
+ C3H6+OH=CH3CHCH+H2O                  2.1E06   2.000    2778
+ C3H6+HO2=CH2CHCH2+H2O2               9.6E03   2.600   13910
+ CH3CHCH+HO2=C3H6+O2                  2.0E12   0.000       0
+ CH2CHCH2+HO2=C3H6+O2                 3.0E12   0.000       0
+ CH3CCH2+HO2=C3H6+O2                  1.0E12   0.000       0
+ C3H6+HCO=CH2CHCH2+CH2O               1.1E07   1.900   17010
+ C3H6+CH3=CH2CHCH2+CH4                2.2E00   3.500    5675
+ C3H6+CH3=CH3CCH2+CH4                 8.4E-1   3.500   11656
+ C3H6+CH3=CH3CHCH+CH4                 1.4E00   3.500   12848
+ CH2CHCH2+CH2CHCH2=C3H6+H2CCCH2       1.0E13   0.000       0
+ C2H2+CH3=CH3CHCH                     3.2E35  -7.760   13300
+ CH3CHCH+H=CH2CHCH2+H                 1.0E14   0.000       0
+ CH3CHCH+H=H3CCCH+H2                  2.0E13   0.000       0
+ CH3CHCH+O=CH3CHCO+H                  1.0E14   0.000       0
+ CH3CHCH+OH=H3CCCH+H2O                1.0E13   0.000       0
+ CH3CHCH+O2=CH3CHO+HCO                1.2E23  -3.290    3892
+ CH3CHCH+O2=CH3CHCO+H+O               1.6E15  -0.780    3135
+ C2H2+CH3=CH3CCH2                     5.0E22  -4.390   18850
+ H2CCCH2+H(+M)=CH3CCH2(+M)            8.5E12   0.000    2000
+     LOW/1.1E34 -5.0   4450./
+     TROE/0.7086 134 1784 5740/
+ H3CCCH+H(+M)=CH3CCH2(+M)             6.5E12   0.000    2000
+    LOW / 8.45E39    -7.270    6577.0/
+    TROE/0.7086 134 1784 5740/
+ CH3CCH2+H=CH2CHCH2+H                 1.0E14   0.000       0
+ CH3CCH2+H=H3CCCH+H2                  4.0E13   0.000       0
+ CH3CCH2+O=CH2CO+CH3                  1.0E14   0.000       0
+ CH3CCH2+OH=H3CCCH+H2O                2.0E13   0.000       0
+ CH3CCH2+O2=CH3CO+CH2O                1.2E22  -3.290    3892
+ CH3CCH2+CH3=H3CCCH+CH4               1.0E11   0.000       0
+ C2H4+CH2(S)=CH2CHCH2+H               1.3E14   0.000       0
+ C2H3+CH3=CH2CHCH2+H                  4.7E02   3.700    5677
+ C2H2+CH3=CH2CHCH2                    2.7E53 -12.820   35730
+ H2CCCH2+H(+M)=CH2CHCH2(+M)           1.2E11   0.690    3007
+     LOW / 5.56E33 -5.000 4448.0/
+     TROE/0.7086 134 1784 5740/
+ CH2CHCH2+H=H2CCCH2+H2                5.0E13   0.000       0
+ CH2CHCH2+O=CH2CHCHO+H                1.8E14   0.000       0
+ CH2CHCH2+OH=H2CCCH2+H2O              1.0E13   0.000       0
+ CH2CHCH2+HO2=CH2CHCHO+H+OH           1.0E13   0.000       0
+ CH2CHCH2+O2=H2CCCH2+HO2              5.0E15  -1.400   22428
+ CH2CHCH2+O2=CH2CHO+CH2O              1.1E10   0.340   12840
+ CH2CHCH2+O2=C2H2+CH2O+OH             2.8E25  -4.800   15468
+ CH2CHCH2+O2=CH2CHCHO+OH              1.8E13  -0.410   22860
+ CH2CHCH2+CH3=H2CCCH2+CH4             3.0E12  -0.300    -131
+ C2H3+CH2=H2CCCH2+H                   3.0E13   0.000       0
+ C2H2+CH3=H2CCCH2+H                   5.1E09   0.86    22153
+ H2CCCH2=H3CCCH                       2.2E14   0.000   68100
+ H2CCCH2+H=H3CCCH+H                   1.0E13   0.000    5000
+ H2CCCH2+H=H2CCCH+H2                  3.0E07   2.000    5000
+ H2CCCH2+H=CH3CHCH                    1.1E30  -6.52    15200
+ H2CCCH2+H=CH3CCH2                    9.2E38  -8.65     7000
+ H2CCCH2+H=CH2CHCH2                   9.6E61  -14.67   26000
+ H2CCCH2+O=C2H4+CO                    2.0E07   1.800    1000
+ H2CCCH2+OH=H2CCCH+H2O                2.0E07   2.000    1000
+ H2CCCH2+CH3=H2CCCH+CH4               1.3E12   0.000    7700
+ H2CCCH2+C2H=C2H2+H2CCCH              1.0E13   0.000       0
+ C2H2+CH3=H3CCCH+H                    2.6E09   1.100   13644
+ H3CCCH+H=H2CCCH+H2                   3.0E07   2.000    5000
+ H3CCCH+O=HCCO+CH3                    2.0E13   0.000    2250
+ H3CCCH+O=C2H4+CO                     5.8E12   0.000    2250
+ H3CCCH+OH=H2CCCH+H2O                 2.0E07   2.000    1000
+ H3CCCH+O2 => CH3+HCO+CO              4.0E14   0.000   41900
+ H3CCCH+CH3=H2CCCH+CH4                1.8E12   0.000    7700
+ H3CCCH+C2H=C2H2+H2CCCH               1.0E13   0.000       0
+ cC3H4=H2CCCH2                        1.5E14   0.000   50450
+ cC3H4=H3CCCH                         1.2E15   0.000   43730
+ C2H2+CH2=H2CCCH+H                    1.2E13   0.000    6621
+ C2H2+CH2(S)=H2CCCH+H                 1.8E14   0.000       0
+ C2H2+HCCO=H2CCCH+CO                  1.0E11   0.000    3000
+ C2H3+C2H3=H2CCCH+CH3                 1.8E13   0.000       0
+ H2CCCH=C3H2+H                        5.2E12   0.000   78447
+ H2CCCH+H(+M)=H2CCCH2(+M)             1.0E17  -0.820     315
+    LOW/3.5E55 -4.88  2225/
+    TROE/0.7086 134 1784 5740/
+    H2/2/ CO/2/ CO2/3/  H2O/8.6/
+ H2CCCH+H(+M)=H3CCCH(+M)              1.0E17  -0.820     315
+    LOW/3.5E55 -4.88  2225/
+    TROE/0.7086 134 1784 5740/
+    H2/2/ CO/2/ CO2/3/  H2O/8.6/
+ H2CCCH+H=C3H2+H2                     5.0E13   0.000    1000
+ H2CCCH+O=CH2O+C2H                    1.4E14   0.000       0
+ H2CCCH+OH=C3H2+H2O                   2.0E13   0.000       0
+ H2CCCH+OH=CH2O+C2H2                  2.0E13   0.000       0
+ H2CCCH+OH=C2H3+HCO                   2.0E13   0.000       0
+ H2CCCH+HO2=H2CCCH2+O2                3.0E11   0.000       0
+ H2CCCH+HO2=H3CCCH+O2                 3.0E11   0.000       0
+ H2CCCH+O2=CH2CO+HCO                  1.7E05   1.70     1500
+ H2CCCH+HCO=H2CCCH2+CO                2.5E13   0.000       0
+ H2CCCH+HCO=H3CCCH+CO                 2.5E13   0.000       0
+ C3H2+H=C3H+H2                        1.0E13   0.000       0
+ C2H2+CH=C3H2+H                       2.1E14   0.000    -121
+ C3H2+O=C2H2+CO                       1.0E14   0.000       0
+ C3H2+OH=C2H2+HCO                     5.0E13   0.000       0
+ C3H2+O2=HCCO+CO+H                    2.0E12   0.000    1000
+ C3H+O=C2H+CO                         1.0E13   0.000       0
+ C3H+O2=HCCO+CO                       1.0E13   0.000       0
+ CH2CHCHO+H=C2H4+HCO                  2.0E13   0.000    3500
+ CH2CHCHO+H=CH2CHCO+H2                4.0E13   0.000    4200
+ CH2CHCHO+O=CH2CHCO+OH                7.2E12   0.000    1970
+ CH2CHCHO+O=CH2CO+HCO+H               5.0E07   1.760      76
+ CH2CHCHO+OH=CH2CHCO+H2O              1.0E13   0.000       0
+ CH2CHCHO+O2=CH2CHCO+HO2              3.0E13   0.000   36000
+ CH2CHCO=C2H3+CO                      1.0E14   0.000   34000
+ CH2CHCO+O=C2H3+CO2                   1.0E14   0.000       0
+ CH2CHCO+O2=CH2CHO+CO2                5.4E20  -2.720    7000
+ HNO+H=NO+H2                          4.4E11   0.720     650
+ HNO+O=NO+OH                          2.3E13   0.000       0
+ HNO+OH=NO+H2O                        3.6E13   0.000       0
+ HNO+O2=HO2+NO                        2.0E13   0.000   16000
+ HNO+HNO=N2O+H2O                      9.0E08   0.000    3100
+ HNO+NO2=HONO+NO                      4.4E04   2.640    4040
+ NO+H(+M)=HNO(+M)                     1.5E15  -0.410       0
+   LOW /2.4E14 0.206 -1550/
+   TROE /0.82 1E-30 1E30 1E30/
+   N2/1.6/
+ NO+O(+M)=NO2(+M)                     1.3E15  -0.750       0
+   LOW  /4.72E24 -2.87 1550/
+   TROE /0.820 1E-30 1E30 1E30/
+   AR/0/
+ NO+O(+AR)=NO2(+AR)                   1.3E15  -0.750       0
+   LOW  /7.56E19 -1.41 0/
+   TROE /0.830 1E-30 1E30 1E30/
+ NO+OH(+M)=HONO(+M)                   1.1E14  -0.300       0
+   LOW  /3.392E23 -2.5 0/
+   TROE /0.75 1E-30 1E30 1E30/
+ NO+HO2=NO2+OH                        2.1E12   0.000    -497
+ NO2+H=NO+OH                          1.3E14   0.000     362
+ NO2+O=NO+O2                          1.1E14  -0.520       0
+ NO2+O(+M)=NO3(+M)                    3.5E12   0.240       0
+   LOW  /2.5E20 -1.50 0/
+   TROE /0.71 1E-30 1700 1E30/
+ NO2+OH(+M)=HONO2(+M)                 3.0E13   0.000       0
+   LOW  /2.938E25 -3.0 0/
+   TROE /0.4 1E-30 1E30 1E30/
+ NO2+HO2=HONO+O2                      1.9E00   3.320    3044
+ NO2+HO2=HNO2+O2                      1.9E01   3.260    4983
+ NO2+H2=HONO+H                        1.3E04   2.760   29770
+ NO2+H2=HNO2+H                        2.4E00   3.730   32400
+ NO2+NO2=NO+NO+O2                     4.5E12   0.000   27599
+ NO2+NO2=NO3+NO                       9.6E09   0.730   20900
+ HONO+H=HNO+OH                        5.6E10   0.860    5000
+ HONO+H=NO+H2O                        8.1E06   1.890    3850
+ HONO+O=NO2+OH                        1.2E13   0.000    5960
+ HONO+OH=NO2+H2O                      1.7E12   0.000    -520
+ HONO+NO2=HONO2+NO                    2.0E11   0.000   32700
+ HONO+HONO=NO+NO2+H2O                 3.5E-01  3.640   12140
+ HNO2(+M)=HONO(+M)                    2.5E14   0.000   32300
+   LOW  /3.1E18 0.0 31500/
+   TROE /1.149 1E-30 3125 1E30/
+ HNO2+O=NO2+OH                        1.7E08   1.500    2000
+ HNO2+OH=NO2+H2O                      4.0E13   0.000       0
+ NO3+H=NO2+OH                         6.0E13   0.000       0
+ NO3+O=NO2+O2                         1.0E13   0.000       0
+ NO3+OH=NO2+HO2                       1.4E13   0.000       0
+ NO3+HO2=NO2+O2+OH                    1.5E12   0.000       0
+ NO3+NO2=NO+NO2+O2                    5.0E10   0.000    2940
+ HONO2+H=H2+NO3                       5.6E08   1.500   16400
+ HONO2+H=H2O+NO2                      6.1E01   3.300    6285
+ HONO2+H=OH+HONO                      3.8E05   2.300    6976
+ HONO2+OH=H2O+NO3                     1.0E10   0.000   -1240
+ N2O(+M)=N2+O(+M)                     1.3E12   0.000   62570
+    LOW/4.0E14 0 56600/
+    N2/1.7/ O2/1.4/ CO2/3.0/ H2O/12/
+ N2O+H=N2+OH                          3.3E10   0.000    4729
+ DUP
+ N2O+H=N2+OH                          4.4E14   0.000   19254
+ DUP
+ N2O+O=NO+NO                          9.2E13   0.000   27679
+ N2O+O=N2+O2                          3.7E12   0.000   15936
+ N2O+OH=N2+HO2                        1.3E-2   4.720   36560
+ N2O+OH=HNO+NO                        1.2E-4   4.330   25080
+ N2O+NO=NO2+N2                        5.3E05   2.230   46280
+ NH3+M=NH2+H+M                        2.2E16   0.000   93470
+ NH3+H=NH2+H2                         6.4E05   2.390   10171
+ NH3+O=NH2+OH                         9.4E06   1.940    6460
+ NH3+OH=NH2+H2O                       2.0E06   2.040     566
+ NH3+HO2=NH2+H2O2                     3.0E11   0.000   22000
+ NH2+H=NH+H2                          7.2E05   2.320     799
+ NH2+O=HNO+H                          6.6E14  -0.500       0
+ NH2+O=NH+OH                          6.8E12   0.000       0
+ NH2+OH=NH+H2O                        4.0E06   2.000    1000
+ NH2+HO2=H2NO+OH                      5.0E13   0.000       0
+ NH2+HO2=NH3+O2                       9.2E05   1.940   -1152
+ NH2+O2=H2NO+O                        2.5E11   0.480   29586
+ NH2+O2=HNO+OH                        6.2E07   1.230   35100
+ NH2+NH2=NH3+NH                       5.0E13   0.000   10000
+ NH2+NH=N2H2+H                        5.0E13   0.000       0
+ NH2+NH=NH3+N                         9.2E05   1.940    2444
+ NH2+N =N2+H+H                        7.0E13   0.000       0
+ NH2+HNO=NH3+NO                       3.6E06   1.630   -1250
+ NH2+NO=N2+H2O                        2.8E20  -2.654    1258
+ NH2+NO=NNH+OH                        2.3E10   0.425    -814
+ NH2+HONO=NH3+NO2                     7.1E01   3.020   -4940
+ NH2+NO2=N2O+H2O                      1.6E16  -1.440     268
+ NH2+NO2=H2NO+NO                      6.5E16  -1.440     268
+ NH+H=N+H2                            3.0E13   0.000       0
+ NH+O=NO+H                            9.2E13   0.000       0
+ NH+OH=HNO+H                          2.0E13   0.000       0
+ NH+OH=N+H2O                          5.0E11   0.500    2000
+ NH+O2=HNO+O                          4.6E05   2.000    6500
+ NH+O2=NO+OH                          1.3E06   1.500     100
+ NH+NH=N2+H+H                         2.5E13   0.000       0
+ NH+N=N2+H                            3.0E13   0.000       0
+ NH+NO=N2O+H                          2.9E14  -0.400       0
+ DUP
+ NH+NO=N2O+H                         -2.2E13  -0.230       0
+ DUP
+ NH+NO=N2+OH                          2.2E13  -0.230       0
+ NH+HONO=NH2+NO2                      1.0E13   0.000       0
+ NH+NO2=N2O+OH                        1.0E13   0.000       0
+ N+OH=NO+H                            3.8E13   0.000       0
+ N+O2=NO+O                            6.4E09   1.000    6280
+ N+NO=N2+O                            3.3E12   0.300       0
+ NNH=N2+H                             6.5E07   0.000       0
+ NNH+H=N2+H2                          1.0E14   0.000       0
+ NNH+O=N2O+H                          1.0E14   0.000       0
+ NNH+O=N2+OH                          8.0E13   0.000       0
+ NNH+O=NH+NO                          5.0E13   0.000       0
+ NNH+OH=N2+H2O                        5.0E13   0.000       0
+ NNH+O2=N2+HO2                        2.0E14   0.000       0
+ NNH+O2=N2+H+O2                       5.0E13   0.000       0
+ NNH+NH =N2+NH2                       5.0E13   0.000       0
+ NNH+NH2=N2+NH3                       5.0E13   0.000       0
+ NNH+NO=N2+HNO                        5.0E13   0.000       0
+ NH2+NH2=N2H4                         5.6E48 -11.300   11882
+ N2H4+H=N2H3+H2                       7.0E12   0.000    2500
+ N2H4+O=N2H2+H2O                      4.4E11   0.000   -1270
+ N2H4+O=N2H3+OH                       6.7E08   1.500    2851
+ N2H4+OH=N2H3+H2O                     4.0E13   0.000       0
+ N2H4+NH2=N2H3+NH3                    3.9E12   0.000    1500
+ N2H3=N2H2+H                          3.6E47 -10.380   69009
+ NH2+NH2=N2H3+H                       1.2E12  -0.030   10084
+ N2H3+H=N2H2+H2                       2.4E08   1.500     -10
+ N2H3+O=N2H2+OH                       1.7E08   1.500    -646
+ N2H3+O=NH2+HNO                       3.0E13   0.000       0
+ N2H3+O=>NH2+NO+H                     3.0E13   0.000       0
+ N2H3+OH=N2H2+H2O                     1.2E06   2.000   -1192
+ N2H3+OH=H2NN+H2O                     3.0E13   0.000       0
+ N2H3+OH=NH3+HNO                      1.0E12   0.000   15000
+ N2H3+HO2=N2H2+H2O2                   1.4E04   2.690   -1600
+ N2H3+HO2=N2H4+O2                     9.2E05   1.940    2126
+ N2H3+NH2=N2H2+NH3                    9.2E05   1.940   -1152
+ N2H3+NH2=H2NN+NH3                    3.0E13   0.000       0
+ N2H3+NH=N2H2+NH2                     2.0E13   0.000       0
+ N2H2+M=NNH+H+M                       1.9E27  -3.050   66107
+     H2O/7/
+ N2H2+H=NNH+H2                        8.5E04   2.630     230
+ N2H2+O=NNH+OH                        3.3E08   1.500     497
+ N2H2+O=NH2+NO                        1.0E13   0.000       0
+ N2H2+OH=NNH+H2O                      5.9E01   3.400    1360
+ N2H2+NH2=NNH+NH3                     8.8E-2   4.050    1610
+ N2H2+NH=NNH+NH2                      2.4E06   2.000   -1192
+ N2H2+NO=N2O+NH2                      4.0E12   0.000   11922
+ NH2+NH2=H2NN+H2                      1.2E21  -3.080    3368
+ H2NN=NNH+H                           3.4E26  -4.830   46228
+ H2NN+H=NNH+H2                        4.8E08   1.500    -894
+ H2NN+H=N2H2+H                        7.0E13   0.000       0
+ H2NN+O=NNH+OH                        3.3E08   1.500    -894
+ H2NN+O=NH2+NO                        7.0E13   0.000       0
+ H2NN+OH=NNH+H2O                      2.4E06   2.000   -1192
+ H2NN+OH=>NH2+NO+H                    2.0E12   0.000       0
+ H2NN+HO2=>NH2+NO+OH                  9.0E12   0.000       0
+ H2NN+HO2=NNH+H2O2                    2.9E04   2.690   -1600
+ H2NN+O2=NH2+NO2                      1.5E12   0.000    5961
+ H2NN+NH2=NNH+NH3                     1.8E06   1.940   -1152
+ H2NO+M=HNO+H+M                       2.8E24  -2.830   64915
+   H2O/10/
+ H2NO+M=HNOH+M                        1.1E29  -4.000   44000
+   H2O/10/
+ H2NO+H=HNO+H2                        3.0E07   2.000    2000
+ H2NO+H=NH2+OH                        5.0E13   0.000       0
+ H2NO+O=HNO+OH                        3.0E07   2.000    2000
+ H2NO+OH=HNO+H2O                      2.0E07   2.000    1000
+ H2NO+HO2=HNO+H2O2                    2.9E04   2.690   -1600
+ H2NO+O2=HNO+HO2                      3.0E12   0.000   25000
+ H2NO+NH2=HNO+NH3                     3.0E12   0.000    1000
+ H2NO+NO=HNO+HNO                      2.0E04   2.000   13000
+ H2NO+NO2=HONO+HNO                    6.0E11   0.000    2000
+ HNOH+M=HNO+H+M                       2.0E24  -2.840   58934
+   H2O/10/
+ HNOH+H=NH2+OH                        4.0E13   0.000       0
+ HNOH+H=HNO+H2                        4.8E08   1.500     378
+ HNOH+O=HNO+OH                        7.0E13   0.000       0
+ DUP
+ HNOH+O=HNO+OH                        3.3E08   1.500    -358
+ DUP
+ HNOH+OH=HNO+H2O                      2.4E06   2.000   -1192
+ HNOH+HO2=HNO+H2O2                    2.9E04   2.690   -1600
+ HNOH+O2=HNO+HO2                      3.0E12   0.000   25000
+ HNOH+NH2=N2H3+OH                     1.0E01   3.460    -467
+ HNOH+NH2=H2NN+H2O                    8.8E16  -1.080    1113
+ HNOH+NH2=NH3+HNO                     1.8E06   1.940   -1152
+ HNOH+NO2=HONO+HNO                    6.0E11   0.000    2000
+ HCN+M = H+CN+M                       3.4E35  -5.130  133000
+     N2/0.0/ O2/1.5/ H2O/10/
+ HCN+N2 = H+CN+N2                     3.6E26  -2.600  124890
+ HCN+M = HNC+M                        1.6E26  -3.230   54600
+     AR/0.7/ H2O/7.0/  CO2/2.0/
+ CN+H2 = HCN+H                        1.1E05   2.600    1908
+ HCN+O=NCO+H                          1.4E04   2.640    4980
+ HCN+O=CN+OH                          4.2E10   0.400   20665
+ HCN+O=NH+CO                          3.5E03   2.640    4980
+ HCN+OH=CN+H2O                        3.9E06   1.830   10300
+ HCN+OH=HOCN+H                        5.9E04   2.400   12500
+ HCN+OH=HNCO+H                        2.0E-03  4.000    1000
+ HCN+OH=NH2+CO                        7.8E-04  4.000    4000
+ HCN+O2 = CN+HO2                      3.0E13   0.000   75100
+ HCN+CN=NCCN+H                        1.5E07   1.710    1530
+ HNC+H = HCN+H                        7.8E13   0.000    3600
+ HNC+O = NH+CO                        4.6E12   0.000    2200
+ HNC+OH = HNCO+H                      2.8E13   0.000    3700
+ HNC+CN = NCCN+H                      1.0E13   0.000       0
+ CN+O=CO+N                            1.9E12   0.460     723
+ CN+OH=NCO+H                          1.0E15  -0.437       0
+ CN+O2=NCO+O                          7.2E12   0.000    -417
+   DUP
+ CN+O2=NCO+O                         -2.8E17  -2.000       0
+   DUP				     	
+ CN+O2=NO+CO                          2.8E17  -2.000       0
+ CN+NO = NCO+N                        9.6E13   0.000   42100
+ CN+NO2=NCO+NO                        5.3E15  -0.752     344
+ CN+NO2=CO+N2O                        4.9E14  -0.752     344
+ CN+NO2=N2+CO2                        3.7E14  -0.752     344
+ CN+HNO=HCN+NO                        1.8E13   0.000       0
+ CN+HONO=HCN+NO2                      1.2E13   0.000       0
+ CN+N2O=NCN+NO                        3.8E03   2.600    3700
+ CN+HNCO=HCN+NCO                      1.0E13   0.000       0
+ CN+NCO=NCN+CO                        1.8E13   0.000       0
+ HNCO+M=CO+NH+M                       1.1E16   0.000   86000
+     N2/1.5/
+ HNCO+H=NH2+CO                        3.6E04   2.490    2345
+ HNCO+H=NCO+H2                        9.0E07   1.660   13900
+ HNCO+O=NCO+OH                        2.2E06   2.110   11430
+ HNCO+O=NH+CO2                        9.6E07   1.410    8520
+ HNCO+O=HNO+CO                        1.5E08   1.570   44012
+ HNCO+OH=NCO+H2O                      3.6E07   1.500    3600
+ HNCO+HO2=NCO+H2O2                    3.0E11   0.000   22000
+ HNCO+O2=HNO+CO2                      1.0E12   0.000   35000
+ HNCO+NH=NH2+NCO                      3.0E13   0.000   23700
+ HOCN+H=HNCO+H                        3.1E08   0.840    1917
+ HOCN+H=NH2+CO                        1.2E08   0.610    2076
+ HOCN+H=H2+NCO                        2.4E08   1.500    6617
+ HOCN+O=OH+NCO                        1.7E08   1.500    4133
+ HOCN+OH=H2O+NCO                      1.2E06   2.000    -248
+ HOCN+NH2=NCO+NH3                     9.2E05   1.940    3646
+ HCNO=HCN+O                           4.2E31  -6.120   61210
+ HCNO+H=HCN+OH                        7.2E10   0.841    8612
+ HCNO+O=HCO+NO                        6.3E13   0.000       0
+ HCNO+OH=CH2O+NO                      1.0E12   0.000       0
+ HCNO+O=NCO+OH                        7.0E12   0.000       0
+ HCNO+OH=NO+CO+H2                     6.5E12   0.000       0
+ HCNO+OH=NCO+H+OH                     4.5E12   0.000       0
+ HCNO+OH=NCO+H2O                      3.5E12   0.000       0
+ HCNO+OH=HCO+HNO                      4.5E12   0.000       0
+ NCO+M=N+CO+M                         2.2E14   0.000   54050
+     N2/1.5/
+ NCO+H=CO+NH                          7.2E13   0.000    1000
+ NCO+O=NO+CO                          2.0E15  -0.500       0
+ NCO+OH=HON+CO                        5.3E12  -0.070    5126
+ NCO+OH=H+CO+NO                       8.3E12  -0.050   18042
+ NCO+HO2=HNCO+O2                      2.0E13   0.000       0
+ NCO+O2=NO+CO2                        2.0E12   0.000   20000
+ NCO+NO=N2O+CO                        4.0E19  -2.190    1743
+ NCO+NO=N2+CO2                        1.5E21  -2.740    1824
+ NCO+NO2=CO+NO+NO                     2.5E11   0.000    -707
+ NCO+NO2=CO2+N2O                      3.0E12   0.000    -707
+ NCO+HNO=HNCO+NO                      1.8E13   0.000       0
+ NCO+HONO=HNCO+NO2                    3.6E12   0.000       0
+ NCO+N=N2+CO                          2.0E13   0.000       0
+ NCO+NH3 = HNCO+NH2                   2.8E04   2.480     980
+ NCO+NCO=CO+CO+N2                     1.8E13   0.000       0
+ H2CN=HCN+H                           0.4E29  -6.030   29897
+ H2CN+H=HCN+H2                        2.4E08   1.500    -894
+ H2CN+O=HCN+OH                        1.7E08   1.500    -894
+ H2CN+OH=HCN+H2O                      1.5E19  -2.180    2166
+ DUPLICATE
+ H2CN+OH=HCN+H2O                       1.2E06  2.000   -1192
+ DUPLICATE
+ H2CN+O2=CH2O+NO                       3.0E12  0.000    5961
+ H2CN+NH2=HCN+NH3                      9.2E05  1.940   -1152
+ H2CN+N=CH2+N2                         2.0E13  0.000       0
+ HCNH=HCN+H                            6.1E28 -5.690   24271
+ HCNH+H=H2CN+H                         2.0E13  0.000       0
+ HCNH+H=HCN+H2                         2.4E08  1.500    -894
+ HCNH+O=HNCO+H                         7.0E13  0.000       0
+ HCNH+O=HCN+OH                         1.7E08  1.500    -894
+ HCNH+OH=HCN+H2O                       1.2E06  2.000   -1192
+ CO+NO2=NO+CO2                         9.0E13   0.000   33800
+ CO+N2O=N2+CO2                         2.7E11   0.000   20237
+ CH2O+NO2=HONO+HCO                     1.4E-07  5.640    9220
+ CH2O+NO2=HNO2+HCO                     1.1E-01  4.220   19850
+ HCO+NO=HNO+CO                         6.9E12   0.000       0
+ HCO+NO2=NO+CO2+H                      2.3E13   0.000       0
+ HCO+NO2=HONO+CO                       5.0E12   0.000       0
+ HCO+NO2=NO+CO+OH                      5.0E12   0.000       0
+ HCO+HNO=NO+CH2O                       5.8E-01  3.840     115
+ CH4+NO2=HONO+CH3                      6.5E14   0.000   45800
+ CH4+NO2=HNO2+CH3                      6.0E14   0.000   37600
+ CH3+NO(+M)=CH3NO(+M)                  9.0E12   0.000     192
+   LOW /2.5E16 0.0 -2841/
+   TROE /5.0 1E-30 120 1E30/
+ CH3+NO2=CH3O+NO                       1.1E13   0.000       0
+ CH3+HNO=NO+CH4                        2.3E14   0.000    8400
+ CH3OH+NO2=HONO+CH2OH                  1.5E02   3.320   20035
+ CH3OH+NO2=HNO2+CH2OH                  2.4E03   2.900   27470
+ CH3O+NO=HNO+CH2O                      7.5E12   0.000    2017
+   DUPLICATE
+ CH3O+NO=HNO+CH2O                      2.5E18  -2.560       0
+   DUPLICATE
+ CH3O+NO(+M)=CH3ONO(+M)                6.0E14  -0.600       0
+   LOW /8.14E25 -2.8  0/
+   TROE /1.0 1E-30 900 1E30/
+ CH3O+NO2=HONO+CH2O                    6.0E12   0.000    2285
+ CH3O+NO2(+M)=CH3ONO2(+M)              2.2E15  -0.880       0
+   LOW  /2.911E23 -1.74 0/
+   TROE /0.6 1E-30 1E30 1E30/
+ CH3O+HNO=NO+CH3OH                     3.2E13   0.000       0
+ CH2OH+NO=CH2O+HNO                     1.3E12   0.000       0
+ CH2OH+NO2=HONO+CH2O                   5.0E12   0.000       0
+ CH2OH+HNO=NO+CH3OH                    3.0E13   0.000       0
+ CH3OO+NO=NO2+CH3O                     1.4E12   0.000    -715
+ C2H6+NO2=HONO+C2H5                    6.5E14   0.000   41400
+ C2H6+NO2=HNO2+C2H5                    6.0E14   0.000   33200
+ C2H5+NO2=NO+CH3CH2O                   4.0E13  -0.200       0
+ C2H4+NO2=HONO+C2H3                    6.5E14   0.000   41400
+ C2H4+NO2=HNO2+C2H3                    6.0E14   0.000   33200
+ C2H3+NO=C2H2+HNO                      1.0E12   0.000    1000
+ C2H3+NO2=NO+CH2CHO                    7.7E14  -0.600       0
+ CH3CH2OO+NO=NO2+CH3CH2O               1.6E12   0.000    -755
+ CH3CH2O+NO=HNO+CH3CHO                 6.6E12   0.000       0
+ CH3CH2O+NO(+M)=CH3CH2ONO(+M)          1.2E13   0.000    -143
+   LOW  /9.43E19 0 0/
+   TROE /0.6 1E-30 1E30 1E30/
+ CH3CH2O+NO2=HONO+CH3CHO               1.7E12   0.000       0
+ CH3CH2O+NO2(+M)=CH3CH2ONO2(+M)        5.1E15  -1.000       0
+   LOW  /5.88E30 -4.0 0/
+   TROE /0.6 1E-30 1E30 1E30/
+ CH2CHO+NO2=CH2CO+HONO                 8.9E12   0.000    -159
+ CH3CO+NO2=>CH3+CO2+NO                 1.5E13   0.000       0
+ CH2CH2OH+NO2=>CH2O+CH2OH+NO           7.0E12   0.000       0
+ CH2CHOO+NO=NO2+CH2CHO                 1.6E12   0.000    -755
+ HOCH2CH2OO+NO=>CH2OH+CH2O+NO2         1.6E12   0.000    -755
+ CH3NO2(+M)=CH3+NO2(+M)                1.8E16   0.000   58500
+   LOW  /1.259E17 0 42000/
+   TROE /0.183 1E-30 1E30/
+ CH3NO2+H=HONO+CH3                     3.3E12   0.000    3730
+ CH3NO2+H=CH3NO+OH                     1.4E12   0.000    3730
+ CH3NO2+H=CH2NO2+H2                    5.4E02   3.500    5200
+ CH3NO2+O=CH2NO2+OH                    1.5E13   0.000    5350
+ CH3NO2+O2=CH2NO2+HO2                  2.0E13   0.000   57000
+ CH3NO2+OH=CH3OH+NO2                   2.0E10   0.000   -1000
+ CH3NO2+OH=CH2NO2+H2O                  5.0E05   2.000    1000
+ CH3NO2+HO2=CH2NO2+H2O2                3.0E12   0.000   23000
+ CH3NO2+CH3=CH2NO2+CH4                 5.5E-01  4.000    8300
+ CH3NO2+CH3O=CH2NO2+CH3OH              3.0E11   0.000    7000
+ CH3NO2+NO2=CH2NO2+HONO                3.0E11   0.000   32000
+ CH2NO2=CH2O+NO                        1.0E13   0.000   36000
+ CH2NO2+H=CH3+NO2                      5.0E13   0.000       0
+ CH2NO2+O=CH2O+NO2                     5.0E13   0.000       0
+ CH2NO2+OH=CH2OH+NO2                   1.0E13   0.000       0
+ CH2NO2+OH=CH2O+HONO                   1.0E13   0.000       0
+ CH3ONO+H=CH3OH+NO                     1.2E11   0.000    1900
+ CH3ONO+H=CH2O+H2+NO                   1.4E11   0.000    1900
+ CH3ONO+O=CH3O+NO2                     1.4E13   0.000    5210
+ CH3ONO+OH=CH3OH+NO2                   6.0E13   0.000    3505
+ CH3ONO2+H=CH3O+HONO                   1.0E12   0.000       0
+ CH3ONO2+O=CH3O+NO3                    1.5E13   0.000    5260
+ CH3ONO2+OH=CH3O+HONO2                 4.9E11   0.000    2027
+ C2H5NO2(+M)=C2H5+NO2(+M)              2.0E15   0.000   54000
+   LOW  /1.0E18 0 36000/
+ C2H5NO2+OH=CH3CH2OH+NO2               2.0E10   0.000   -1000
+ CH3CH2ONO+OH=CH3CH2OH+NO2             1.6E14   0.000    3505
+ CH3CH2ONO2+OH=CH3CH2O+HONO2           2.2E12   0.000    2140
+   DUPLICATE
+ CH3CH2ONO2+OH=CH3CH2O+HONO2           3.2E10   0.000    -250
+   DUPLICATE
+ CO2+CN=NCO+CO                         3.7E06   2.160   26900
+ CH2O+NCO=HNCO+HCO                     6.0E12   0.000       0
+ HCO+NCO=HNCO+CO                       3.6E13   0.000       0
+ CH4+NH2=CH3+NH3                       7.1E05   2.000    9300
+ CH4+NH=CH3+NH2                        9.0E13   0.000   20000
+ CH4+CN=CH3+HCN                        6.2E04   2.640    -437
+ CH4+NCO=CH3+HNCO                      9.8E12   0.000    8120
+ CH3+N=H2CN+H                          7.1E13   0.000       0
+ CH3+NO=HCN+H2O                        1.5E-1   3.520    3950
+ CH3+NO=H2CN+OH                        1.5E-1   3.520    3950
+ CH3+CN=CH2CN+H                        1.0E14   0.000       0
+ CH3+HOCN=CH3CN+OH                     5.0E12   0.000    2000
+ CH2+N=HCN+H                           5.0E13   0.000       0
+ CH2+NO=HCNO+H                         3.1E12   0.000    -378
+ CH2+NO=HCN+OH                         3.9E11   0.000    -378
+ CH2+NO2=CH2O+NO                       5.9E13   0.000       0
+ CH2+N2=HCN+NH                         1.0E13   0.000   74000
+ CH2(S)+NO=HCN+OH                      2.0E13   0.000       0
+ CH2(S)+NO=CH2+NO                      1.0E14   0.000       0
+ CH2(S)+HCN=CH3+CN                     5.0E13   0.000       0
+ CH+NH3=H2CN+H+H                       4.4E13   0.000    -630
+ CH+N=CN+H                             1.3E13   0.000       0
+ CH+NO=HCN+O                           4.8E13   0.000       0
+ CH+NO=HCO+N                           3.4E13   0.000       0
+ CH+NO=NCO+H                           1.9E13   0.000       0
+ CH+NO2=HCO+NO                         1.0E14   0.000       0
+ CH+N2O=HCN+NO                         1.9E13   0.000    -511
+ CH+N2=NCN+H                           3.7E07   1.420   20723
+ C+NO=CN+O                             2.0E13   0.000       0
+ C+NO=CO+N                             2.8E13   0.000       0
+ C+N2O=CN+NO                           4.8E12   0.000       0
+ C+N2=CN+N                             6.3E13   0.000   46000
+ CH2OH+CN=CH2CN+OH                     5.0E13   0.000       0
+ C2H6+NH2=C2H5+NH3                     3.1E06   1.800    6300
+ C2H6+CN=C2H5+HCN                      1.2E05   2.770   -1788
+ C2H6+NCO=C2H5+HNCO                    1.5E-9   6.890   -2910
+ C2H5+N=C2H4+NH                        4.3E13   0.000       0
+ C2H5+N=CH3+H2CN                       2.3E13   0.000       0
+ C2H4+NH2=C2H3+NH3                     1.2E11   0.000    3950
+ C2H4+CN=C2H3+HCN                      5.9E14  -0.240       0
+ C2H3+NO=HCN+CH2O                      7.0E21  -3.382    1025
+ C2H2+NCO=HCCO+HCN                     1.4E12   0.000    1815
+ C2H+NH3=C2H2+NH2                      7.2E12   0.000    -735
+ C2H+NO=HCN+CO                         6.0E13   0.000     570
+ C2+NO=CN+CO                           4.4E13   0.000       0
+ C2+N2=CN+CN                           1.5E13   0.000   41730
+ HCCO+N=HCN+CO                         5.0E13   0.000       0
+ HCCO+NO=HCNO+CO                       5.9E12   0.089    -457
+ HCCO+NO=HCN+CO2                       3.7E14  -0.750     -90
+ HCCO+NO2=HCNO+CO2                     1.6E13   0.000       0
+ C2O+NO=CO+NCO                         2.6E13   0.000       0
+ NCN+H=HCN+N                           1.0E14   0.000       0
+ NCN+O=CN+NO                           1.0E14   0.000       0
+ NCN+OH=HCN+NO                         5.0E13   0.000       0
+ NCN+O2=NO+NCO                         6.0E09   0.000       0
+ CH3CN+H=HCN+CH3                       4.0E07   2.000    2000
+ CH3CN+H=CH2CN+H2                      3.0E07   2.000    1000
+ CH3CN+O=NCO+CH3                       1.5E04   2.640    4980
+ CH3CN+OH=CH2CN+H2O                    2.0E07   2.000    2000
+ CH2CN+O=CH2O+CN                       1.0E14   0.000       0
+ END

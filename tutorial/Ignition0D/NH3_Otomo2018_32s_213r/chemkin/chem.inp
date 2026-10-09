@@ -1,0 +1,281 @@
+ELEMENTS
+O  H  N  HE AR
+END
+SPECIES
+NO NH3
+H2 O2 H O OH HO2 H2O H2O2
+NH2 NH N NNH
+NH2OH H2NO HNOH HNO HON NO2 HONO HNO2 NO3 HONO2 N2O
+N2H4 N2H3 N2H2 H2NN 
+AR HE N2
+END
+ REACTIONS
+H+O2=O+OH                            1.0E14   0.000   15286
+O+H2=OH+H                            3.8E12   0.000    7948
+ DUPLICATE
+O+H2=OH+H                            8.8E14   0.000   19175
+ DUPLICATE
+OH+H2=H+H2O                          2.2E08   1.510    3430
+OH+OH=O+H2O                          1.4E07   1.689   -1167
+ DUPLICATE
+OH+OH=O+H2O                         -2.7E10   0.567       0
+ DUPLICATE
+H2+M=H+H+M                           4.6E19  -1.400  104380
+ H2/2.5/ H2O/12/ AR/0.0/ 
+H2+AR=H+H+AR                         5.8E18  -1.100  104380
+H+O+M=OH+M                           4.7E18  -1.000       0
+ H2/2.5/  H2O/12/ AR/0.75/ 
+O+O+M=O2+M                           1.9E13   0.000   -1788
+ H2/2.5/ H2O/12/ AR/0.0/ 
+H2O+M = H+OH+M                       6.1E27  -3.322  120790
+ H2/3.0/ H2O/0.0/ N2/2.0/ O2/1.5/ 
+H2O+H2O = H+OH+H2O                 1.006E+26 -2.44  1.2018E+05
+H+O2(+M)=HO2(+M)                     4.7E12   0.440       0
+ LOW/6.366E+20 -1.72  5.248E+02/
+ TROE/0.5  1E-30  1E+30/
+ H2/2.0/ H2O/14/ O2/0.78/ AR/0.67/ 
+HO2+H=H2+O2                          2.8E06   2.090   -1451
+HO2+H=OH+OH                          7.1E13   0.000     295
+HO2+H=H2O+O                          1.4E12   0.000       0
+HO2+O=O2+OH                          2.9E10   1.000    -724
+HO2+OH = H2O+O2 		     1.93E20    -2.49  5.84E+02
+    DUPLICATE
+HO2+OH = H2O+O2 		    1.21E+09   1.24   -1.31E+03
+    DUPLICATE
+HO2+HO2=H2O2+O2                      1.2E09   0.7712  -1825
+ DUPLICATE
+HO2+HO2=H2O2+O2                      1.3E12   0.295    7397
+ DUPLICATE
+H2O2(+M) = OH+OH(+M)                2.00E+12   0.90  4.8749E+04
+ LOW/2.49E+24 -2.30 4.8749E+04/
+ TROE/0.43 1E-30 1E+30/
+ AR/1.0/ H2O/7.5/ N2/1.5/ O2/1.2/ H2O2/7.7/ H2/3.7/ 
+H2O2+H=H2O+OH                        2.4E13   0.000    3970
+H2O2+H=HO2+H2                        4.8E13   0.000    7950
+H2O2+O=HO2+OH                        9.6E06   2.000    3970
+H2O2+OH=HO2+H2O                      1.7E12   0.000     318
+   DUPLICATE
+H2O2+OH=HO2+H2O                      7.6E13   0.000    7270
+   DUPLICATE
+NH3+M=NH2+H+M                        2.2E16   0.000   93470
+NH3+H=NH2+H2                         6.4E05   2.390   10171
+NH3+O=NH2+OH                         9.4E06   1.940    6460
+NH3+OH=NH2+H2O                       2.0E06   2.040     566
+NH3+HO2=NH2+H2O2                     3.0E11   0.000   22000
+NH2+H=NH+H2                          1.0E06   2.32      799
+NH2+O=HNO+H                          6.6E13   0.000       0
+NH2+O=NH+OH                          7.0E12   0.000       0
+ DUP
+NH2+O=NH+OH                          8.6E-1   4.010    1673
+ DUP   
+NH2+OH=NH+H2O                        3.3E06   1.949    -217
+NH2+HO2=NH3+O2                       1.7E04   1.550    2027
+NH2+HO2=H2NO+OH                      5.0E13   0.000       0
+NH2+HO2=HNO+H2O                      1.6E07   0.550     525
+ DUP
+NH2+HO2=HNO+H2O                      5.7E15  -1.120     707
+ DUP
+NH2+HO2=HON+H2O                      2.1E07   0.640     811
+NH2+O2=H2NO+O                        2.6E11   0.4872  29050
+NH2+O2=HNO+OH                        2.9E-2   3.764   18185
+NH2+NH2=NH3+NH                       5.6E00   3.530     552
+NH2+NH=NH3+N                         9.6E03   2.460     107
+NH2+N =N2+H+H                        7.0E13   0.000       0
+NH2+HNO=NH3+NO                       3.6E06   1.630   -1250
+NH2+NO=N2+H2O                        1.3E16   -1.25       0
+ DUP
+NH2+NO=N2+H2O                       -3.1E13   -0.48    1180
+ DUP
+NH2+NO=NNH+OH                        4.29E10   0.29    -870
+NH2+HONO=NH3+NO2                     7.1E01   3.020   -4940
+NH2+NO2=N2O+H2O                      2.6E18  -2.191     455
+NH2+NO2=H2NO+NO                      9.1E11   0.0321  -1512
+NH+H=N+H2                            1.0E14   0.0         0
+NH+O=NO+H                            9.2E13   0.000       0
+NH+OH=HNO+H                          3.2E14  -0.376     -46
+NH+OH=N+H2O                          1.6E07   1.733    -576
+NH+O2=HNO+O                          4.6E05   2.000    6500
+NH+O2=NO+OH                          1.3E06   1.500     100
+NH+NH=NH2+N                          5.7E-1   3.880     342
+NH+N=N2+H                            3.0E13   0.000       0
+NH+NO=N2O+H                          5.0E14  -0.4         0
+NH+NO=N2+OH                          2.7E12  -0.0721   -512
+NH+HONO=NH2+NO2                      1.0E13   0.000       0
+NH+NO2=N2O+OH                        4.1E12   0.000       0
+NH+NO2=HNO+NO                        5.9E12   0.000       0
+N+OH=NO+H                            3.8E13   0.000       0
+N+O2=NO+O                            6.4E09   1.000    6280
+N+NO=N2+O                            9.4E12   0.140       0
+NNH=N2+H                             1.0E09   0.000       0
+NNH+H=N2+H2                          1.0E14   0.000       0
+NNH+O=N2O+H                          1.9E14  -0.274     -22
+NNH+O=N2+OH                          1.2E13   0.145    -217
+NNH+O=NH+NO                          5.2E11   0.381    -409
+NNH+OH=N2+H2O                        5.0E13   0.000       0
+NNH+O2=N2+HO2                        5.6E14  -0.385     -13
+NNH+NH =N2+NH2                       5.0E13   0.000       0
+NNH+NH2=N2+NH3                       5.0E13   0.000       0
+NNH+NO=N2+HNO                        5.0E13   0.000       0
+NH2OH(+M)=NH2+OH(+M)                 1.4E20  -1.310   64080
+ LOW  /5.4E37 -5.96 66783/
+ TROE /0.31 1E-30 1E30 1E30/
+NH2OH+H=HNOH+H2                      4.8E08   1.50     6249
+NH2OH+H=H2NO+H2                      2.4E08   1.50     5067
+NH2OH+O=HNOH+OH                      3.3E08   1.50     3865
+NH2OH+O=H2NO+OH                      1.7E08   1.50     3010
+NH2OH+OH=HNOH+H2O                    1.5E04   2.61    -3537
+NH2OH+OH=H2NO+H2O                    1.5E05   2.28    -1296
+NH2OH+NH2=HNOH+NH3                   1.1E-1   4.00      -97
+NH2OH+NH2=H2NO+NH3                   9.5E00   3.42    -1013
+NH2OH+NH=HNOH+NH2                    2.9E-3   4.40     1564
+NH2OH+NH=H2NO+NH2                    1.5E-3   4.60     2424
+NH2OH+HO2=HNOH+H2O2                  2.9E04   2.69     9557
+NH2OH+HO2=H2NO+H2O2                  1.4E04   2.69     6418
+H2NO+M=HNO+H+M                       2.8E24  -2.830   64915
+ H2O/10/
+H2NO+M=HNOH+M                        1.1E29  -4.000   44000
+ H2O/10/
+H2NO+M=H2+NO+M                       3.83E27 -4.29    60300
+H2NO+H=HNO+H2                        3.0E07   2.000    2000
+H2NO+H=NH2+OH                        5.0E13   0.000       0
+H2NO+O=HNO+OH                        3.0E07   2.000    2000
+H2NO+OH=HNO+H2O                      1.0E14   0.000       0
+H2NO+HO2=HNO+H2O2                    2.9E04   2.690   -1600
+H2NO+O2=HNO+HO2                      2.3E02   2.994   18900
+H2NO+NH2=HNO+NH3                     3.0E12   0.000    1000
+H2NO+NO=HNO+HNO                      2.0E04   2.000   13000
+H2NO+NO2=HONO+HNO                    6.0E11   0.000    2000
+HNOH+M=HNO+H+M                       2.0E24  -2.840   58934
+ H2O/10/
+HNOH+H=NH2+OH                        4.0E13   0.000       0
+HNOH+H=HNO+H2                        4.8E08   1.500     378
+HNOH+O=HNO+OH                        7.0E13   0.000       0
+ DUP
+HNOH+O=HNO+OH                        3.3E08   1.500    -358
+ DUP
+HNOH+OH=HNO+H2O                      2.4E06   2.000   -1192
+HNOH+HO2=HNO+H2O2                    2.9E04   2.690   -1600
+HNOH+HO2=NH2OH+O2                    2.9E04   2.690   -1600
+HNOH+O2=HNO+HO2                      3.0E12   0.000   25000
+HNOH+NH2=NH3+HNO                     1.8E06   1.940   -1152
+HNOH+NO2=HONO+HNO                    6.0E11   0.000    2000
+NO+H(+M)=HNO(+M)                     1.5E15  -0.410       0
+ LOW /2.4E14 0.206 -1550/
+ TROE /0.82 1E-30 1E30 1E30/
+ N2/1.6/
+HNO+H=NO+H2                          9.68E11  0.620     356
+HNO+O=NO+OH                          1.0E13   0.0         0
+HNO+OH=NO+H2O                        3.6E13   0.000       0
+HNO+O2=HO2+NO                        2.0E13   0.000   16000
+HNO+HNO=N2O+H2O                      3.95E12  0.0      5000
+HNO+NO2=HONO+NO                      4.4E04   2.640    4040
+NO+HO2=NO2+OH                        2.1E12   0.000    -497
+NO+O(+M)=NO2(+M)                     1.3E15  -0.750       0
+ LOW  /4.72E24 -2.87 1550/
+ TROE /0.750 1E03 1E05 1E30/
+NO+HO2+M=HONO2+M                     2.23E12 -3.5      2200
+NO2+H=NO+OH                          1.3E14   0.000     362
+NO2+O=NO+O2                          1.1E14  -0.520       0
+NO2+HO2=HONO+O2                      1.9E00   3.320    3044
+NO2+HO2=HNO2+O2                      1.9E01   3.260    4983
+NO2+NO2=NO+NO+O2                     2.0E12   0.0     26825
+NO2+NO2=NO3+NO                       9.6E09   0.730   20900
+NO2+NO=N2O+O2                        1.0E12   0.0     60000
+NO+OH(+M)=HONO(+M)                   1.1E14  -0.300       0
+ LOW  /3.392E23 -2.5 0/
+ TROE /0.75 1E-30 1E30 1E30/  
+NO2+H2=HONO+H                        1.3E04   2.760   29770
+N+NO2=N2O+O                          1.8E12   0.0         0
+HONO+H=HNO+OH                        5.6E10   0.860    5000
+HONO+H=NO+H2O                        8.1E06   1.890    3850
+HONO+O=NO2+OH                        1.2E13   0.000    5960
+HONO+OH=NO2+H2O                      1.3E10   1.0       135
+HONO+NO2=HONO2+NO                    2.0E11   0.000   32700
+HONO+HONO=NO+NO2+H2O                 3.5E-01  3.640   12140
+HNO2(+M)=HONO(+M)                    2.5E14   0.000   32300
+ LOW  /3.1E18 0.0 31500/
+ TROE /1.149 1E-30 3125 1E30/
+HNO2+H=NO2+H2                        2.4E08   1.5      5087
+HNO2+O=NO2+OH                        1.7E08   1.5      3020
+HNO2+OH=NO2+H2O                      1.2E06   2.0      -596
+NO2+O(+M)=NO3(+M)                    3.5E12   0.240       0
+ LOW  /2.5E20 -1.50 0/
+ TROE /0.71 1E-30 1700 1E30/
+NO3+H=NO2+OH                         6.0E13   0.000       0
+NO3+O=NO2+O2                         1.0E13   0.000       0
+NO3+OH=NO2+HO2                       1.4E13   0.000       0
+NO3+HO2=NO2+O2+OH                    1.5E12   0.000       0
+NO3+NO2=NO+NO2+O2                    5.0E10   0.000    2940
+NO2+OH(+M)=HONO2(+M)                 3.0E13   0.000       0
+ LOW  /2.938E25 -3.0 0/
+ TROE /0.4 1E-30 1E30 1E30/
+HONO2+H=H2+NO3                       5.6E08   1.500   16400
+HONO2+H=H2O+NO2                      6.1E01   3.300    6285
+HONO2+H=OH+HONO                      3.8E05   2.300    6976
+HONO2+OH=H2O+NO3                     1.0E10   0.000   -1240
+N2O(+M)=N2+O(+M)                    9.9E10    0.0     57960
+  LOW /6.62E14 0.0 57500./
+  N2/1.7/ O2/1.4/ H2O/12/
+N2O+H=N2+OH                          3.31E10  0.0      5090
+  DUP
+N2O+H=N2+OH                          7.83E14  0.0     19390
+  DUP
+N2O+O=NO+NO                          9.2E13   0.000   27679
+N2O+O=N2+O2                          3.7E12   0.000   15936
+N2O+OH=N2+HO2                        2.0E12   0.0     40000
+HNO+NO=N2O+OH                        2.0E12   0.0     26000
+HNO+N=NO+NH                          1.0E13   0.0      1990
+N2O+NO=NO2+N2                        5.3E05   2.230   46280
+N2O+N=N2+NO                          1.0E13   0.0     19870
+NH2+NH2=N2H2+H2                      1.7E08   1.02    11783
+NH2+NH2=H2NN+H2                      7.2E04   1.880    8802
+NH2+NH=N2H2+H                        1.5E15  -0.5         0
+HNOH+NH2=N2H3+OH                     1.0E01   3.460    -467
+HNOH+NH2=H2NN+H2O                    8.8E16  -1.080    1113
+NH2+NH2(+M)=N2H4(+M)                 5.6E14  -0.414      66
+ LOW  /1.6E34 -5.49 1987/
+ TROE /0.31 1E-30 1E30 1E30/
+N2H4+H=N2H3+H2                       7.0E12   0.000    2500
+N2H4+O=NH2OH+NH                      2.9E11   0.000   -1270
+N2H4+O=N2H3+OH                       1.5E11   0.000   -1270
+N2H4+OH=N2H3+H2O                     1.3E13   0.000    -318
+N2H4+NH2=N2H3+NH3                    3.9E12   0.000    1500
+N2H3=N2H2+H                          3.6E47 -10.380   69009
+N2H3+H=N2H2+H2                       2.4E08   1.500     -10
+N2H3+O=N2H2+OH                       1.7E08   1.500    -646
+N2H3+O=NH2+HNO                       3.0E13   0.000       0
+N2H3+O=>NH2+NO+H                     3.0E13   0.000       0
+N2H3+OH=N2H2+H2O                     1.2E06   2.000   -1192
+N2H3+OH=H2NN+H2O                     3.0E13   0.000       0
+N2H3+OH=NH3+HNO                      1.0E12   0.000   15000
+N2H3+HO2=N2H2+H2O2                   1.4E04   2.690   -1600
+N2H3+HO2=N2H4+O2                     9.2E05   1.940    2126
+N2H3+NH2=N2H2+NH3                    9.2E05   1.940   -1152
+N2H3+NH2=H2NN+NH3                    3.0E13   0.000       0
+N2H3+NH=N2H2+NH2                     2.0E13   0.000       0
+N2H2+M=NNH+H+M                       1.8E40  -8.41    73320
+N2H2+H=NNH+H2                        8.5E04   2.630     230
+N2H2+O=NNH+OH                        3.3E08   1.500     497
+N2H2+O=NH2+NO                        1.0E13   0.000       0
+N2H2+OH=NNH+H2O                      5.9E01   3.400    1360
+N2H2+NH2=NNH+NH3                     8.8E-2   4.050    1610
+N2H2+NH=NNH+NH2                      2.4E06   2.000   -1192
+N2H2+NO=N2O+NH2                      4.0E12   0.000   11922
+H2NN=NNH+H                           3.4E26  -4.830   46228
+ DUP
+H2NN=NNH+H                           3.4E26  -4.830   46228
+ DUP
+H2NN+H=NNH+H2                        4.8E08   1.500    -894
+H2NN+H=N2H2+H                        7.0E13   0.000       0
+H2NN+O=NNH+OH                        3.3E08   1.500    -894
+H2NN+O=NH2+NO                        7.0E13   0.000       0
+H2NN+OH=NNH+H2O                      2.4E06   2.000   -1192
+H2NN+OH=>NH2+NO+H                    2.0E12   0.000       0
+H2NN+HO2=>NH2+NO+OH                  9.0E12   0.000       0
+H2NN+HO2=NNH+H2O2                    2.9E04   2.690   -1600
+H2NN+O2=NH2+NO2                      1.5E12   0.000    5961
+H2NN+NH2=NNH+NH3                     1.8E06   1.940   -1152
+N2+M=N+N+M                           1.89E18 -0.85   224950
+N+O+M=NO+M                           7.60E14 -0.1     -1770
+END
+

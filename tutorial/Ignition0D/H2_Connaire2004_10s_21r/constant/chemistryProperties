@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format          ascii;
+    class           dictionary;
+    location        "constant";
+    object          chemistryProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+chemistryType
+{
+    solver ode;
+    //solver          OptRodas34;
+    //method          FastChemistryModel;
+}
+
+chemistry       on;
+
+initialChemicalTimeStep 1e-07;
+
+jacobian        exact;
+
+odeCoeffs
+{
+    solver          rodas34;
+    absTol          1e-12;
+    relTol          1e-06;
+}
+
+OptRosenbrock34Coeffs
+{
+    absTol          1e-12;
+    relTol          1e-06;
+}
+
+OptSeulexCoeffs
+{
+    absTol          1e-12;
+    relTol          1e-06;
+}
+
+OptRodas34Coeffs
+{
+    absTol          1e-12;
+    relTol          1e-06;
+    solver          rodas34;
+}
+
+#include        "reactions"
+
+massFraction    true;
+
+
+// ************************************************************************* //
