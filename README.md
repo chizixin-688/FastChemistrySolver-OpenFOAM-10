@@ -17,26 +17,8 @@ Some functions and reaction types may not work as expected:
 1. Doesn't support tabulation method or reduction method to  
  further accelerating computation.  
 2. Only support ideal gas  
-3. Support the following reaction type:
-    irreversibleArrhenius  
-    irreversibleArrheniusLindemannFallOff  
-    irreversibleArrheniusSRIFallOff  
-    irreversibleArrheniusTroeFallOff  
-    irreversibleThirdBodyArrhenius  
-    nonEquilibriumReversibleArrhenius  
-    nonEquilibriumReversibleThirdBodyArrhenius  
-    reversibleArrhenius  
-    reversibleArrheniusLindemannFallOff  
-    reversibleArrheniusSRIFallOff  
-    reversibleArrheniusTroeFallOff  
-    reversibleThirdBodyArrhenius  
-4. Unsupport the following reaction type:
-    irreversibleArrheniusLindemannChemicallyActivated  
-    irreversibleArrheniusSRIChemicallyActivated  
-    irreversibleArrheniusTroeChemicallyActivated  
-    reversibleArrheniusLindemannChemicallyActivated  
-    reversibleArrheniusSRIChemicallyActivated  
-    reversibleArrheniusTroeChemicallyActivated  
+3. Unsupport the following reaction type:
+
     irreversibleJanev  
     irreversibleLandauTeller  
     irreversibleLangmuirHinshelwood  
@@ -111,6 +93,17 @@ ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM
     set the macro `USE_LOCALFILE_ true` in Macro.H. The module will use 
     assembly code of vectorized math function of glibc 2.22 in asmCode folder
 
+**Kc limiter**
+    // To avoid floating-point overflow caused by an equilibrium constant of zero
+    // when computing reverse rate constants, OpenFOAM-10 provides a variable
+    // named rootSmall for stability treatment. However, this value is too large,
+    // causing incorrect reaction kinetics results for some reaction mechanisms.
+    // Please refer to the technical documentation or the zero-dimensional ignition
+    // Stagni case provided by this project. Therefore, it is recommended to modify
+    // KcLimiter in Macro.H to a very small value, e.g., 1e-200, to ensure that
+    // OpenFOAM calculation results are consistent with Cantera or Chemkin.
+    // By default, this project provides a numerical implementation consistent with
+    // OpenFOAM-10.
 
 # Usage
 
@@ -133,7 +126,8 @@ ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM
     }
 
 
-    // The option is consistent with OpenFOAM-10. The Jacobian matrix of OF-10 
+    // Use exact jacobian rather than fast jacobian. OpenFOAM option
+    // The Jacobian matrix of OF-10 
     // is based on the mass fraction (Jy). The matrix dCdY is used to convert 
     // the Jc to Jy. If fast option is used, the non-diagonal element dCdY is 
     // zero, and the converting will be fast. However, this may influence the 
@@ -142,7 +136,21 @@ ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM
     jacobian    exact;
     //jacobian    fast;
 
-    // switch on the chemistry
+
+
+    // This option determines whether to use mass fraction or the number of moles
+    // as the state variable. If the number of moles is used, the computation
+    // will be faster than using mass fraction with an exact Jacobian,
+    // and will be more accurate and slightly faster than using a fast Jacobian.
+    // In the ODE system, the state variable is converted to mass fraction
+    // to predict the local error when using the same absTol and relTol.
+    // Therefore, the number of iteration steps for solving chemistry will be the same as
+    // that when using mass fraction with an exact Jacobian.
+    massFraction    true;
+    //massFraction    false;
+
+
+    // switch on the chemistry. OpenFOAM option
     chemistry       on;
     //chemistry       off;
 
@@ -150,7 +158,7 @@ ChemicallyActivatedReactionRateI.H and FallOffReactionRateI.H files in OpenFOAM
     Treact          0;
     //Treact          300;
 
-    // Initial sub step of ODE system.
+    // Initial sub step of ODE system. OpenFOAM option
     initialChemicalTimeStep 1e-07;
 
     // Turn on the load balancing when parallel computing is performed.
