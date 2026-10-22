@@ -30,6 +30,7 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
 
     const volScalarField& T0vf = this->thermo().T().oldTime();
     const volScalarField& p0vf = this->thermo().p().oldTime();
+    const auto& Vvf = this->mesh().V();
 
     double* __restrict__ Phi00 = this->YTpWork[0];
     double* __restrict__ Phi0  = this->YTpWork[1];
@@ -54,10 +55,22 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 {
                     Phi00[i] = Yvf_[i].oldTime()[celli];
                 }
-                for (label i=0; i<nSpecie_; i++)
+                if(this->massFraction==true)
                 {
-                    Phi00[i] = max(0,Phi00[i]);
-                    Phi0[i] =  Phi00[i];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i];
+                    }
+                }
+                else
+                {
+                    const scalar V0 = Vvf[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i]*rho0*V0*this->gas->invW[i];
+                    }
                 }
                 Phi00[this->nSpecie()] = T;
                 Phi0[this->nSpecie()]  = T;
@@ -81,10 +94,26 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 for (label i=0; i<nSpecie_; i++)
                 {
                     Phi0[i] = max(0,Phi0[i]);
-                }                
-                for (label i=0; i<nSpecie_; i++)
+                }
+                if(this->massFraction==true)
                 {
-                    RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0/deltaT[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
+                }
+                else
+                {
+                    scalar mtot = 0;
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        mtot += Phi0[i]*this->gas->W[i];
+                    }
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        const scalar Yi = Phi0[i]*this->gas->W[i]/mtot;
+                        RR_[i][celli] = (Yi - Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
                 }
             }
             else
@@ -402,10 +431,22 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 {
                     Phi00[i] = Yvf_[i].oldTime()[celli];
                 }
-                for (label i=0; i<nSpecie_; i++)
+                if(this->massFraction==true)
                 {
-                    Phi00[i] = max(0,Phi00[i]);
-                    Phi0[i] =  Phi00[i];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i];
+                    }
+                }
+                else
+                {
+                    const scalar V0 = Vvf[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i]*rho0*V0*this->gas->invW[i];
+                    }
                 }
                 Phi00[this->nSpecie()] = T;
                 Phi0[this->nSpecie()]  = T;
@@ -432,9 +473,25 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 {
                     Phi0[i] = max(0,Phi0[i]);
                 }
-                for (label i=0; i<nSpecie_; i++)
+                if(this->massFraction==true)
                 {
-                    RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0/deltaT[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
+                }
+                else
+                {
+                    scalar mtot = 0;
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        mtot += Phi0[i]*this->gas->W[i];
+                    }
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        const scalar Yi = Phi0[i]*this->gas->W[i]/mtot;
+                        RR_[i][celli] = (Yi - Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
                 }
             }
             else
@@ -467,10 +524,24 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                         //Phi00[i] = Yvf_[i].oldTime()[celli];
                         Phi00[i] = cellsToReceive[A][celli].Y_[i];
                     }
-                    for (label i=0; i<nSpecie_; i++)
+                    if(this->massFraction==true)
                     {
-                        Phi00[i] = max(0,Phi00[i]);
-                        Phi0[i] =  Phi00[i];
+                        for (label i=0; i<nSpecie_; i++)
+                        {
+                            Phi00[i] = max(0,Phi00[i]);
+                            Phi0[i] =  Phi00[i];
+                        }
+                    }
+                    else
+                    {
+                        // Remote cell: its rho0/V are unknown. The mole-number ODE is
+                        // invariant to a uniform scaling of N (and V), so a unit-mass
+                        // basis N_i = Y_i/W_i is equivalent.
+                        for (label i=0; i<nSpecie_; i++)
+                        {
+                            Phi00[i] = max(0,Phi00[i]);
+                            Phi0[i] =  Phi00[i]*this->gas->invW[i];
+                        }
                     }
                     Phi00[this->nSpecie()] = T;
                     Phi0[this->nSpecie()]  = T;
@@ -484,16 +555,33 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                     {
                         scalar dt = timeLeft;
                         
-                        solve(celli, p, dt, deltaTChem_[celli]);
+                        solve(cellsToReceive[A][celli].celli, p, dt, deltaTChem_celli);
                         
                         timeLeft -= dt;
                     }
                     deltaTChem_celli = min(deltaTChem_celli, deltaTChemMax_);
 
-                    for (label i=0; i<nSpecie_; i++)
+                    if(this->massFraction==true)
                     {
-                        cellsToReceive[A][celli].Y_[i] = max(0,Phi0[i]);
+                        for (label i=0; i<nSpecie_; i++)
+                        {
+                            cellsToReceive[A][celli].Y_[i] = max(0,Phi0[i]);
+                        }
                     }
+                    else
+                    {
+                        scalar mtot = 0;
+                        for (label i=0; i<nSpecie_; i++)
+                        {
+                            mtot += max(0.0,Phi0[i])*this->gas->W[i];
+                        }
+                        for (label i=0; i<nSpecie_; i++)
+                        {
+                            cellsToReceive[A][celli].Y_[i] =
+                                max(0.0,Phi0[i])*this->gas->W[i]/mtot;
+                        }
+                    }
+                    cellsToReceive[A][celli].deltaTChem_ = deltaTChem_celli;
                 }
 
                 auto duration = (std::chrono::duration_cast<std::chrono::microseconds>
@@ -526,10 +614,22 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 {
                     Phi00[i] = Yvf_[i].oldTime()[celli];
                 }
-                for (label i=0; i<nSpecie_; i++)
+                if(this->massFraction==true)
                 {
-                    Phi00[i] = max(0,Phi00[i]);
-                    Phi0[i] =  Phi00[i];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i];
+                    }
+                }
+                else
+                {
+                    const scalar V0 = Vvf[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        Phi00[i] = max(0,Phi00[i]);
+                        Phi0[i] =  Phi00[i]*rho0*V0*this->gas->invW[i];
+                    }
                 }
                 Phi00[this->nSpecie()] = T;
                 Phi0[this->nSpecie()]  = T;
@@ -556,9 +656,25 @@ Foam::scalar Foam::FastChemistryModel<UnusedThermo>::solve
                 {
                     Phi0[i] = max(0,Phi0[i]);
                 }
-                for (label i=0; i<nSpecie_; i++)
+                if(this->massFraction==true)
                 {
-                    RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0/deltaT[celli];
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        RR_[i][celli] = (Phi0[i]- Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
+                }
+                else
+                {
+                    scalar mtot = 0;
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        mtot += Phi0[i]*this->gas->W[i];
+                    }
+                    for (label i=0; i<nSpecie_; i++)
+                    {
+                        const scalar Yi = Phi0[i]*this->gas->W[i]/mtot;
+                        RR_[i][celli] = (Yi - Phi00[i])*rho0*1.0/deltaT[celli];
+                    }
                 }
             }
             else

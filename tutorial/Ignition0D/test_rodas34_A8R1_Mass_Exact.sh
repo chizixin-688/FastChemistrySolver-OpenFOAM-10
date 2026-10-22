@@ -12,6 +12,13 @@ for case in */ ; do
         echo "Processing case: $case"
 
         cd "$case"
+        # --- convert CHEMKIN input to OpenFOAM dictionaries if absent ---
+        if [[ -f chemkin/chem.inp && ( ! -f constant/reactions || ! -f constant/speciesThermo ) ]]; then
+            thermoFile=chemkin/therm.dat
+            [[ -f "$thermoFile" ]] || thermoFile=chemkin/thermo.dat
+            echo "  chemkinToFoam: chemkin/chem.inp + $thermoFile -> constant/{reactions,speciesThermo}"
+            chemkinToFoam chemkin/chem.inp "$thermoFile" chemkin/transportProperties constant/reactions constant/speciesThermo > log.chemkinToFoam 2>&1 || { echo "  chemkinToFoam FAILED, see log.chemkinToFoam"; cd ..; continue; }
+        fi
         foamDictionary -entry "jacobian" -set "exact" constant/chemistryProperties >/dev/null
         foamDictionary -entry "chemistryType/solver" -set "ode" constant/chemistryProperties >/dev/null
         foamDictionary -entry "chemistryType/method" -set "chemistryModel" constant/chemistryProperties >/dev/null

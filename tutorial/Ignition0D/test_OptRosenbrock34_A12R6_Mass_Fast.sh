@@ -12,13 +12,20 @@ for case in */ ; do
         echo "Processing case: $case"
 
         cd "$case"
+        # --- convert CHEMKIN input to OpenFOAM dictionaries if absent ---
+        if [[ -f chemkin/chem.inp && ( ! -f constant/reactions || ! -f constant/speciesThermo ) ]]; then
+            thermoFile=chemkin/therm.dat
+            [[ -f "$thermoFile" ]] || thermoFile=chemkin/thermo.dat
+            echo "  chemkinToFoam: chemkin/chem.inp + $thermoFile -> constant/{reactions,speciesThermo}"
+            chemkinToFoam chemkin/chem.inp "$thermoFile" chemkin/transportProperties constant/reactions constant/speciesThermo > log.chemkinToFoam 2>&1 || { echo "  chemkinToFoam FAILED, see log.chemkinToFoam"; cd ..; continue; }
+        fi
         foamDictionary -entry "jacobian" -set "fast" constant/chemistryProperties >/dev/null
         foamDictionary -entry "massFraction" -set "true" constant/chemistryProperties >/dev/null
         foamDictionary -entry "chemistryType/solver" -set "OptRosenbrock34" constant/chemistryProperties >/dev/null
         foamDictionary -entry "chemistryType/method" -set "FastChemistryModel" constant/chemistryProperties >/dev/null
         #foamDictionary -entry "OptRodas34Coeffs/solver" -set "rodas34" constant/chemistryProperties >/dev/null
-        foamDictionary -entry "OptRodas34Coeffs/absTol" -set "1e-12" constant/chemistryProperties >/dev/null
-        foamDictionary -entry "OptRodas34Coeffs/relTol" -set "1e-6" constant/chemistryProperties >/dev/null
+        foamDictionary -entry "OptRosenbrock34Coeffs/absTol" -set "1e-12" constant/chemistryProperties >/dev/null
+        foamDictionary -entry "OptRosenbrock34Coeffs/relTol" -set "1e-6" constant/chemistryProperties >/dev/null
         # 运行 chemFoam 并生成 log
         chemFoam > log 2>&1
 

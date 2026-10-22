@@ -1140,7 +1140,12 @@ void Foam::FastChemistryModel<UnusedThermo>::calculate()
         }
         gas->negGstdByRT(Ti,GasReaction->tmp_Exp,GasReaction->negGstdByRT);
 
-        memset(C, 0, this->alignN * sizeof(double)*4);
+        // Zero only the SIMD padding of the concentration array; C[0..nSpecie_-1]
+        // holds the molar concentrations computed above and must be preserved.
+        memset(&C[nSpecie_], 0, static_cast<size_t>(alignN - nSpecie_)*sizeof(double));
+
+        // Zero the source-term buffer before it is accumulated into
+        memset(dNdtByV, 0, this->alignN*sizeof(double));
 
     
         GasReaction->dNdtByV(pi,Ti,C,dNdtByV);
